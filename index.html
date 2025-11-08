@@ -31,28 +31,34 @@
       text-align: center;
     }
 
-    .bgImg {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: brightness(0.45);
-      z-index: 1;
-      opacity: 1;
-      transition: opacity 1s ease-in-out;
-    }
-
+    .bgImg,
     .bgVideo {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
       filter: brightness(0.45);
-      opacity: 0;
-      z-index: 2;
       transition: opacity 1.5s ease;
+      z-index: 1;
+    }
+
+    .bgImg {
+      object-fit: cover;
+      opacity: 1;
+    }
+
+    .bgVideo {
+      opacity: 0;
+      object-fit: cover;
+    }
+
+    /* ✅ Better view on mobile - image + video fit more */
+    @media (max-width: 768px) {
+      .bgImg,
+      .bgVideo {
+        object-fit: contain;
+        background: #000;
+      }
     }
 
     .overlay {
@@ -105,18 +111,14 @@
       font-weight: bold;
     }
 
-    #soundBtn {
-      position: absolute;
-      z-index: 4;
-      bottom: 24px;
-      right: 24px;
-      padding: 10px 18px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.35);
-      border: none;
-      color: #000;
-      cursor: pointer;
-      display: none; /* Only show if sound possible */
+    .contact {
+      margin-top: 18px;
+      font-size: 14px;
+      opacity: 0.85;
+    }
+
+    .contact span {
+      color: #F6C84C;
     }
 
     @media (max-width: 768px) {
@@ -143,20 +145,17 @@
 <body>
   <div class="page">
 
-    <!-- Static image loads instantly -->
+    <!-- Static image shown first -->
     <img src="https://shahzebsungroup-commits.github.io/quikwash/washing.jpeg"
       id="staticImage"
       class="bgImg">
 
-    <!-- Video Background -->
+    <!-- Background Video -->
     <video id="bgVideo" class="bgVideo" autoplay playsinline loop muted>
       <source src="https://shahzebsungroup-commits.github.io/quikwash/washingvd.mp4" type="video/mp4" />
     </video>
 
-    <!-- Enable sound button -->
-    <button id="soundBtn">Enable Sound 🔊</button>
-
-    <!-- Content -->
+    <!-- Page Content -->
     <div class="overlay">
       <h1>quikwash.in</h1>
       <p>Doorstep Professional Car Wash — Online booking starting very soon! 🚗✨</p>
@@ -165,36 +164,32 @@
         <input type="tel" id="phone" placeholder="Enter mobile number" maxlength="10" required pattern="[0-9]{10}">
         <button type="submit">Notify Me</button>
       </form>
+
+      <!-- ✅ Text will remain always -->
+      <div class="contact">
+        Contact: <span>For now book wash on call</span> • <span>+91 xxxxxxxxxx</span>
+      </div>
     </div>
   </div>
 
   <script>
     const video = document.getElementById("bgVideo");
     const img = document.getElementById("staticImage");
-    const soundBtn = document.getElementById("soundBtn");
 
-    // ✅ Step 1: Keep static photo for 3 seconds
+    // ✅ Show image first for 3 seconds
     setTimeout(() => {
-      // ✅ Step 2: When video is ready, fade it in
       video.oncanplay = () => {
         video.style.opacity = "1";
         img.style.opacity = "0";
-        soundBtn.style.display = "block"; // show sound enable button
       };
-    }, 3000);  // ***** THIS IS WHERE THE 3 SECOND DELAY IS SET *****
-
-    // ✅ Enable sound only when user taps
-    soundBtn.addEventListener("click", () => {
-      video.muted = false;
-      video.play();
-      soundBtn.style.display = "none";
-    });
+    }, 3000); // <-- Change delay here (milliseconds)
 
     // ✅ WhatsApp redirect
     document.getElementById("notifyForm").addEventListener("submit", function (e) {
       e.preventDefault();
       let phone = document.getElementById("phone").value;
-      window.location.href = `https://wa.me/916395962806?text=Please notify me when Quikwash launches. My number is: ${phone}`;
+      window.location.href =
+        `https://wa.me/916395962806?text=Please notify me when Quikwash launches. My number is: ${phone}`;
     });
   </script>
 
