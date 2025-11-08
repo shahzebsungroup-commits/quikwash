@@ -31,34 +31,26 @@
       text-align: center;
     }
 
+    /* ✅ FULL SCREEN FIT FOR BOTH ON MOBILE + DESKTOP */
     .bgImg,
     .bgVideo {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
+      object-fit: cover;
+      object-position: center;
       filter: brightness(0.45);
       transition: opacity 1.5s ease;
       z-index: 1;
     }
 
     .bgImg {
-      object-fit: cover;
       opacity: 1;
     }
 
     .bgVideo {
       opacity: 0;
-      object-fit: cover;
-    }
-
-    /* ✅ Better view on mobile - image + video fit more */
-    @media (max-width: 768px) {
-      .bgImg,
-      .bgVideo {
-        object-fit: contain;
-        background: #000;
-      }
     }
 
     .overlay {
@@ -112,7 +104,7 @@
     }
 
     .contact {
-      margin-top: 18px;
+      margin-top: 20px;
       font-size: 14px;
       opacity: 0.85;
     }
@@ -145,27 +137,27 @@
 <body>
   <div class="page">
 
-    <!-- Static image shown first -->
+    <!-- ✅ Fallback Static Image -->
     <img src="https://shahzebsungroup-commits.github.io/quikwash/washing.jpeg"
-      id="staticImage"
-      class="bgImg">
+        alt="car washing image"
+        class="bgImg" />
 
-    <!-- Background Video -->
-    <video id="bgVideo" class="bgVideo" autoplay playsinline loop muted>
+    <!-- ✅ Video Background (loads after image delay or load event) -->
+    <video class="bgVideo" autoplay muted playsinline loop>
       <source src="https://shahzebsungroup-commits.github.io/quikwash/washingvd.mp4" type="video/mp4" />
     </video>
 
-    <!-- Page Content -->
+    <!-- Content -->
     <div class="overlay">
       <h1>quikwash.in</h1>
       <p>Doorstep Professional Car Wash — Online booking starting very soon! 🚗✨</p>
 
+      <!-- Notify Form -->
       <form id="notifyForm" class="formBox">
         <input type="tel" id="phone" placeholder="Enter mobile number" maxlength="10" required pattern="[0-9]{10}">
         <button type="submit">Notify Me</button>
       </form>
 
-      <!-- ✅ Text will remain always -->
       <div class="contact">
         Contact: <span>For now book wash on call</span> • <span>+91 xxxxxxxxxx</span>
       </div>
@@ -173,21 +165,25 @@
   </div>
 
   <script>
-    const video = document.getElementById("bgVideo");
-    const img = document.getElementById("staticImage");
+    const bgImg = document.querySelector(".bgImg");
+    const bgVideo = document.querySelector(".bgVideo");
 
-    // ✅ Show image first for 3 seconds
-    setTimeout(() => {
-      video.oncanplay = () => {
-        video.style.opacity = "1";
-        img.style.opacity = "0";
-      };
-    }, 3000); // <-- Change delay here (milliseconds)
+    // ✅ Fade video after 3 sec OR when fully loaded
+    let showVideo = () => {
+      bgVideo.style.opacity = "1";
+      bgImg.style.opacity = "0";
+    };
 
-    // ✅ WhatsApp redirect
+    bgVideo.addEventListener("loadeddata", () => {
+      setTimeout(showVideo, 3000); // <-- CHANGE STATIC IMAGE TIME HERE
+    });
+
+    // Notify Via WhatsApp
     document.getElementById("notifyForm").addEventListener("submit", function (e) {
       e.preventDefault();
+
       let phone = document.getElementById("phone").value;
+
       window.location.href =
         `https://wa.me/916395962806?text=Please notify me when Quikwash launches. My number is: ${phone}`;
     });
