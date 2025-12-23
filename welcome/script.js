@@ -2,32 +2,32 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbzwssQSPMzsssvkIIoPKxeu
 
 let currentUser = {};
 
-// ================= PAGE LOAD =================
+// ================= PAGE LOAD (CASE B) =================
 window.onload = () => {
   const token = localStorage.getItem("kw_token");
   const email = localStorage.getItem("kw_email");
 
-  if (token && email) {
-    // Case B: token exists → validate with GAS
-    fetch(GAS_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "validateToken",
-        email,
-        token
-      })
+  if (!token || !email) return;
+
+  fetch(GAS_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "validateToken",
+      email,
+      token
     })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        currentUser = data.user;
-        showProfile();
-        loadBookings();
-      } else {
-        localStorage.clear();
-      }
-    });
-  }
+  })
+  .then(r => r.json())
+  .then(res => {
+    if (res.success) {
+      currentUser = res.user;
+      showProfile();
+      loadBookings();
+    } else {
+      localStorage.clear();
+    }
+  })
+  .catch(err => console.error("Auto login error", err));
 };
 
 // ================= GOOGLE LOGIN =================
@@ -40,19 +40,29 @@ function handleGoogleLogin(response) {
       device: navigator.userAgent
     })
   })
-  .then(res => res.json())
-  .then(data => {
-    if (!data.success) {
+  .then(r => r.json())
+  .then(res => {
+    console.log("LOGIN RESPONSE:", res);
+
+    if (!res.success) {
       alert("Login failed");
       return;
     }
 
-    localStorage.setItem("kw_token", data.token);
-    localStorage.setItem("kw_email", data.email);
+    localStorage.setItem("kw_token", res.token);
+    localStorage.setItem("kw_email", res.email);
 
-    currentUser = data.user;
+    currentUser = {
+      email: res.email,
+      name: res.name
+    };
+
     showProfile();
     loadBookings();
+  })
+  .catch(err => {
+    console.error("Login error", err);
+    alert("Login error – check console");
   });
 }
 
@@ -66,8 +76,8 @@ function showProfile() {
 
 // ================= BOOKING =================
 function bookWash() {
-  const mobile = document.getElementById("mobile").value;
-  const address = document.getElementById("address").value;
+  const mobile = document.getElementById("mobile").value.trim();
+  const address = document.getElementById("address").value.trim();
 
   if (!/^\d{10}$/.test(mobile)) {
     alert("Enter valid 10 digit mobile number");
@@ -75,8 +85,6 @@ function bookWash() {
   }
 
   navigator.geolocation.getCurrentPosition(pos => {
-    const location = pos.coords.latitude + "," + pos.coords.longitude;
-
     fetch(GAS_URL, {
       method: "POST",
       body: JSON.stringify({
@@ -84,15 +92,15 @@ function bookWash() {
         email: currentUser.email,
         name: currentUser.name,
         mobile,
-        location,
+        location: pos.coords.latitude + "," + pos.coords.longitude,
         address
       })
     })
     .then(() => {
-      alert("Booking saved");
+      alert("Booking successful");
       loadBookings();
     });
-  });
+  }, () => alert("Location permission denied"));
 }
 
 // ================= LOAD BOOKINGS =================
@@ -104,7 +112,7 @@ function loadBookings() {
       email: currentUser.email
     })
   })
-  .then(res => res.json())
+  .then(r => r.json())
   .then(rows => {
     const tbody = document.querySelector("#bookingTable tbody");
     tbody.innerHTML = "";
