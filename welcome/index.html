@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Kwikkwash</title>
 
-  <!-- Google Identity Services -->
+  <!-- Google Identity Services (load but not visible) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <link rel="stylesheet" href="style.css">
@@ -12,8 +12,13 @@
 
 <body>
 
-<!-- LOGIN BOX -->
-<div class="card" id="loginBox">
+<!-- LOADING -->
+<div class="card" id="loadingBox">
+  <h3>Checking login…</h3>
+</div>
+
+<!-- LOGIN BOX (hidden initially) -->
+<div class="card hidden" id="loginBox">
   <h2>Login to Kwikkwash</h2>
 
   <div id="g_id_onload"
@@ -31,15 +36,12 @@
 <div class="card hidden" id="profileBox">
   <h2 id="welcomeText"></h2>
 
-  <!-- MOBILE -->
   <input type="text" id="mobile" placeholder="Enter 10 digit mobile number">
 
-  <!-- BOOKING -->
   <h3>Book Car Wash</h3>
   <input type="text" id="address" placeholder="Enter address">
   <button onclick="bookWash()">Book Now</button>
 
-  <!-- BOOKINGS -->
   <h3>Recent Bookings</h3>
   <table id="bookingTable">
     <thead>
