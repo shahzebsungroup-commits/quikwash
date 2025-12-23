@@ -54,3 +54,33 @@ function logout() {
   localStorage.clear();
   location.reload();
 }
+function loadBookings() {
+  const url =
+    GAS_URL +
+    "?type=bookings" +
+    "&email=" + encodeURIComponent(currentUser.email);
+
+  fetch(url)
+    .then(r => r.json())
+    .then(rows => {
+      const tbody = document.querySelector("#bookingTable tbody");
+      tbody.innerHTML = "";
+
+      if (!rows.length) {
+        tbody.innerHTML =
+          "<tr><td colspan='4'>No bookings found</td></tr>";
+        return;
+      }
+
+      rows.reverse().forEach(b => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${b.Mobile}</td>
+          <td>${b.Location}</td>
+          <td>${b.Address}</td>
+          <td>${b.Time}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    });
+}
