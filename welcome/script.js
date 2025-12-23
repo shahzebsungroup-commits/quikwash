@@ -1,4 +1,5 @@
-const GAS_URL = "https://script.google.com/macros/s/AKfycbzwssQSPMzsssvkIIoPKxeuwXFTk97RFWNmrZmmcdXY_aIl0OHbPQAV7sctzcUj6uQl6w/exec";
+const GAS_URL =
+  "https://script.google.com/macros/s/AKfycbzwssQSPMzsssvkIIoPKxeuwXFTk97RFWNmrZmmcdXY_aIl0OHbPQAV7sctzcUj6uQl6w/exec";
 
 let currentUser = {};
 
@@ -30,23 +31,22 @@ window.onload = () => {
         showLogin();
       }
     })
-    .catch(err => {
-      console.error("Fetch error", err);
-      showLogin();
-    });
+    .catch(() => showLogin());
 };
 
-// ================= UI =================
+// ================= UI HELPERS =================
+function showLogin() {
+  document.getElementById("loadingBox").classList.add("hidden");
+  document.getElementById("profileBox").classList.add("hidden");
+  document.getElementById("loginBox").classList.remove("hidden");
+}
+
 function showProfile() {
+  document.getElementById("loadingBox").classList.add("hidden");
   document.getElementById("loginBox").classList.add("hidden");
   document.getElementById("profileBox").classList.remove("hidden");
   document.getElementById("welcomeText").innerText =
     "Welcome to Kwikkwash " + currentUser.name;
-}
-
-function showLogin() {
-  document.getElementById("loginBox").classList.remove("hidden");
-  document.getElementById("profileBox").classList.add("hidden");
 }
 
 // ================= LOGOUT =================
