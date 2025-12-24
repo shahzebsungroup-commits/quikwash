@@ -1,107 +1,237 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
 body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f8;
-  padding: 30px;
+  background: radial-gradient(circle at top, #111 0%, #000 60%);
+  color: #fff;
+  min-height: 100vh;
 }
 
-.card {
-  max-width: 500px;
-  margin: auto;
-  background: #fff;
-  padding: 25px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  text-align: center;
-}
-
+/* ========== COMMON ========== */
 .hidden {
   display: none;
 }
 
-#loadingBox {
-  font-size: 18px;
-  color: #555;
-}
-
-input, button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  font-size: 14px;
-}
-
-button {
-  background: #0d6efd;
-  color: white;
-  border: none;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-button.logout {
-  background: #dc3545;
-  margin-top: 20px;
-}
-
-table {
-  width: 100%;
-  margin-top: 15px;
-  border-collapse: collapse;
-}
-
-th, td {
-  border: 1px solid #ddd;
-  padding: 6px;
-  font-size: 13px;
-}
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f8;
-  padding: 30px;
-}
-
-.card {
-  max-width: 500px;
-  margin: auto;
-  background: #fff;
-  padding: 25px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+/* ========== CENTER BOX (LOGIN / LOADING) ========== */
+.centerBox {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   text-align: center;
 }
 
-.hidden {
-  display: none;
+.centerBox h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
 }
 
-input, button {
+.centerBox h2 span {
+  color: #F6C84C;
+}
+
+/* loader */
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255,255,255,0.15);
+  border-top: 4px solid #F6C84C;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 14px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========== DASHBOARD ========== */
+.dashboard {
+  padding: 40px 20px 60px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+/* header */
+.dashHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+
+.dashHeader h1 {
+  font-size: 38px;
+  color: #F6C84C;
+}
+
+.dashHeader p {
+  opacity: 0.85;
+}
+
+.logoutBtn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.logoutBtn:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* grid */
+.dashGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
+}
+
+/* glass cards */
+.glassCard {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(14px);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.glassCard h3 {
+  color: #F6C84C;
+  margin-bottom: 14px;
+}
+
+/* inputs */
+.glassCard input {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   margin-top: 10px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  border-radius: 8px;
   font-size: 14px;
 }
 
-button {
-  background: #0d6efd;
-  color: white;
-  border: none;
-  cursor: pointer;
-  border-radius: 4px;
+.glassCard input::placeholder {
+  color: rgba(255,255,255,0.5);
 }
 
-button.logout {
-  background: #dc3545;
-  margin-top: 20px;
+.glassCard input:focus {
+  outline: none;
+  border-color: #F6C84C;
+  box-shadow: 0 0 0 2px rgba(246, 200, 76, 0.2);
 }
 
+/* table */
 table {
   width: 100%;
-  margin-top: 15px;
+  margin-top: 10px;
   border-collapse: collapse;
 }
 
 th, td {
-  border: 1px solid #ddd;
-  padding: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  padding: 8px;
   font-size: 13px;
+  text-align: left;
+}
+
+th {
+  color: #F6C84C;
+}
+
+/* AI button */
+.aiBtn {
+  margin-top: 16px;
+  padding: 14px;
+  width: 100%;
+  border-radius: 30px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  background: #F6C84C;
+  color: #000;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.aiBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(246, 200, 76, 0.3);
+}
+
+.aiBtn span {
+  position: relative;
+  z-index: 2;
+}
+
+/* mobile */
+@media (max-width: 900px) {
+  .dashGrid {
+    grid-template-columns: 1fr;
+  }
+  .dashHeader h1 {
+    font-size: 30px;
+  }
+  .dashHeader {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+}
+/* Add these at the end of your existing style.css */
+
+#profileFormBox h2 {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+#profileFormBox p {
+  margin-bottom: 30px;
+  opacity: 0.9;
+}
+
+#profileForm {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#profileForm input, #profileForm select {
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  border-radius: 12px;
+  font-size: 16px;
+}
+
+#profileForm input::placeholder {
+  color: rgba(255,255,255,0.5);
+}
+
+#profileForm select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23F6C84C' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 18px;
+}
+
+#profileForm button {
+  margin-top: 10px;
+  padding: 16px;
 }
