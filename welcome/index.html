@@ -3,61 +3,71 @@
 <head>
   <meta charset="UTF-8">
   <title>Kwikkwash</title>
-
-  <!-- Google Identity Services (load but not visible) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
-<!-- LOADING -->
-<div class="card" id="loadingBox">
-  <h3>Checking login…</h3>
-</div>
-
-<!-- LOGIN BOX (hidden initially) -->
-<div class="card hidden" id="loginBox">
-  <h2>Login to Kwikkwash</h2>
-
-  <div id="g_id_onload"
-       data-client_id="262661002432-79edenh6esvcj8ve8r7a2jd728p3fdtb.apps.googleusercontent.com"
-       data-callback="handleGoogleLogin">
+  <!-- LOADING -->
+  <div class="centerBox" id="loadingBox">
+    <div class="loader"></div>
+    <p>Checking login…</p>
   </div>
 
-  <div class="g_id_signin"
-       data-type="standard"
-       data-size="large">
+  <!-- GOOGLE LOGIN -->
+  <div class="centerBox hidden" id="loginBox">
+    <h2>Login to <span>Kwikkwash</span></h2>
+    <div id="googleBtn"></div>
   </div>
-</div>
 
-<!-- PROFILE / WELCOME -->
-<div class="card hidden" id="profileBox">
-  <h2 id="welcomeText"></h2>
+  <!-- PROFILE COMPLETION FORM -->
+  <div class="centerBox hidden" id="profileFormBox">
+    <h2>Complete Your Profile</h2>
+    <p>Please provide these details to continue</p>
+    <form id="profileForm">
+      <input type="tel" id="profileMobile" placeholder="10 digit mobile number" required pattern="\d{10}">
+      <select id="state" required>
+        <option value="">Select State</option>
+      </select>
+      <select id="city" required>
+        <option value="">Select City</option>
+      </select>
+      <input type="text" id="profileAddress" placeholder="Full service address" required>
+      <button type="submit" class="aiBtn"><span>Submit & Continue</span></button>
+    </form>
+  </div>
 
-  <input type="text" id="mobile" placeholder="Enter 10 digit mobile number">
+  <!-- DASHBOARD -->
+  <div class="dashboard hidden" id="profileBox">
+    <header class="dashHeader">
+      <h1 id="welcomeText"></h1>
+      <p>Your premium car care dashboard</p>
+      <button class="logoutBtn" onclick="logout()">Logout</button>
+    </header>
+    <div class="dashGrid">
+      <div class="glassCard">
+        <h3>🚗 Book Car Wash</h3>
+        <input type="text" id="bookingMobile" placeholder="10 digit mobile number">
+        <input type="text" id="bookingAddress" placeholder="Service address">
+        <button class="aiBtn" onclick="bookWash()"><span>Book Now</span></button>
+      </div>
+      <div class="glassCard">
+        <h3>🧾 Recent Bookings</h3>
+        <table id="bookingTable">
+          <thead>
+            <tr>
+              <th>Mobile</th>
+              <th>Location</th>
+              <th>Address</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-  <h3>Book Car Wash</h3>
-  <input type="text" id="address" placeholder="Enter address">
-  <button onclick="bookWash()">Book Now</button>
-
-  <h3>Recent Bookings</h3>
-  <table id="bookingTable">
-    <thead>
-      <tr>
-        <th>Mobile</th>
-        <th>Location</th>
-        <th>Address</th>
-        <th>Time</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <button class="logout" onclick="logout()">Logout</button>
-</div>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
