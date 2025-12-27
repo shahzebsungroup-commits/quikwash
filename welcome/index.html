@@ -3,46 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <title>Kwikkwash</title>
-  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- ========== LOADING ========== -->
+  <!-- LOADING -->
   <div class="centerBox" id="loadingBox">
     <div class="loader"></div>
     <p>Checking login…</p>
   </div>
 
-  <!-- ========== LOGIN ========== -->
+  <!-- GOOGLE LOGIN -->
   <div class="centerBox hidden" id="loginBox">
     <h2>Login to <span>Kwikkwash</span></h2>
-    <!-- Google button will be rendered by JS -->
     <div id="googleBtn"></div>
   </div>
 
-  <!-- ========== DASHBOARD ========== -->
+  <!-- PROFILE COMPLETION FORM -->
+  <div class="centerBox hidden" id="profileFormBox">
+    <h2>Complete Your Profile</h2>
+    <p>Please provide these details to continue</p>
+    <form id="profileForm">
+      <input type="tel" id="profileMobile" placeholder="10 digit mobile number" required pattern="\d{10}">
+      <select id="state" required>
+        <option value="">Select State</option>
+      </select>
+      <select id="city" required>
+        <option value="">Select City</option>
+      </select>
+      <input type="text" id="profileAddress" placeholder="Full service address" required>
+      <button type="submit" class="aiBtn"><span>Submit & Continue</span></button>
+    </form>
+  </div>
+
+  <!-- DASHBOARD -->
   <div class="dashboard hidden" id="profileBox">
-    <!-- HEADER -->
     <header class="dashHeader">
       <h1 id="welcomeText"></h1>
       <p>Your premium car care dashboard</p>
       <button class="logoutBtn" onclick="logout()">Logout</button>
     </header>
-    <!-- CONTENT -->
     <div class="dashGrid">
-      <!-- BOOKING -->
       <div class="glassCard">
         <h3>🚗 Book Car Wash</h3>
-        <input type="text" id="mobile" placeholder="10 digit mobile number">
-        <input type="text" id="address" placeholder="Service address">
-        <button class="aiBtn" onclick="bookWash()">
-          <span>Book Now</span>
-        </button>
+        <input type="text" id="bookingMobile" placeholder="10 digit mobile number">
+        <input type="text" id="bookingAddress" placeholder="Service address">
+        <button class="aiBtn" onclick="bookWash()"><span>Book Now</span></button>
       </div>
-      <!-- BOOKINGS -->
       <div class="glassCard">
         <h3>🧾 Recent Bookings</h3>
         <table id="bookingTable">
@@ -59,6 +67,7 @@
       </div>
     </div>
   </div>
+
   <script src="script.js"></script>
 </body>
 </html>
