@@ -5,206 +5,69 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kwikkwash – Doorstep Car Wash</title>
   
-  <!-- PWA Meta Tags -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="mobile-web-app-capable" content="yes">
+  <!-- PWA Tags -->
   <meta name="theme-color" content="#F6C84C">
-  
-  <!-- Manifest -->
-  <link rel="manifest" href="manifest.json" id="manifest">
+  <link rel="manifest" href="manifest.json">
   
   <!-- Icons -->
-  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/favicon.ico">
-  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/icon-192.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/favicon.ico">
   
   <link rel="stylesheet" href="looks.css">
-  
-  <style>
-    /* Hidden install button - we'll trigger it programmatically */
-    #hiddenInstallBtn {
-      position: absolute;
-      opacity: 0;
-      pointer-events: none;
-      width: 0;
-      height: 0;
-    }
-    
-    /* Custom toast for mobile */
-    .pwa-toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: #F6C84C;
-      color: #000;
-      padding: 12px 24px;
-      border-radius: 30px;
-      font-weight: bold;
-      z-index: 9999;
-      transition: transform 0.5s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      display: none;
-    }
-    
-    .pwa-toast.show {
-      transform: translateX(-50%) translateY(0);
-      display: block;
-    }
-  </style>
 </head>
 <body>
-  <!-- Your existing content -->
-  <!-- ... -->
-  
-  <!-- Hidden Install Button -->
-  <button id="hiddenInstallBtn" aria-label="Install App"></button>
-  
-  <!-- Custom Toast -->
-  <div class="pwa-toast" id="pwaToast">
-    ✓ Kwikkwash App Installed
-  </div>
-  
+  <!-- ================= HERO ================= -->
+  <section class="hero">
+    <!-- HERO VIDEO -->
+    <video class="heroVideo" autoplay muted loop playsinline id="heroVideo">
+      <source src="https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/washingvd.mp4" type="video/mp4">
+    </video>
+
+    <!-- HERO IMAGE -->
+    <img
+      src="https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/washing.jpeg"
+      class="heroImg"
+      alt="Car wash"
+      id="heroImg">
+
+    <!-- HERO OVERLAY -->
+    <div class="heroOverlay">
+      <h1>Kwikkwash</h1>
+      <p class="tagline">Premium Doorstep Car Wash Service</p>
+
+      <div class="features">
+        <div>🚗 At Your Location</div>
+        <div>💧 Water Efficient</div>
+        <div>⚡ 45-Minute Service</div>
+      </div>
+
+      <button id="ctaBtn" class="aiBtn">
+        <span>Book Car Wash</span>
+      </button>
+      
+      <!-- Install App Button (Will be shown/hidden by JS) -->
+      <button id="installBtn" class="aiBtn install-btn">
+        <span>Install App</span>
+      </button>
+
+      <div class="subtext">Fast • Clean • Reliable</div>
+    </div>
+  </section>
+
+  <!-- ================= TESTIMONIALS ================= -->
+  <section class="testimonialsSection">
+    <!-- BACKGROUND VIDEO -->
+    <video class="testVideo" autoplay muted loop playsinline>
+      <source src="https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/washingvd.mp4" type="video/mp4">
+    </video>
+
+    <div class="testOverlay">
+      <h2>Trusted by Car Owners</h2>
+      <p class="testSub">Real experiences from busy people like you</p>
+
+      <div class="testimonialSlider" id="testimonialSlider"></div>
+    </div>
+  </section>
+
   <script src="javascript.js"></script>
-  
-  <script>
-    // ================================
-    // SILENT PWA INSTALLATION
-    // ================================
-    
-    let deferredPrompt;
-    let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    let isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                       window.navigator.standalone === true;
-    
-    // Check if already installed
-    if (isStandalone) {
-      console.log('✓ App already installed');
-    }
-    
-    // Register Service Worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js')
-          .then(registration => {
-            console.log('✓ Service Worker registered');
-            
-            // For iOS - Add to Homescreen simulation
-            if (isIOS) {
-              setTimeout(showIOSInstructions, 3000);
-            }
-          })
-          .catch(err => console.log('Service Worker registration failed:', err));
-      });
-    }
-    
-    // Listen for install prompt
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      
-      console.log('✓ Install prompt available');
-      
-      // Wait 2 seconds and trigger install silently
-      setTimeout(() => {
-        triggerSilentInstall();
-      }, 2000);
-    });
-    
-    // Silent Installation Trigger
-    function triggerSilentInstall() {
-      if (!deferredPrompt || isStandalone) return;
-      
-      // For Android/Chrome - Programmatically trigger install
-      deferredPrompt.prompt().then(() => {
-        return deferredPrompt.userChoice;
-      }).then(choiceResult => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('✓ User accepted install');
-          showToast('✓ Kwikkwash App Installed');
-          
-          // Redirect to app if installed
-          setTimeout(() => {
-            if (window.matchMedia('(display-mode: standalone)').matches) {
-              // Already in standalone mode
-            }
-          }, 1000);
-        }
-        deferredPrompt = null;
-      }).catch(err => {
-        console.log('Install failed:', err);
-      });
-    }
-    
-    // For iOS - Show custom instructions
-    function showIOSInstructions() {
-      if (isStandalone) return;
-      
-      // Check if Safari
-      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-      
-      if (isSafari) {
-        showToast('Tap Share → Add to Home Screen');
-        setTimeout(() => {
-          document.getElementById('pwaToast').classList.remove('show');
-        }, 5000);
-      }
-    }
-    
-    // Show custom toast
-    function showToast(message) {
-      const toast = document.getElementById('pwaToast');
-      toast.textContent = message;
-      toast.classList.add('show');
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, 3000);
-    }
-    
-    // Track user engagement for smarter installation
-    let engagementScore = 0;
-    
-    // Increase score on user interactions
-    document.addEventListener('click', () => {
-      engagementScore += 5;
-      if (engagementScore > 20 && deferredPrompt && !isStandalone) {
-        triggerSilentInstall();
-      }
-    });
-    
-    document.addEventListener('scroll', () => {
-      engagementScore += 2;
-      if (engagementScore > 25 && deferredPrompt && !isStandalone) {
-        triggerSilentInstall();
-      }
-    });
-    
-    // Check PWA eligibility on page load
-    window.addEventListener('load', () => {
-      // Check if meets PWA criteria
-      if ('BeforeInstallPromptEvent' in window) {
-        console.log('✓ Browser supports PWA installation');
-      }
-      
-      // Auto-trigger after 3 seconds if user is engaged
-      setTimeout(() => {
-        if (engagementScore > 10 && deferredPrompt && !isStandalone) {
-          triggerSilentInstall();
-        }
-      }, 3000);
-    });
-    
-    // Detect when app is launched from homescreen
-    if (window.navigator.standalone) {
-      console.log('✓ Launched from homescreen');
-      // You can add analytics here
-    }
-    
-    // Prevent browser's default install prompt
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-    });
-  </script>
 </body>
 </html>
