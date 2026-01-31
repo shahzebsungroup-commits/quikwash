@@ -1,3 +1,12 @@
+// Quick test - remove after debugging
+console.log("=== DEBUG START ===");
+console.log("Window loaded:", document.readyState);
+console.log("heroVideo element:", document.getElementById("heroVideo"));
+console.log("heroImg element:", document.getElementById("heroImg"));
+console.log("testimonialSlider element:", document.getElementById("testimonialSlider"));
+console.log("=== DEBUG END ===");
+
+
 // ================================
 // CONFIG
 // ================================
@@ -52,31 +61,57 @@ function stopSlider() {
 // ================================
 function loadTestimonials() {
   const slider = document.getElementById("testimonialSlider");
-  if (!slider) return;
   
+  // FIX: Check if slider exists
+  if (!slider) {
+    console.log("Testimonial slider element not found");
+    return;
+  }
+  
+  // Show loading message
   slider.innerHTML = '<div class="testimonialCard active"><p>Loading testimonials...</p></div>';
   
+  // Fetch from GAS URL
   fetch(GAS_URL)
-    .then(res => res.ok ? res.json() : Promise.reject('Network error'))
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+      return res.json();
+    })
     .then(data => {
-      if (!data?.testimonials?.length) throw new Error('No data');
+      console.log("GAS Data received:", data); // Debug log
       
+      // Check if testimonials array exists
+      if (!data || !data.testimonials || !Array.isArray(data.testimonials)) {
+        throw new Error("Invalid data format from GAS");
+      }
+      
+      // Clear loading message
       slider.innerHTML = "";
+      
+      // Create testimonial cards
       data.testimonials.forEach((t, i) => {
         const card = document.createElement("div");
         card.className = "testimonialCard";
         if (i === 0) card.classList.add("active");
+        
         card.innerHTML = `
           <div class="top">
             <div class="avatar">${initials(t.name)}</div>
-            <div><strong>${t.name || "Customer"}</strong><br>${t.city || "City"}</div>
+            <div>
+              <strong>${t.name || "Customer"}</strong><br>
+              ${t.city || ""}
+            </div>
           </div>
           <div class="stars">${stars(t.rating)}</div>
           <p>${t.review || "Great service!"}</p>
         `;
+        
         slider.appendChild(card);
       });
       
+      // Initialize slider
       cards = document.querySelectorAll(".testimonialCard");
       if (cards.length > 1) {
         cards.forEach(card => {
@@ -87,30 +122,71 @@ function loadTestimonials() {
       }
     })
     .catch(err => {
-      console.error("Loading testimonials failed:", err);
-      slider.innerHTML = `
-        <div class="testimonialCard active">
+      console.error("GAS Error:", err);
+      
+      // Show fallback testimonials
+      const fallbackTestimonials = [
+        {
+          name: "Raj Sharma",
+          city: "Mumbai",
+          rating: 5,
+          review: "Best car wash service! Highly recommended."
+        },
+        {
+          name: "Priya Patel",
+          city: "Delhi",
+          rating: 5,
+          review: "Very professional and timely service."
+        },
+        {
+          name: "Amit Kumar",
+          city: "Bangalore",
+          rating: 4,
+          review: "Convenient doorstep service. Saves time!"
+        }
+      ];
+      
+      slider.innerHTML = "";
+      fallbackTestimonials.forEach((t, i) => {
+        const card = document.createElement("div");
+        card.className = "testimonialCard";
+        if (i === 0) card.classList.add("active");
+        
+        card.innerHTML = `
           <div class="top">
-            <div class="avatar">RS</div>
-            <div><strong>Raj Sharma</strong><br>Mumbai</div>
+            <div class="avatar">${initials(t.name)}</div>
+            <div>
+              <strong>${t.name}</strong><br>
+              ${t.city}
+            </div>
           </div>
-          <div class="stars">★★★★★</div>
-          <p>Best car wash service! Highly recommended.</p>
-        </div>
-      `;
+          <div class="stars">${stars(t.rating)}</div>
+          <p>${t.review}</p>
+        `;
+        
+        slider.appendChild(card);
+      });
+      
+      cards = document.querySelectorAll(".testimonialCard");
+      if (cards.length > 1) startSlider();
     });
 }
 
 // ================================
-// HERO TRANSITION
+// HERO TRANSITION - FIXED VERSION
 // ================================
 function setupHeroTransition() {
-  const video = document.getElementById("heroVideo");
-  const img = document.getElementById("heroImg");
+  const video = document.querySelector(".heroVideo");
+  const img = document.querySelector(".heroImg");
   
-  if (!video || !img) return;
+  // FIX: Check if elements exist
+  if (!video || !img) {
+    console.log("Hero video or image element not found");
+    return;
+  }
   
   setTimeout(() => {
+    // FIX: Use classList instead of style
     video.classList.add("hide");
     img.classList.add("show");
   }, 3000);
@@ -121,48 +197,67 @@ function setupHeroTransition() {
 // ================================
 function setupPWA() {
   const installBtn = document.getElementById("installBtn");
-  if (!installBtn) return;
   
-  // Check if already installed
+  // FIX: Check if button exists
+  if (!installBtn) {
+    console.log("Install button not found");
+    return;
+  }
+  
+  // Check if already installed as PWA
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
                        window.navigator.standalone === true;
   
   if (isStandalone) {
+    console.log("App already installed as PWA");
     installBtn.style.display = "none";
     return;
   }
   
-  // Listen for install prompt
+  // Listen for PWA install prompt
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
+    
+    console.log("PWA install prompt available");
     
     // Show install button
     installBtn.style.display = "block";
     installBtn.classList.add("pulse");
     
     // Install button click handler
-    installBtn.addEventListener('click', () => {
-      if (!deferredPrompt) return;
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) {
+        alert("PWA installation not supported in your browser");
+        return;
+      }
       
+      // Show install prompt
       deferredPrompt.prompt();
       
-      deferredPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === 'accepted') {
-          installBtn.style.display = "none";
-          alert("App installed successfully!");
-        }
-        deferredPrompt = null;
-      });
+      // Wait for user choice
+      const choiceResult = await deferredPrompt.userChoice;
+      
+      if (choiceResult.outcome === 'accepted') {
+        console.log("User accepted PWA installation");
+        installBtn.style.display = "none";
+        installBtn.classList.remove("pulse");
+        alert("✓ Kwikkwash App installed successfully!");
+      } else {
+        console.log("User dismissed PWA installation");
+      }
+      
+      deferredPrompt = null;
     });
   });
   
-  // Hide button if not supported
+  // Hide button if PWA not supported after 3 seconds
   setTimeout(() => {
-    if (!deferredPrompt) {
+    if (!deferredPrompt && installBtn.style.display !== "none") {
       installBtn.style.display = "none";
+      console.log("PWA installation not supported");
     }
-  }, 2000);
+  }, 3000);
 }
 
 // ================================
@@ -170,9 +265,15 @@ function setupPWA() {
 // ================================
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
-      .then(() => console.log('Service Worker registered'))
-      .catch(err => console.log('Service Worker registration failed:', err));
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(registration => {
+          console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch(err => {
+          console.log('Service Worker registration failed:', err);
+        });
+    });
   }
 }
 
@@ -181,27 +282,54 @@ function registerServiceWorker() {
 // ================================
 function setupCTAButton() {
   const ctaBtn = document.getElementById("ctaBtn");
-  if (ctaBtn) {
-    ctaBtn.addEventListener("click", () => {
-      alert("🚗 Booking coming soon! Call: +91-XXXXXXXXXX");
-    });
+  
+  // FIX: Check if button exists
+  if (!ctaBtn) {
+    console.log("CTA button not found");
+    return;
   }
+  
+  ctaBtn.addEventListener("click", () => {
+    // You can change this to actual booking logic
+    alert("🚗 Book your car wash!\nCall: +91-XXXXXXXXXX\nOr visit our website for online booking.");
+    
+    // Optional: Open booking link
+    // window.open('https://your-booking-link.com', '_blank');
+  });
 }
 
 // ================================
 // INITIALIZE EVERYTHING
 // ================================
 function init() {
+  console.log("Initializing Kwikkwash...");
+  
+  // Setup all features
   setupHeroTransition();
   loadTestimonials();
   setupPWA();
   registerServiceWorker();
   setupCTAButton();
+  
+  console.log("Initialization complete");
 }
 
-// Start when DOM is ready
+// ================================
+// START WHEN READY
+// ================================
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
 } else {
+  // DOM already loaded
   init();
 }
+
+// Debug: Log all elements on page
+window.addEventListener('load', () => {
+  console.log("Page loaded, checking elements...");
+  console.log("heroVideo:", document.querySelector(".heroVideo"));
+  console.log("heroImg:", document.querySelector(".heroImg"));
+  console.log("testimonialSlider:", document.getElementById("testimonialSlider"));
+  console.log("installBtn:", document.getElementById("installBtn"));
+  console.log("ctaBtn:", document.getElementById("ctaBtn"));
+});
