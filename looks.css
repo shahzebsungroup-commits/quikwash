@@ -390,3 +390,26 @@ h1 {
     font-size: 15px;
   }
 }
+
+/* Add this at the end of your existing looks.css file */
+
+/* Install Button Styles */
+.install-btn {
+  margin-top: 15px;
+  display: none; /* Hidden by default, JS will show if needed */
+}
+
+.install-btn::before {
+  background: linear-gradient(120deg, #00ff00, #00ffff, #0000ff);
+}
+
+/* Simple pulse animation for install button */
+@keyframes installPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.install-btn.pulse {
+  animation: installPulse 2s infinite;
+}
