@@ -1,1 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Testimonial</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+<div class="card">
+  <h2>Add Testimonial</h2>
+
+  <form id="form" onsubmit="event.preventDefault(); submitTestimonial();">
+
+    <input id="name" placeholder="Your Name" required>
+    <input id="city" placeholder="City" required>
+
+    <!-- STAR RATING -->
+    <div class="stars" id="stars">
+      <span onclick="setRating(1)">★</span>
+      <span onclick="setRating(2)">★</span>
+      <span onclick="setRating(3)">★</span>
+      <span onclick="setRating(4)">★</span>
+      <span onclick="setRating(5)">★</span>
+    </div>
+
+    <textarea id="review" placeholder="Your review" required></textarea>
+
+    <select id="show">
+      <option value="Yes">Show</option>
+      <option value="No">No</option>
+    </select>
+
+    <button id="submitBtn">Submit</button>
+
+  </form>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
