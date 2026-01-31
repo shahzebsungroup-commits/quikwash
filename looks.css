@@ -1,0 +1,392 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Poppins, sans-serif;
+}
+
+body {
+  background: #000;
+  color: #fff;
+  overflow-x: hidden;
+}
+
+/* ================= HERO ================= */
+.page {
+  height: 100vh;
+  position: relative;
+}
+
+.bgImg, .bgVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.45);
+  transition: opacity 1.5s ease;
+}
+
+.bgVideo { 
+  opacity: 1;
+  z-index: 1;
+}
+
+.bgImg {
+  opacity: 0;
+  z-index: 0;
+  transition: opacity 1.2s ease;
+}
+
+/* jab image show karni ho */
+.bgImg.show {
+  opacity: 1;
+}
+
+/* jab video hide karni ho */
+.bgVideo.hide {
+  opacity: 0;
+}
+
+
+.overlay {
+  position: relative;
+  z-index: 2;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.overlayTestimonials {
+  margin-top: auto;
+  padding-bottom: 40px;
+}
+
+
+h1 {
+  color: #F6C84C;
+  font-size: 46px;
+}
+
+.tagline {
+  opacity: .9;
+  margin-bottom: 22px;
+}
+
+.features {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 30px;
+}
+
+.features div {
+  background: rgba(0,0,0,.55);
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+
+
+.subtext {
+  margin-top: 16px;
+  font-size: 13px;
+  opacity: .8;
+}
+
+/* ================= TESTIMONIALS ================= */
+
+.testimonials {
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.testimonials h2 {
+  color: #F6C84C;
+}
+
+.testSub {
+  opacity: .8;
+  margin: 10px 0 30px;
+}
+
+/* SLIDER CONTAINER */
+.testimonialSlider {
+  position: relative;
+  max-width: 420px;
+  margin: auto;
+  min-height: 240px;
+  perspective: 1200px;
+}
+
+/* GEN-Z CARD ANIMATION */
+.testimonialCard {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.08);
+  padding: 22px;
+  border-radius: 18px;
+  text-align: left;
+
+  opacity: 0;
+  transform: translateX(120%) rotate(6deg) scale(0.9);
+  transition:
+    transform 1.9s cubic-bezier(.12,1.2,.56,1),
+    opacity 5.6s ease;
+}
+
+/* ENTER */
+.testimonialCard.active {
+  opacity: 1;
+  transform: translateX(0) rotate(0deg) scale(1);
+  z-index: 2;
+}
+
+/* EXIT */
+.testimonialCard.exit {
+  opacity: 0;
+  transform: translateX(-120%) rotate(-8deg) scale(0.85);
+  z-index: 1;
+}
+
+/* CARD CONTENT */
+.top {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.avatar {
+  background: #F6C84C;
+  color: #000;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.stars {
+  color: #F6C84C;
+  margin-bottom: 8px;
+}
+
+/* ================= MOBILE ================= */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 36px;
+  }
+
+  .features {
+    flex-direction: column;
+  }
+
+  .testimonialSlider {
+    min-height: 260px;
+  }
+}
+/* Hover highlight (professional splash) */
+.testimonialCard:hover {
+  animation: highlightPulse 1.6s ease-in-out infinite;
+  box-shadow:
+    0 0 0 0 rgba(246, 200, 76, 0.4);
+}
+
+@keyframes highlightPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(246, 200, 76, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(246, 200, 76, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(246, 200, 76, 0);
+  }
+}
+/* ================= TESTIMONIAL BACKGROUND VIDEO ================= */
+
+
+/* testimonials inside hero */
+
+.overlayTestimonials {
+  margin-top: 60px;
+  width: 100%;
+  max-width: 520px;
+}
+
+.overlayTestimonials h2 {
+  font-size: 26px;
+}
+
+@media (max-width: 768px) {
+  .overlayTestimonials {
+    margin-top: 40px;
+  }
+}
+/* ========== HERO ========== */
+.hero {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.heroVideo,
+.heroImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 1.2s ease;
+}
+
+.heroVideo { opacity: 1; }
+.heroImg { opacity: 0; }
+
+.heroImg.show { opacity: 1; }
+.heroVideo.hide { opacity: 0; }
+
+.heroOverlay {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+}
+
+/* ========== TESTIMONIALS SECTION ========== */
+.testimonialsSection {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.testVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.35);
+}
+
+.testOverlay {
+  position: relative;
+  z-index: 2;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+/* dark overlay */
+.testimonialsSection::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 1;
+}
+/* ================= AI CTA BUTTON (FINAL) ================= */
+
+.aiBtn {
+  position: relative;
+  padding: 16px 32px;
+  border-radius: 34px;
+  cursor: pointer;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  background: #F6C84C;
+  color: #000;
+
+  border: none;              /* 🔥 IMPORTANT */
+  overflow: visible;         /* 🔥 IMPORTANT */
+
+  animation: blinkFill 5s ease-in-out infinite;
+}
+
+
+/* text above everything */
+.aiBtn span {
+  position: relative;
+  z-index: 3;
+}
+
+/* AI animated border */
+.aiBtn::before {
+  content: "";
+  position: absolute;
+
+  /* 🔥 OUTER BORDER POSITION */
+  top: -1.5px;
+  left: -1.5px;
+  right: -1.5px;
+  bottom: -1.5px;
+
+  border-radius: 38px;   /* button se thoda zyada */
+
+  background: linear-gradient(
+    120deg,
+    #ff0000,
+    #ff7f00,
+    #ffff00,
+    #00ff00,
+    #00ffff,
+    #0000ff,
+    #8b00ff
+  );
+
+  background-size: 300% 300%;
+  animation: aiBorderMove 8s linear infinite;
+
+  /* 🌈 SOFT RAINBOW GLOW */
+  filter:
+  drop-shadow(0 2px 6px rgba(255, 80, 80, 0.25))     /* red reflection */
+  drop-shadow(0 6px 14px rgba(0, 200, 255, 0.22))    /* cyan reflection */
+  drop-shadow(0 12px 28px rgba(138, 43, 226, 0.30)); /* violet depth */
+
+  z-index: -1;   /* 🔥 behind button */
+}
+
+
+/* hover effect */
+
+
+/* fill blink */
+@keyframes blinkFill {
+  0%, 45% {
+    background: #000;
+    color: #F6C84C;
+  }
+  55% {
+    background: #F6C84C;
+    color: #000;
+  }
+  100% {
+    background: #000;
+    color: #F6C84C;
+  }
+}
+
+/* border motion */
+@keyframes aiBorderMove {
+  0%   { background-position:   0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+/* mobile */
+@media (max-width: 768px) {
+  .aiBtn {
+    padding: 14px 26px;
+    font-size: 15px;
+  }
+}
