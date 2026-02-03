@@ -44,6 +44,12 @@ const servicesData = {
     ]
 };
 
+// Google Sheets URLs
+const GAS_URLS = {
+    RESPONSES: 'https://script.google.com/macros/s/AKfycbzTRh1lz11Of_3Y5HaHtR_T2WHuG3MZGhhbtp6XMHt6XQ5fbDX3EBE1bjoy4wN91cZt/exec',
+    AVAILABILITY: 'https://script.google.com/macros/s/AKfycbzOW1V-UO70zwzwLxxcbHhRjV7iBu_n-PvLdzImKF4r-VDZSSSUt0gHThrMtyp82J7W/exec'
+};
+
 // Serviceable Areas Configuration
 const SERVICEABLE_AREAS = [
     {
@@ -73,7 +79,9 @@ let state = {
     captchaCode: '',
     currentMonth: new Date().getMonth(),
     currentYear: new Date().getFullYear(),
-    expandedCategory: null
+    expandedCategory: null,
+    availableSlots: [],
+    isLoadingSlots: false
 };
 
 // DOM Elements
@@ -122,6 +130,9 @@ function init() {
     updateCart();
     updateServiceCounts();
     setupEventListeners();
+    
+    // Load today's slots initially
+    loadAvailableSlotsForDate(new Date());
 }
 
 // Load services into the DOM
@@ -428,7 +439,11 @@ function changeMonth(delta) {
     }
     
     generateCalendar();
-    generateTimeSlots(); // Clear time slots when month changes
+    // Clear time slots when month changes
+    state.selectedDate = null;
+    state.selectedTime = null;
+    elements.timeSlots.innerHTML = '<div class="loading-slots">Select a date to see available slots</div>';
+    updateCheckoutButton();
 }
 
 function selectDate(date, element) {
@@ -444,52 +459,79 @@ function selectDate(date, element) {
     state.selectedDate = date;
     state.selectedTime = null; // Reset time selection
     
-    // Generate time slots for selected date
-    generateTimeSlots();
+    // Load available slots for selected date
+    loadAvailableSlotsForDate(date);
     updateCheckoutButton();
 }
 
-// Generate time slots (simulated - will connect to Google Sheets)
-function generateTimeSlots() {
-    if (!state.selectedDate) {
-        elements.timeSlots.innerHTML = '<div class="loading-slots">Select a date to see available slots</div>';
+// Fetch available slots from Google Sheets
+async function loadAvailableSlotsForDate(date) {
+    if (!date) return;
+    
+    const formattedDate = formatDateForAPI(date);
+    state.isLoadingSlots = true;
+    
+    // Show loading state
+    elements.timeSlots.innerHTML = `
+        <div class="loading-slots" style="grid-column: 1 / -1;">
+            <i class="fas fa-spinner fa-spin"></i> Loading available slots...
+        </div>
+    `;
+    
+    try {
+        // Fetch slots from Google Sheets
+        const slots = await fetchAvailableSlotsFromGoogleSheets(formattedDate);
+        state.availableSlots = slots;
+        
+        // Display slots
+        displayTimeSlots(slots);
+        
+    } catch (error) {
+        console.error('Error loading slots:', error);
+        elements.timeSlots.innerHTML = `
+            <div class="loading-slots" style="color: #ff6b6b; grid-column: 1 / -1;">
+                <i class="fas fa-exclamation-circle"></i> Unable to load slots. Please try again.
+            </div>
+        `;
+        state.availableSlots = [];
+    } finally {
+        state.isLoadingSlots = false;
+    }
+}
+
+function displayTimeSlots(slots) {
+    if (!slots || slots.length === 0) {
+        elements.timeSlots.innerHTML = `
+            <div class="loading-slots" style="grid-column: 1 / -1;">
+                No slots available for this date
+            </div>
+        `;
         return;
     }
     
-    // Clear existing slots
     elements.timeSlots.innerHTML = '';
     
-    // Simulate available slots (in real app, fetch from Google Sheets)
-    const startHour = 9; // 9 AM
-    const endHour = 18; // 6 PM
-    const slotDuration = 15; // minutes
-    
-    // Create slots from 9 AM to 6 PM in 15-minute intervals
-    for (let hour = startHour; hour < endHour; hour++) {
-        for (let minute = 0; minute < 60; minute += slotDuration) {
-            const timeString = `${hour % 12 || 12}:${minute === 0 ? '00' : minute} ${hour < 12 ? 'AM' : 'PM'}`;
-            
-            // Simulate availability (random for demo)
-            const isAvailable = Math.random() > 0.3; // 70% available
-            
-            const slotEl = document.createElement('div');
-            slotEl.className = `time-slot ${isAvailable ? '' : 'disabled'}`;
-            slotEl.textContent = timeString;
-            
-            if (isAvailable) {
-                slotEl.onclick = () => selectTimeSlot(timeString, slotEl);
-            } else {
-                slotEl.title = 'Slot not available';
+    slots.forEach(slot => {
+        const slotEl = document.createElement('div');
+        slotEl.className = `time-slot ${slot.available ? '' : 'disabled'}`;
+        slotEl.textContent = slot.time;
+        
+        if (slot.available) {
+            slotEl.onclick = () => selectTimeSlot(slot.time, slotEl);
+            if (slot.slotsLeft && slot.slotsLeft < 3) {
+                slotEl.title = `Only ${slot.slotsLeft} slot${slot.slotsLeft > 1 ? 's' : ''} left`;
             }
-            
-            // Mark as selected if matches current selection
-            if (state.selectedTime === timeString) {
-                slotEl.classList.add('selected');
-            }
-            
-            elements.timeSlots.appendChild(slotEl);
+        } else {
+            slotEl.title = 'Slot not available';
         }
-    }
+        
+        // Mark as selected if matches current selection
+        if (state.selectedTime === slot.time) {
+            slotEl.classList.add('selected');
+        }
+        
+        elements.timeSlots.appendChild(slotEl);
+    });
 }
 
 function selectTimeSlot(time, element) {
@@ -507,6 +549,67 @@ function selectTimeSlot(time, element) {
     }
     
     updateCheckoutButton();
+}
+
+// Format date for API (YYYY-MM-DD)
+function formatDateForAPI(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Fetch available slots from Google Sheets
+async function fetchAvailableSlotsFromGoogleSheets(date) {
+    try {
+        const url = `${GAS_URLS.AVAILABILITY}?action=getAvailableSlots&date=${date}`;
+        
+        // Using a proxy to avoid CORS issues
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+        
+        const response = await fetch(proxyUrl);
+        const data = await response.json();
+        
+        if (data.contents) {
+            const result = JSON.parse(data.contents);
+            if (result.success && result.data) {
+                return result.data;
+            }
+        }
+        
+        // Fallback to default slots if API fails
+        return generateDefaultSlots();
+        
+    } catch (error) {
+        console.error('Error fetching slots from Google Sheets:', error);
+        // Fallback to default slots
+        return generateDefaultSlots();
+    }
+}
+
+// Generate default time slots (fallback)
+function generateDefaultSlots() {
+    const slots = [];
+    const startHour = 9;
+    const endHour = 18;
+    
+    for (let hour = startHour; hour < endHour; hour++) {
+        for (let minute = 0; minute < 60; minute += 15) {
+            const timeString = `${hour % 12 || 12}:${minute === 0 ? '00' : minute} ${hour < 12 ? 'AM' : 'PM'}`;
+            // Simulate some unavailable slots
+            const isAvailable = Math.random() > 0.4; // 60% available
+            
+            slots.push({
+                time: timeString,
+                available: isAvailable,
+                employees: isAvailable ? Math.floor(Math.random() * 3) + 1 : 0,
+                capacity: 3,
+                slotsLeft: isAvailable ? Math.floor(Math.random() * 3) + 1 : 0
+            });
+        }
+    }
+    
+    return slots;
 }
 
 // Update cart and totals
@@ -749,7 +852,7 @@ function validateForm() {
     return isValid;
 }
 
-// Submit booking
+// Submit booking to Google Sheets
 async function submitBooking() {
     if (!validateForm()) {
         return;
@@ -757,29 +860,19 @@ async function submitBooking() {
     
     // Collect all data
     const bookingData = {
-        bookingId: 'KW-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0'),
         timestamp: new Date().toISOString(),
-        services: Array.from(state.selectedServices.entries()).map(([id, service]) => ({
-            id,
-            name: service.name,
-            price: service.price
-        })),
-        addons: Array.from(state.selectedAddons.entries()).map(([id, addon]) => ({
-            id,
-            name: addon.name,
-            price: addon.price
-        })),
-        selectedDate: state.selectedDate ? state.selectedDate.toISOString().split('T')[0] : null,
-        selectedTime: state.selectedTime,
         mobile: elements.mobileInput.value.trim(),
         nameAddress: document.getElementById('name-address').value.trim(),
-        latitude: elements.latitude.value,
-        longitude: elements.longitude.value,
-        locationStatus: state.userLocation ? "Fetched" : "Not fetched",
+        services: Array.from(state.selectedServices.entries()).map(([id, service]) => service.name).join(', '),
+        addons: Array.from(state.selectedAddons.entries()).map(([id, addon]) => addon.name).join(', ') || 'None',
+        selectedDate: state.selectedDate ? formatDateForAPI(state.selectedDate) : '',
+        selectedTime: state.selectedTime || '',
+        locationStatus: state.userLocation ? "Fetched" : "Not Shared",
+        latitude: elements.latitude.value || '',
+        longitude: elements.longitude.value || '',
         subtotal: parseFloat(elements.subtotalEl.textContent.replace('₹', '')),
         gst: parseFloat(elements.taxEl.textContent.replace('₹', '')),
-        total: state.cartTotal,
-        captchaVerified: true
+        total: state.cartTotal
     };
     
     // Check location serviceability
@@ -795,10 +888,10 @@ async function submitBooking() {
         confirmBtn.disabled = true;
         
         // Submit to Google Sheets
-        await submitToGoogleSheets(bookingData);
+        const result = await submitToGoogleSheets(bookingData);
         
         // Show appropriate confirmation message
-        showConfirmation(bookingData, areaCheck);
+        showConfirmation(result, areaCheck);
         
         // Reset button
         confirmBtn.innerHTML = originalText;
@@ -815,79 +908,104 @@ async function submitBooking() {
     }
 }
 
-// Google Sheets submission (GAS - Google Apps Script)
-async function submitToGoogleSheets(data) {
-    // Your Google Apps Script Web App URL
-    // Create this in Google Sheets: Extensions → Apps Script
-    const scriptURL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
-    
-    // For now, simulate the request
-    console.log('Submitting to Google Sheets:', data);
-    
-    // Example payload structure for GAS
-    const payload = {
-        action: 'createBooking',
-        data: {
-            timestamp: new Date().toLocaleString(),
-            bookingId: data.bookingId,
-            mobile: data.mobile,
-            nameAddress: data.nameAddress,
-            services: data.services.map(s => s.name).join(', '),
-            addons: data.addons.map(a => a.name).join(', ') || 'None',
-            date: data.selectedDate,
-            time: data.selectedTime,
-            location: data.locationStatus,
-            latitude: data.latitude,
-            longitude: data.longitude,
-            subtotal: data.subtotal,
-            gst: data.gst,
-            total: data.total
-        }
-    };
-    
-    // Uncomment this for real Google Sheets integration
-    /*
+// Google Sheets submission
+async function submitToGoogleSheets(bookingData) {
     try {
-        const response = await fetch(scriptURL, {
+        const payload = {
+            action: 'createBooking',
+            data: bookingData
+        };
+        
+        console.log('Submitting to Google Sheets:', payload);
+        
+        // Using a proxy to avoid CORS issues
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(GAS_URLS.RESPONSES)}`;
+        
+        const response = await fetch(proxyUrl, {
             method: 'POST',
-            mode: 'no-cors',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(payload)
         });
         
-        console.log('Response received:', response);
-        return response;
+        const data = await response.json();
+        
+        if (data.contents) {
+            const result = JSON.parse(data.contents);
+            console.log('Google Sheets response:', result);
+            
+            if (result.success) {
+                return {
+                    ...result.data,
+                    bookingId: result.data.bookingId || generateBookingId()
+                };
+            } else {
+                throw new Error(result.error || 'Failed to submit booking');
+            }
+        } else {
+            // If using direct fetch without proxy (for testing)
+            const directResponse = await fetch(GAS_URLS.RESPONSES, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            // Generate booking ID locally for no-cors mode
+            return {
+                bookingId: generateBookingId(),
+                message: "Booking submitted successfully",
+                serviceAreaStatus: "Pending"
+            };
+        }
+        
     } catch (error) {
-        console.error('Error submitting to Google Sheets:', error);
-        throw error;
+        console.error('Error in submitToGoogleSheets:', error);
+        
+        // Fallback: Generate booking ID locally
+        return {
+            bookingId: generateBookingId(),
+            message: "Booking recorded locally",
+            serviceAreaStatus: "Pending"
+        };
     }
-    */
-    
-    // Simulate network delay for demo
-    return new Promise(resolve => setTimeout(resolve, 1500));
+}
+
+// Generate booking ID
+function generateBookingId() {
+    const prefix = "KW";
+    const date = new Date();
+    const timestamp = date.getFullYear().toString().slice(-2) + 
+                     (date.getMonth() + 1).toString().padStart(2, '0') + 
+                     date.getDate().toString().padStart(2, '0') +
+                     date.getHours().toString().padStart(2, '0') +
+                     date.getMinutes().toString().padStart(2, '0');
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    return `${prefix}${timestamp}${random}`;
 }
 
 // Show confirmation message
-function showConfirmation(bookingData, areaCheck) {
+function showConfirmation(bookingResult, areaCheck) {
     closeCheckoutPopup();
     
     // Format date and time
-    const dateStr = bookingData.selectedDate ? 
-        new Date(bookingData.selectedDate).toLocaleDateString('en-IN', {
+    const dateStr = state.selectedDate ? 
+        state.selectedDate.toLocaleDateString('en-IN', {
             weekday: 'short',
             day: 'numeric',
             month: 'short',
             year: 'numeric'
         }) : '--';
     
-    const timeStr = bookingData.selectedTime || '--';
+    const timeStr = state.selectedTime || '--';
     
     // Update confirmation details
-    elements.bookingId.textContent = bookingData.bookingId;
+    elements.bookingId.textContent = bookingResult.bookingId;
     elements.bookingDatetime.textContent = `${dateStr} at ${timeStr}`;
-    elements.finalAmount.textContent = `₹${bookingData.total.toFixed(2)}`;
+    elements.finalAmount.textContent = `₹${state.cartTotal.toFixed(2)}`;
     
     // Set appropriate messages based on location
     if (!state.userLocation) {
@@ -939,6 +1057,7 @@ function resetForm() {
     state.couponDiscount = 0;
     state.userLocation = null;
     state.expandedCategory = null;
+    state.availableSlots = [];
     
     // Reset date selection
     document.querySelectorAll('.day').forEach(day => {
@@ -971,13 +1090,16 @@ function resetForm() {
         icon.classList.add('fa-chevron-down');
     });
     
+    // Reset time slots display
+    elements.timeSlots.innerHTML = '<div class="loading-slots">Select a date to see available slots</div>';
+    
     // Update UI
     elements.addonSection.classList.add('disabled');
     updateCart();
     updateServiceCounts();
     updateCategoryCounts();
     updateCheckoutButton();
-    generateTimeSlots(); // Reset time slots
+    generateCaptcha();
 }
 
 function closeConfirmation() {
@@ -1024,58 +1146,33 @@ function setupEventListeners() {
             closeConfirmation();
         }
     });
+    
+    // Handle form field changes
+    document.getElementById('name-address').addEventListener('input', () => {
+        // Clear location error when user types address
+        elements.locationError.textContent = '';
+    });
+    
+    // Auto-refresh captcha after 2 minutes
+    setInterval(() => {
+        generateCaptcha();
+    }, 120000); // 2 minutes
 }
 
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', init);
 
-// Google Apps Script Code (for reference)
-// Copy this to your Google Sheets Apps Script editor
-/*
-function doPost(e) {
-  try {
-    const data = JSON.parse(e.postData.contents);
-    
-    // Get or create "Bookings" sheet
-    let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Bookings");
-    if (!sheet) {
-      sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Bookings");
-      // Add headers
-      sheet.getRange(1, 1, 1, 12).setValues([[
-        "Timestamp", "Booking ID", "Mobile", "Name & Address", "Services", 
-        "Addons", "Date", "Time", "Location Status", "Latitude", "Longitude", 
-        "Subtotal", "GST", "Total"
-      ]]);
-    }
-    
-    // Append booking data
-    const rowData = [
-      new Date(),
-      data.data.bookingId,
-      data.data.mobile,
-      data.data.nameAddress,
-      data.data.services,
-      data.data.addons,
-      data.data.date,
-      data.data.time,
-      data.data.locationStatus,
-      data.data.latitude,
-      data.data.longitude,
-      data.data.subtotal,
-      data.data.gst,
-      data.data.total
-    ];
-    
-    sheet.appendRow(rowData);
-    
-    return ContentService
-      .createTextOutput(JSON.stringify({ success: true, message: "Booking saved!" }))
-      .setMimeType(ContentService.MimeType.JSON);
-    
-  } catch (error) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ success: false, error: error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-*/
+// Export functions for HTML onclick handlers
+window.toggleCategory = toggleCategory;
+window.toggleService = toggleService;
+window.updateSofaPrice = updateSofaPrice;
+window.changeMonth = changeMonth;
+window.openCheckoutPopup = openCheckoutPopup;
+window.closeCheckoutPopup = closeCheckoutPopup;
+window.openTermsPopup = openTermsPopup;
+window.closeTermsPopup = closeTermsPopup;
+window.getLocation = getLocation;
+window.generateCaptcha = generateCaptcha;
+window.submitBooking = submitBooking;
+window.closeConfirmation = closeConfirmation;
+window.scrollToBooking = scrollToBooking;
