@@ -3,110 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Car & Sofa Cleaning Services</title>
+    <title>Kwikkwash Proclean Services</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-spray-can"></i> ProClean Services</h1>
-            <p>Book professional cleaning services at your convenience</p>
-        </header>
+    <!-- Header Section -->
+    <header class="hero">
+        <video class="heroVideo" autoplay muted loop playsinline>
+            <source src="https://assets.mixkit.co/videos/preview/mixkit-cleaning-a-car-4882-large.mp4" type="video/mp4">
+        </video>
+        <img class="heroImg" src="https://images.unsplash.com/photo-1565689221354-d87f85d4aee2" alt="Car Cleaning">
+        
+        <div class="heroOverlay">
+            <h1>Kwikkwash Proclean Services</h1>
+            <p class="tagline">Professional cleaning services at your doorstep</p>
+            
+            <div class="features">
+                <div><i class="fas fa-car"></i> Car Cleaning</div>
+                <div><i class="fas fa-couch"></i> Sofa Cleaning</div>
+                <div><i class="fas fa-shield-alt"></i> Premium Quality</div>
+            </div>
+            
+            <button class="aiBtn" onclick="scrollToBooking()">
+                <span><i class="fas fa-calendar-alt"></i> Book Now</span>
+            </button>
+            
+            <p class="subtext">Get sparkling clean results with our expert team</p>
+        </div>
+    </header>
 
-        <main>
-            <!-- Main Services Section -->
-            <section class="services-section">
-                <h2><i class="fas fa-concierge-bell"></i> Main Services</h2>
-                <p class="section-subtitle">Select one or more main services (required for add-ons)</p>
+    <!-- Booking Form Section -->
+    <section class="booking-section" id="booking-form">
+        <div class="container">
+            <h2><i class="fas fa-concierge-bell"></i> Book Your Service</h2>
+            <p class="section-subtitle">Select services and choose available time slot</p>
+            
+            <!-- Main Services -->
+            <div class="services-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-star"></i> Main Services</h3>
+                    <div class="selected-count" id="main-service-count">0 selected</div>
+                </div>
                 
                 <div class="service-category">
-                    <div class="category-header" onclick="toggleCategory('car5')">
-                        <h3>Cars (5 seater)</h3>
+                    <div class="category-header" onclick="toggleCategory('car5', this)">
+                        <div class="category-title">
+                            <h4>Cars (5 seater)</h4>
+                            <div class="category-count">0 selected</div>
+                        </div>
                         <i class="fas fa-chevron-down" id="car5-icon"></i>
                     </div>
                     <div class="category-content" id="car5-content">
-                        <!-- Car 5-seater services will be loaded by JS -->
+                        <!-- Car 5-seater services loaded by JS -->
                     </div>
                 </div>
 
                 <div class="service-category">
-                    <div class="category-header" onclick="toggleCategory('car7')">
-                        <h3>Cars (7 seater)</h3>
+                    <div class="category-header" onclick="toggleCategory('car7', this)">
+                        <div class="category-title">
+                            <h4>Cars (7 seater)</h4>
+                            <div class="category-count">0 selected</div>
+                        </div>
                         <i class="fas fa-chevron-down" id="car7-icon"></i>
                     </div>
                     <div class="category-content" id="car7-content">
-                        <!-- Car 7-seater services will be loaded by JS -->
+                        <!-- Car 7-seater services loaded by JS -->
                     </div>
                 </div>
 
                 <div class="service-category">
-                    <div class="category-header" onclick="toggleCategory('sofa')">
-                        <h3>Sofa Cleaning</h3>
+                    <div class="category-header" onclick="toggleCategory('sofa', this)">
+                        <div class="category-title">
+                            <h4>Sofa Cleaning</h4>
+                            <div class="category-count">0 selected</div>
+                        </div>
                         <i class="fas fa-chevron-down" id="sofa-icon"></i>
                     </div>
                     <div class="category-content" id="sofa-content">
-                        <!-- Sofa services will be loaded by JS -->
+                        <!-- Sofa services loaded by JS -->
                     </div>
                 </div>
-            </section>
+            </div>
 
-            <!-- Add-on Services Section -->
-            <section class="services-section addon-section" id="addon-section">
-                <h2><i class="fas fa-plus-circle"></i> Add-on Services</h2>
-                <p class="section-subtitle">Available only when main service is selected</p>
+            <!-- Add-on Services -->
+            <div class="services-section addon-section" id="addon-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-plus-circle"></i> Add-on Services</h3>
+                    <div class="selected-count" id="addon-service-count">0 selected</div>
+                </div>
                 
                 <div class="service-category">
-                    <div class="category-header" onclick="toggleCategory('addon')">
-                        <h3>Additional Services</h3>
+                    <div class="category-header" onclick="toggleCategory('addon', this)">
+                        <div class="category-title">
+                            <h4>Additional Services</h4>
+                            <div class="category-count">0 selected</div>
+                        </div>
                         <i class="fas fa-chevron-down" id="addon-icon"></i>
                     </div>
                     <div class="category-content" id="addon-content">
-                        <!-- Add-on services will be loaded by JS -->
+                        <!-- Add-on services loaded by JS -->
                     </div>
                 </div>
-            </section>
+            </div>
 
-            <!-- Time Selection Section -->
-            <section class="time-section">
-                <h2><i class="far fa-clock"></i> Select Time Slot</h2>
-                <p class="section-subtitle">Available time slots based on employee availability</p>
-                <div class="time-slots" id="time-slots">
-                    <!-- Time slots will be loaded by JS -->
-                    <div class="loading-slots">Loading available time slots...</div>
+            <!-- Date and Time Selection -->
+            <div class="time-section">
+                <h3><i class="far fa-calendar-alt"></i> Select Date & Time</h3>
+                <p class="section-subtitle">Available slots based on employee availability</p>
+                
+                <div class="date-picker">
+                    <div class="date-header">
+                        <button class="nav-btn" onclick="changeMonth(-1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <h4 id="current-month">February 2024</h4>
+                        <button class="nav-btn" onclick="changeMonth(1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="calendar" id="calendar">
+                        <!-- Calendar will be loaded by JS -->
+                    </div>
                 </div>
-            </section>
+                
+                <div class="time-slots-section">
+                    <h4>Available Time Slots</h4>
+                    <div class="time-slots" id="time-slots">
+                        <div class="loading-slots">Select a date to see available slots</div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Cart Summary -->
-            <section class="cart-section">
-                <h2><i class="fas fa-shopping-cart"></i> Order Summary</h2>
+            <div class="cart-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-shopping-cart"></i> Order Summary</h3>
+                </div>
+                
                 <div class="cart-items" id="cart-items">
                     <div class="empty-cart">No services selected yet</div>
                 </div>
+                
                 <div class="cart-total">
                     <div class="total-line">
                         <span>Subtotal:</span>
                         <span id="subtotal">₹0</span>
                     </div>
                     <div class="total-line">
-                        <span>Tax (18% GST):</span>
+                        <span>GST (18%):</span>
                         <span id="tax">₹0</span>
                     </div>
                     <div class="total-line grand-total">
-                        <span>Total (Including all taxes):</span>
+                        <span>Total Amount:</span>
                         <span id="total">₹0</span>
                     </div>
                 </div>
+                
+                <p class="terms-text">
+                    Using the services is conditional to accept all 
+                    <a href="#" onclick="openTermsPopup()" class="terms-link">terms and conditions</a> applied.
+                </p>
+                
                 <button class="checkout-btn" id="checkout-btn" onclick="openCheckoutPopup()">
                     <i class="fas fa-lock"></i> Proceed to Checkout
                 </button>
-            </section>
-        </main>
+            </div>
+        </div>
+    </section>
 
-        <footer>
-            <p>All prices include taxes. Cancellation allowed up to 2 hours before appointment.</p>
-        </footer>
-    </div>
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Kwikkwash Proclean Services. All rights reserved.</p>
+        </div>
+    </footer>
 
     <!-- Checkout Popup -->
     <div class="popup-overlay" id="checkout-popup">
@@ -122,19 +194,19 @@
                     <h3>Order Summary</h3>
                     <div id="popup-cart-items"></div>
                     <div class="popup-total">
-                        <span>Total Amount:</span>
-                        <span id="popup-total">₹0</span>
+                        <div class="total-line">
+                            <span>Subtotal:</span>
+                            <span id="popup-subtotal">₹0</span>
+                        </div>
+                        <div class="total-line">
+                            <span>GST (18%):</span>
+                            <span id="popup-tax">₹0</span>
+                        </div>
+                        <div class="total-line grand-total">
+                            <span>Total Amount:</span>
+                            <span id="popup-total">₹0</span>
+                        </div>
                     </div>
-                </div>
-
-                <!-- Coupon Code -->
-                <div class="form-group">
-                    <label for="coupon"><i class="fas fa-tag"></i> Coupon Code</label>
-                    <div class="input-with-btn">
-                        <input type="text" id="coupon" placeholder="Enter coupon code">
-                        <button class="apply-btn" onclick="applyCoupon()">Apply</button>
-                    </div>
-                    <div id="coupon-message"></div>
                 </div>
 
                 <!-- Mobile Number -->
@@ -144,21 +216,22 @@
                     <div class="error-message" id="mobile-error"></div>
                 </div>
 
-                <!-- Location -->
-                <div class="form-group">
-                    <label><i class="fas fa-map-marker-alt"></i> Your Location</label>
-                    <button class="location-btn" onclick="getLocation()">
-                        <i class="fas fa-location-arrow"></i> Auto-fetch Location
-                    </button>
-                    <div id="location-status">Location not fetched yet</div>
-                    <input type="hidden" id="latitude">
-                    <input type="hidden" id="longitude">
-                </div>
-
                 <!-- Name and Address -->
                 <div class="form-group">
                     <label for="name-address"><i class="fas fa-user"></i> Name and Address</label>
                     <textarea id="name-address" rows="3" placeholder="Enter your name and full address"></textarea>
+                </div>
+
+                <!-- Location -->
+                <div class="form-group">
+                    <label><i class="fas fa-map-marker-alt"></i> Your Location</label>
+                    <button class="location-btn" onclick="getLocation()">
+                        <i class="fas fa-location-arrow"></i> Share Location
+                    </button>
+                    <div id="location-status">Location not shared yet</div>
+                    <input type="hidden" id="latitude">
+                    <input type="hidden" id="longitude">
+                    <div class="location-error" id="location-error"></div>
                 </div>
 
                 <!-- Captcha -->
@@ -182,22 +255,92 @@
         </div>
     </div>
 
+    <!-- Terms and Conditions Popup -->
+    <div class="popup-overlay" id="terms-popup">
+        <div class="popup-content terms-popup">
+            <div class="popup-header">
+                <h2><i class="fas fa-file-contract"></i> Terms and Conditions</h2>
+                <button class="close-btn" onclick="closeTermsPopup()">&times;</button>
+            </div>
+            <div class="popup-body">
+                <div class="terms-content">
+                    <h3>General Terms and Conditions</h3>
+                    
+                    <div class="terms-section">
+                        <h4><i class="fas fa-clock"></i> Booking and Cancellation</h4>
+                        <ul>
+                            <li>Booking confirmation is subject to availability of our service professionals.</li>
+                            <li>Cancellation allowed up to 2 hours before the scheduled appointment time.</li>
+                            <li>Late cancellations may incur a cancellation fee of 50% of the service amount.</li>
+                            <li>Rescheduling is allowed once, subject to availability.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="terms-section">
+                        <h4><i class="fas fa-car"></i> Service Specific Terms</h4>
+                        <ul>
+                            <li>Car cleaning services require access to water and electricity at your location.</li>
+                            <li>Sofa cleaning requires the furniture to be clear of personal items before our arrival.</li>
+                            <li>Stubborn stains may require additional treatment at extra cost (will be informed beforehand).</li>
+                            <li>We use eco-friendly cleaning products that are safe for your family and pets.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="terms-section">
+                        <h4><i class="fas fa-money-bill-wave"></i> Pricing and Payment</h4>
+                        <ul>
+                            <li>All prices include applicable GST (Goods and Services Tax).</li>
+                            <li>Payment is due upon completion of service.</li>
+                            <li>We accept cash, UPI, and credit/debit cards.</li>
+                            <li>Add-on services can only be booked with main services.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="terms-section">
+                        <h4><i class="fas fa-shield-alt"></i> Liability and Warranty</h4>
+                        <ul>
+                            <li>We are not liable for pre-existing damages to your vehicle or furniture.</li>
+                            <li>Any damage caused during our service will be compensated as per assessment.</li>
+                            <li>Service warranty is valid for 7 days from service date.</li>
+                            <li>Claims must be reported within 24 hours of service completion.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="terms-section">
+                        <h4><i class="fas fa-map-marker-alt"></i> Service Areas</h4>
+                        <ul>
+                            <li>We currently serve selected areas as per our serviceability map.</li>
+                            <li>Location serviceability will be confirmed at time of booking.</li>
+                            <li>Travel charges may apply for locations outside our primary service zones.</li>
+                            <li>Remote areas may require additional coordination time.</li>
+                        </ul>
+                    </div>
+                    
+                    <button class="confirm-btn" onclick="closeTermsPopup()">
+                        <i class="fas fa-check"></i> I Understand and Accept
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Confirmation Message -->
     <div class="confirmation-overlay" id="confirmation-overlay">
         <div class="confirmation-box">
             <div class="confirmation-icon">
                 <i class="fas fa-check-circle"></i>
             </div>
-            <h2>Booking Confirmed!</h2>
-            <p class="confirmation-message">
-                Thank you for choosing ProClean Services! Your booking has been successfully confirmed.
+            <h2 id="confirmation-title">Booking Confirmed!</h2>
+            <p class="confirmation-message" id="confirmation-message">
+                Thank you for choosing Kwikkwash Proclean Services! Your booking has been successfully confirmed.
             </p>
             <div class="confirmation-details">
-                <p><i class="fas fa-receipt"></i> <strong>Booking ID:</strong> <span id="booking-id">PC-001</span></p>
-                <p><i class="far fa-clock"></i> <strong>Estimated Time:</strong> <span id="estimated-time">45 mins</span></p>
+                <p><i class="fas fa-receipt"></i> <strong>Booking ID:</strong> <span id="booking-id">KW-001</span></p>
+                <p><i class="far fa-calendar-alt"></i> <strong>Date & Time:</strong> <span id="booking-datetime">--</span></p>
                 <p><i class="fas fa-rupee-sign"></i> <strong>Total Amount:</strong> <span id="final-amount">₹0</span></p>
+                <p id="location-note" style="display: none;"></p>
             </div>
-            <p class="confirmation-note">
+            <p class="confirmation-note" id="confirmation-note">
                 Our team will contact you shortly to confirm the appointment details.
             </p>
             <button class="done-btn" onclick="closeConfirmation()">

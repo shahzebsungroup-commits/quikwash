@@ -19,8 +19,8 @@ const servicesData = {
             id: 'sofa-leather', 
             name: 'Leather Sofa Cleaning', 
             time: 60, 
-            price: 250, 
-            details: 'Leather cleaning and conditioning',
+            price: 1250, 
+            details: 'Leather cleaning and conditioning (5 seats minimum)',
             type: 'leather',
             minSeats: 5,
             pricePerSeat: 250
@@ -29,37 +29,58 @@ const servicesData = {
             id: 'sofa-cotton', 
             name: 'Cotton Sofa Cleaning', 
             time: 50, 
-            price: 350, 
-            details: 'Cotton fabric deep cleaning',
+            price: 1750, 
+            details: 'Cotton fabric deep cleaning (5 seats minimum)',
             type: 'cotton',
             minSeats: 5,
             pricePerSeat: 350
         }
     ],
     addon: [
-        { id: 'addon-1', name: 'Bike Wash Small', time: 10, price: 50, details: 'External work only - Basic bike wash' },
-        { id: 'addon-2', name: 'Bike Wash Large', time: 15, price: 80, details: 'External work only - Premium bike wash' },
+        { id: 'addon-1', name: 'Bike Wash Basic', time: 10, price: 50, details: 'External work only - Basic bike wash' },
+        { id: 'addon-2', name: 'Bike Wash Premium', time: 15, price: 80, details: 'External work only - Premium bike wash' },
         { id: 'addon-3', name: 'Helmet Cleaning', time: 10, price: 40, details: 'Helmet interior and exterior cleaning' },
         { id: 'addon-4', name: 'Car Perfume', time: 5, price: 30, details: 'Premium car perfume installation' }
     ]
 };
 
+// Serviceable Areas Configuration
+const SERVICEABLE_AREAS = [
+    {
+        name: "Area 1",
+        center: { lat: 26.8987, lng: 80.7179 },
+        radius: 50, // in km
+        message: "Service available in your area!"
+    },
+    {
+        name: "Area 2", 
+        center: { lat: 28.5562, lng: 77.1000 },
+        radius: 10, // in km
+        message: "Service available in your area!"
+    }
+];
+
 // App State
 let state = {
     selectedServices: new Map(),
     selectedAddons: new Map(),
+    selectedDate: null,
     selectedTime: null,
     couponApplied: false,
     couponDiscount: 0,
     userLocation: null,
     cartTotal: 0,
-    captchaCode: ''
+    captchaCode: '',
+    currentMonth: new Date().getMonth(),
+    currentYear: new Date().getFullYear(),
+    expandedCategory: null
 };
 
 // DOM Elements
 const elements = {
     checkoutBtn: document.getElementById('checkout-btn'),
     checkoutPopup: document.getElementById('checkout-popup'),
+    termsPopup: document.getElementById('terms-popup'),
     confirmationOverlay: document.getElementById('confirmation-overlay'),
     addonSection: document.getElementById('addon-section'),
     cartItems: document.getElementById('cart-items'),
@@ -67,27 +88,39 @@ const elements = {
     subtotalEl: document.getElementById('subtotal'),
     taxEl: document.getElementById('tax'),
     totalEl: document.getElementById('total'),
+    popupSubtotal: document.getElementById('popup-subtotal'),
+    popupTax: document.getElementById('popup-tax'),
     popupTotal: document.getElementById('popup-total'),
     timeSlots: document.getElementById('time-slots'),
     mobileInput: document.getElementById('mobile'),
     mobileError: document.getElementById('mobile-error'),
-    couponMessage: document.getElementById('coupon-message'),
+    locationError: document.getElementById('location-error'),
+    locationStatus: document.getElementById('location-status'),
     captchaCode: document.getElementById('captcha-code'),
     captchaInput: document.getElementById('captcha-input'),
     captchaError: document.getElementById('captcha-error'),
     bookingId: document.getElementById('booking-id'),
-    estimatedTime: document.getElementById('estimated-time'),
+    bookingDatetime: document.getElementById('booking-datetime'),
     finalAmount: document.getElementById('final-amount'),
     latitude: document.getElementById('latitude'),
-    longitude: document.getElementById('longitude')
+    longitude: document.getElementById('longitude'),
+    currentMonth: document.getElementById('current-month'),
+    calendar: document.getElementById('calendar'),
+    confirmationTitle: document.getElementById('confirmation-title'),
+    confirmationMessage: document.getElementById('confirmation-message'),
+    confirmationNote: document.getElementById('confirmation-note'),
+    locationNote: document.getElementById('location-note'),
+    mainServiceCount: document.getElementById('main-service-count'),
+    addonServiceCount: document.getElementById('addon-service-count')
 };
 
 // Initialize the application
 function init() {
     loadServices();
-    generateTimeSlots();
+    generateCalendar();
     generateCaptcha();
     updateCart();
+    updateServiceCounts();
     setupEventListeners();
 }
 
@@ -126,7 +159,7 @@ function loadSofaServices() {
         serviceEl.innerHTML = `
             <div class="service-checkbox">
                 <input type="checkbox" id="${service.id}" 
-                       onchange="toggleService('${service.id}', ${service.price})">
+                       onchange="toggleService('${service.id}', ${service.price}, 'main')">
             </div>
             <div class="service-details">
                 <div class="service-name">${service.name}</div>
@@ -178,14 +211,43 @@ function createServiceElement(service, category) {
     return div;
 }
 
-// Toggle category expansion
-function toggleCategory(category) {
+// Toggle category expansion (only one at a time)
+function toggleCategory(category, element) {
+    // If clicking the same category, toggle it
+    if (state.expandedCategory === category) {
+        const content = document.getElementById(`${category}-content`);
+        const icon = document.getElementById(`${category}-icon`);
+        
+        content.classList.toggle('expanded');
+        icon.classList.toggle('fa-chevron-down');
+        icon.classList.toggle('fa-chevron-up');
+        
+        state.expandedCategory = null;
+        return;
+    }
+    
+    // Close previously expanded category
+    if (state.expandedCategory) {
+        const prevContent = document.getElementById(`${state.expandedCategory}-content`);
+        const prevIcon = document.getElementById(`${state.expandedCategory}-icon`);
+        
+        if (prevContent) prevContent.classList.remove('expanded');
+        if (prevIcon) {
+            prevIcon.classList.remove('fa-chevron-up');
+            prevIcon.classList.add('fa-chevron-down');
+        }
+    }
+    
+    // Open new category
     const content = document.getElementById(`${category}-content`);
     const icon = document.getElementById(`${category}-icon`);
     
-    content.classList.toggle('expanded');
-    icon.classList.toggle('fa-chevron-down');
-    icon.classList.toggle('fa-chevron-up');
+    if (content && icon) {
+        content.classList.add('expanded');
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-up');
+        state.expandedCategory = category;
+    }
 }
 
 // Toggle service selection
@@ -229,6 +291,8 @@ function toggleService(serviceId, basePrice, category = 'main') {
     }
     
     updateCart();
+    updateServiceCounts();
+    updateCategoryCounts();
 }
 
 // Update sofa price based on seat count
@@ -251,44 +315,181 @@ function updateSofaPrice(serviceId, pricePerSeat) {
     }
 }
 
-// Generate time slots (simulated - in real app, fetch from Google Sheets)
-function generateTimeSlots() {
-    const timeSlots = [];
-    const startHour = 9; // 9 AM
-    const endHour = 18; // 6 PM
+// Update service counts
+function updateServiceCounts() {
+    // Update main service count
+    elements.mainServiceCount.textContent = `${state.selectedServices.size} selected`;
     
-    // Simulate some unavailable slots
-    const unavailableSlots = ['10:00 AM', '02:00 PM', '04:30 PM'];
-    
-    for (let hour = startHour; hour < endHour; hour++) {
-        for (let minute = 0; minute < 60; minute += 30) {
-            const time = `${hour % 12 || 12}:${minute === 0 ? '00' : '30'} ${hour < 12 ? 'AM' : 'PM'}`;
-            const isAvailable = !unavailableSlots.includes(time);
-            
-            timeSlots.push({
-                time,
-                available: isAvailable
-            });
-        }
-    }
-    
-    displayTimeSlots(timeSlots);
+    // Update addon service count
+    elements.addonServiceCount.textContent = `${state.selectedAddons.size} selected`;
 }
 
-function displayTimeSlots(slots) {
+function updateCategoryCounts() {
+    // Count services in each category
+    const car5Count = Array.from(state.selectedServices.keys()).filter(id => id.startsWith('car5')).length;
+    const car7Count = Array.from(state.selectedServices.keys()).filter(id => id.startsWith('car7')).length;
+    const sofaCount = Array.from(state.selectedServices.keys()).filter(id => id.startsWith('sofa')).length;
+    const addonCount = state.selectedAddons.size;
+    
+    // Update category counts
+    document.querySelectorAll('.category-count').forEach(el => {
+        const parent = el.closest('.category-header');
+        if (parent) {
+            const title = parent.querySelector('h4');
+            if (title) {
+                if (title.textContent.includes('5 seater')) {
+                    el.textContent = `${car5Count} selected`;
+                } else if (title.textContent.includes('7 seater')) {
+                    el.textContent = `${car7Count} selected`;
+                } else if (title.textContent.includes('Sofa')) {
+                    el.textContent = `${sofaCount} selected`;
+                } else if (title.textContent.includes('Additional')) {
+                    el.textContent = `${addonCount} selected`;
+                }
+            }
+        }
+    });
+}
+
+// Calendar Functions
+function generateCalendar() {
+    const month = state.currentMonth;
+    const year = state.currentYear;
+    
+    // Update month display
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+    elements.currentMonth.textContent = `${monthNames[month]} ${year}`;
+    
+    // Clear calendar
+    elements.calendar.innerHTML = '';
+    
+    // Add day headers
+    const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    dayHeaders.forEach(day => {
+        const dayEl = document.createElement('div');
+        dayEl.className = 'day-header';
+        dayEl.textContent = day;
+        elements.calendar.appendChild(dayEl);
+    });
+    
+    // Get first day of month
+    const firstDay = new Date(year, month, 1).getDay();
+    
+    // Get days in month
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // Add empty days for first week
+    for (let i = 0; i < firstDay; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'day';
+        elements.calendar.appendChild(emptyDay);
+    }
+    
+    // Add days of month
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayEl = document.createElement('div');
+        dayEl.className = 'day';
+        dayEl.textContent = day;
+        
+        const currentDate = new Date(year, month, day);
+        
+        // Disable past dates
+        if (currentDate < today) {
+            dayEl.classList.add('disabled');
+        } else {
+            dayEl.onclick = () => selectDate(currentDate, dayEl);
+            
+            // Mark selected date
+            if (state.selectedDate && 
+                state.selectedDate.getDate() === day &&
+                state.selectedDate.getMonth() === month &&
+                state.selectedDate.getFullYear() === year) {
+                dayEl.classList.add('selected');
+            }
+        }
+        
+        elements.calendar.appendChild(dayEl);
+    }
+}
+
+function changeMonth(delta) {
+    state.currentMonth += delta;
+    
+    if (state.currentMonth < 0) {
+        state.currentMonth = 11;
+        state.currentYear--;
+    } else if (state.currentMonth > 11) {
+        state.currentMonth = 0;
+        state.currentYear++;
+    }
+    
+    generateCalendar();
+    generateTimeSlots(); // Clear time slots when month changes
+}
+
+function selectDate(date, element) {
+    // Remove selection from other days
+    document.querySelectorAll('.day').forEach(day => {
+        day.classList.remove('selected');
+    });
+    
+    // Add selection to clicked day
+    element.classList.add('selected');
+    
+    // Store selected date
+    state.selectedDate = date;
+    state.selectedTime = null; // Reset time selection
+    
+    // Generate time slots for selected date
+    generateTimeSlots();
+    updateCheckoutButton();
+}
+
+// Generate time slots (simulated - will connect to Google Sheets)
+function generateTimeSlots() {
+    if (!state.selectedDate) {
+        elements.timeSlots.innerHTML = '<div class="loading-slots">Select a date to see available slots</div>';
+        return;
+    }
+    
+    // Clear existing slots
     elements.timeSlots.innerHTML = '';
     
-    slots.forEach(slot => {
-        const slotEl = document.createElement('div');
-        slotEl.className = `time-slot ${slot.available ? '' : 'disabled'}`;
-        if (!slot.available) {
-            slotEl.title = 'This slot is fully booked';
-        } else {
-            slotEl.onclick = () => selectTimeSlot(slot.time, slotEl);
+    // Simulate available slots (in real app, fetch from Google Sheets)
+    const startHour = 9; // 9 AM
+    const endHour = 18; // 6 PM
+    const slotDuration = 15; // minutes
+    
+    // Create slots from 9 AM to 6 PM in 15-minute intervals
+    for (let hour = startHour; hour < endHour; hour++) {
+        for (let minute = 0; minute < 60; minute += slotDuration) {
+            const timeString = `${hour % 12 || 12}:${minute === 0 ? '00' : minute} ${hour < 12 ? 'AM' : 'PM'}`;
+            
+            // Simulate availability (random for demo)
+            const isAvailable = Math.random() > 0.3; // 70% available
+            
+            const slotEl = document.createElement('div');
+            slotEl.className = `time-slot ${isAvailable ? '' : 'disabled'}`;
+            slotEl.textContent = timeString;
+            
+            if (isAvailable) {
+                slotEl.onclick = () => selectTimeSlot(timeString, slotEl);
+            } else {
+                slotEl.title = 'Slot not available';
+            }
+            
+            // Mark as selected if matches current selection
+            if (state.selectedTime === timeString) {
+                slotEl.classList.add('selected');
+            }
+            
+            elements.timeSlots.appendChild(slotEl);
         }
-        slotEl.textContent = slot.time;
-        elements.timeSlots.appendChild(slotEl);
-    });
+    }
 }
 
 function selectTimeSlot(time, element) {
@@ -312,7 +513,6 @@ function selectTimeSlot(time, element) {
 function updateCart() {
     // Calculate subtotal
     let subtotal = 0;
-    let totalTime = 0;
     
     // Main services
     state.selectedServices.forEach((service, id) => {
@@ -330,17 +530,21 @@ function updateCart() {
         if (subtotal < 0) subtotal = 0;
     }
     
-    // Calculate tax (18% GST)
-    const tax = subtotal * 0.18;
-    const total = subtotal + tax;
+    // Calculate GST (18%)
+    const gst = subtotal * 0.18;
+    const total = subtotal + gst;
     
     // Update state
     state.cartTotal = total;
     
     // Update UI
     elements.subtotalEl.textContent = `₹${subtotal.toFixed(2)}`;
-    elements.taxEl.textContent = `₹${tax.toFixed(2)}`;
+    elements.taxEl.textContent = `₹${gst.toFixed(2)}`;
     elements.totalEl.textContent = `₹${total.toFixed(2)}`;
+    
+    // Update popup totals
+    elements.popupSubtotal.textContent = `₹${subtotal.toFixed(2)}`;
+    elements.popupTax.textContent = `₹${gst.toFixed(2)}`;
     elements.popupTotal.textContent = `₹${total.toFixed(2)}`;
     
     // Update cart items display
@@ -385,9 +589,10 @@ function updateCartDisplay() {
 
 function updateCheckoutButton() {
     const hasServices = state.selectedServices.size > 0;
+    const hasDate = state.selectedDate !== null;
     const hasTime = state.selectedTime !== null;
     
-    elements.checkoutBtn.disabled = !(hasServices && hasTime);
+    elements.checkoutBtn.disabled = !(hasServices && hasDate && hasTime);
     if (elements.checkoutBtn.disabled) {
         elements.checkoutBtn.style.opacity = '0.6';
         elements.checkoutBtn.style.cursor = 'not-allowed';
@@ -407,49 +612,26 @@ function closeCheckoutPopup() {
     elements.checkoutPopup.style.display = 'none';
 }
 
-// Coupon application
-function applyCoupon() {
-    const couponInput = document.getElementById('coupon');
-    const coupon = couponInput.value.trim().toUpperCase();
-    
-    // Simulated coupon validation
-    const validCoupons = {
-        'CLEAN10': 10,
-        'WELCOME20': 20,
-        'SUPER30': 30
-    };
-    
-    if (validCoupons[coupon]) {
-        state.couponApplied = true;
-        state.couponDiscount = validCoupons[coupon];
-        elements.couponMessage.innerHTML = `
-            <span style="color: #2ecc71;">
-                <i class="fas fa-check-circle"></i> Coupon applied! ₹${state.couponDiscount} discount
-            </span>
-        `;
-        updateCart();
-    } else {
-        state.couponApplied = false;
-        state.couponDiscount = 0;
-        elements.couponMessage.innerHTML = `
-            <span style="color: #e74c3c;">
-                <i class="fas fa-times-circle"></i> Invalid coupon code
-            </span>
-        `;
-        updateCart();
-    }
+// Terms popup functions
+function openTermsPopup() {
+    elements.termsPopup.style.display = 'flex';
+}
+
+function closeTermsPopup() {
+    elements.termsPopup.style.display = 'none';
 }
 
 // Location functions
 function getLocation() {
     if (!navigator.geolocation) {
-        alert("Geolocation is not supported by your browser");
+        elements.locationError.textContent = "Geolocation is not supported by your browser";
+        elements.locationStatus.textContent = "Location not supported";
         return;
     }
     
-    const locationStatus = document.getElementById('location-status');
-    locationStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching location...';
-    locationStatus.style.color = '#4a6491';
+    elements.locationStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching location...';
+    elements.locationStatus.style.color = '#F6C84C';
+    elements.locationError.textContent = '';
     
     navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -459,48 +641,65 @@ function getLocation() {
             elements.latitude.value = lat;
             elements.longitude.value = lng;
             
-            // Reverse geocoding to get address (simulated)
-            setTimeout(() => {
-                locationStatus.innerHTML = `
-                    <span style="color: #2ecc71;">
-                        <i class="fas fa-check-circle"></i> Location fetched successfully!
-                    </span>
-                    <br><small>Latitude: ${lat.toFixed(6)}, Longitude: ${lng.toFixed(6)}</small>
-                `;
-                
-                // Auto-fill address field with example
-                document.getElementById('name-address').value = 
-                    `John Doe\n123, Sample Street,\nMumbai, Maharashtra - 400001`;
-            }, 1000);
-        },
-        (error) => {
-            let message = "Error fetching location: ";
-            switch(error.code) {
-                case error.PERMISSION_DENIED:
-                    message += "User denied the request for Geolocation.";
-                    break;
-                case error.POSITION_UNAVAILABLE:
-                    message += "Location information is unavailable.";
-                    break;
-                case error.TIMEOUT:
-                    message += "The request to get user location timed out.";
-                    break;
-                default:
-                    message += "An unknown error occurred.";
-                    break;
-            }
-            locationStatus.innerHTML = `
-                <span style="color: #e74c3c;">
-                    <i class="fas fa-exclamation-circle"></i> ${message}
+            // Store location in state
+            state.userLocation = { lat, lng };
+            
+            elements.locationStatus.innerHTML = `
+                <span style="color: #2ecc71;">
+                    <i class="fas fa-check-circle"></i> Location fetched successfully!
                 </span>
             `;
         },
+        (error) => {
+            elements.locationStatus.textContent = "Location not shared";
+            elements.locationStatus.style.color = '#aaa';
+            elements.locationError.textContent = "Please write full address!!";
+            
+            // Clear location
+            state.userLocation = null;
+            elements.latitude.value = '';
+            elements.longitude.value = '';
+        },
         {
             enableHighAccuracy: true,
-            timeout: 5000,
+            timeout: 10000,
             maximumAge: 0
         }
     );
+}
+
+// Calculate distance between two coordinates (Haversine formula)
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Distance in km
+}
+
+// Check if location is within serviceable area
+function checkServiceableArea(lat, lng) {
+    if (!lat || !lng) return { serviceable: false, message: "Location not available" };
+    
+    for (const area of SERVICEABLE_AREAS) {
+        const distance = calculateDistance(lat, lng, area.center.lat, area.center.lng);
+        if (distance <= area.radius) {
+            return { 
+                serviceable: true, 
+                message: area.message,
+                areaName: area.name,
+                distance: distance.toFixed(1)
+            };
+        }
+    }
+    
+    return { 
+        serviceable: false, 
+        message: "We have received your request! Our services will be live very soon in your area!!"
+    };
 }
 
 // Captcha functions
@@ -547,12 +746,6 @@ function validateForm() {
         elements.captchaError.textContent = '';
     }
     
-    // Location validation
-    if (!elements.latitude.value || !elements.longitude.value) {
-        alert('Please fetch your location using the Auto-fetch button');
-        isValid = false;
-    }
-    
     return isValid;
 }
 
@@ -564,7 +757,7 @@ async function submitBooking() {
     
     // Collect all data
     const bookingData = {
-        bookingId: 'PC-' + Math.floor(Math.random() * 1000).toString().padStart(3, '0'),
+        bookingId: 'KW-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0'),
         timestamp: new Date().toISOString(),
         services: Array.from(state.selectedServices.entries()).map(([id, service]) => ({
             id,
@@ -576,18 +769,23 @@ async function submitBooking() {
             name: addon.name,
             price: addon.price
         })),
+        selectedDate: state.selectedDate ? state.selectedDate.toISOString().split('T')[0] : null,
         selectedTime: state.selectedTime,
         mobile: elements.mobileInput.value.trim(),
         nameAddress: document.getElementById('name-address').value.trim(),
         latitude: elements.latitude.value,
         longitude: elements.longitude.value,
-        couponApplied: state.couponApplied,
-        couponDiscount: state.couponDiscount,
+        locationStatus: state.userLocation ? "Fetched" : "Not fetched",
         subtotal: parseFloat(elements.subtotalEl.textContent.replace('₹', '')),
-        tax: parseFloat(elements.taxEl.textContent.replace('₹', '')),
+        gst: parseFloat(elements.taxEl.textContent.replace('₹', '')),
         total: state.cartTotal,
         captchaVerified: true
     };
+    
+    // Check location serviceability
+    const lat = parseFloat(elements.latitude.value);
+    const lng = parseFloat(elements.longitude.value);
+    const areaCheck = checkServiceableArea(lat, lng);
     
     try {
         // Show loading state
@@ -596,11 +794,11 @@ async function submitBooking() {
         confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
         confirmBtn.disabled = true;
         
-        // Simulate API call to Google Sheets (replace with actual Apps Script URL)
+        // Submit to Google Sheets
         await submitToGoogleSheets(bookingData);
         
-        // Show confirmation
-        showConfirmation(bookingData);
+        // Show appropriate confirmation message
+        showConfirmation(bookingData, areaCheck);
         
         // Reset button
         confirmBtn.innerHTML = originalText;
@@ -617,54 +815,101 @@ async function submitBooking() {
     }
 }
 
-// Simulated Google Sheets submission
+// Google Sheets submission (GAS - Google Apps Script)
 async function submitToGoogleSheets(data) {
-    // This is a simulated function
-    // In real implementation, replace with fetch() to your Google Apps Script web app
+    // Your Google Apps Script Web App URL
+    // Create this in Google Sheets: Extensions → Apps Script
+    const scriptURL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
+    
+    // For now, simulate the request
     console.log('Submitting to Google Sheets:', data);
     
-    // Example of real implementation:
+    // Example payload structure for GAS
+    const payload = {
+        action: 'createBooking',
+        data: {
+            timestamp: new Date().toLocaleString(),
+            bookingId: data.bookingId,
+            mobile: data.mobile,
+            nameAddress: data.nameAddress,
+            services: data.services.map(s => s.name).join(', '),
+            addons: data.addons.map(a => a.name).join(', ') || 'None',
+            date: data.selectedDate,
+            time: data.selectedTime,
+            location: data.locationStatus,
+            latitude: data.latitude,
+            longitude: data.longitude,
+            subtotal: data.subtotal,
+            gst: data.gst,
+            total: data.total
+        }
+    };
+    
+    // Uncomment this for real Google Sheets integration
     /*
-    const scriptURL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL';
-    
-    const response = await fetch(scriptURL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    });
-    
-    return response;
+    try {
+        const response = await fetch(scriptURL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        console.log('Response received:', response);
+        return response;
+    } catch (error) {
+        console.error('Error submitting to Google Sheets:', error);
+        throw error;
+    }
     */
     
-    // Simulate network delay
+    // Simulate network delay for demo
     return new Promise(resolve => setTimeout(resolve, 1500));
 }
 
 // Show confirmation message
-function showConfirmation(bookingData) {
+function showConfirmation(bookingData, areaCheck) {
     closeCheckoutPopup();
+    
+    // Format date and time
+    const dateStr = bookingData.selectedDate ? 
+        new Date(bookingData.selectedDate).toLocaleDateString('en-IN', {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        }) : '--';
+    
+    const timeStr = bookingData.selectedTime || '--';
     
     // Update confirmation details
     elements.bookingId.textContent = bookingData.bookingId;
+    elements.bookingDatetime.textContent = `${dateStr} at ${timeStr}`;
     elements.finalAmount.textContent = `₹${bookingData.total.toFixed(2)}`;
     
-    // Calculate estimated total time
-    let totalMinutes = 0;
-    bookingData.services.forEach(service => {
-        const serviceData = [...servicesData.car5, ...servicesData.car7, ...servicesData.sofa]
-            .find(s => s.id === service.id);
-        if (serviceData) totalMinutes += serviceData.time;
-    });
-    
-    bookingData.addons.forEach(addon => {
-        const addonData = servicesData.addon.find(a => a.id === addon.id);
-        if (addonData) totalMinutes += addonData.time;
-    });
-    
-    elements.estimatedTime.textContent = `${totalMinutes} minutes`;
+    // Set appropriate messages based on location
+    if (!state.userLocation) {
+        // No location fetched
+        elements.confirmationTitle.textContent = 'Booking Received!';
+        elements.confirmationMessage.textContent = 'We have received your booking request!';
+        elements.confirmationNote.textContent = 'We could not fetch your location, our team will connect you soon for order confirmation.';
+        elements.locationNote.style.display = 'none';
+    } else if (areaCheck.serviceable) {
+        // Location is serviceable
+        elements.confirmationTitle.textContent = 'Booking Confirmed!';
+        elements.confirmationMessage.textContent = 'Thank you for choosing Kwikkwash Proclean Services! Your booking has been successfully confirmed.';
+        elements.confirmationNote.textContent = 'Our team will contact you shortly to confirm the appointment details.';
+        elements.locationNote.style.display = 'block';
+        elements.locationNote.innerHTML = `<i class="fas fa-map-marker-alt"></i> <strong>Service Area:</strong> ${areaCheck.areaName} (${areaCheck.distance}km from center)`;
+    } else {
+        // Location not serviceable
+        elements.confirmationTitle.textContent = 'Booking Received!';
+        elements.confirmationMessage.textContent = areaCheck.message;
+        elements.confirmationNote.textContent = 'We have received your request and will notify you when services become available in your area.';
+        elements.locationNote.style.display = 'none';
+    }
     
     // Show confirmation
     elements.confirmationOverlay.style.display = 'flex';
@@ -688,10 +933,17 @@ function resetForm() {
     // Reset state
     state.selectedServices.clear();
     state.selectedAddons.clear();
+    state.selectedDate = null;
     state.selectedTime = null;
     state.couponApplied = false;
     state.couponDiscount = 0;
     state.userLocation = null;
+    state.expandedCategory = null;
+    
+    // Reset date selection
+    document.querySelectorAll('.day').forEach(day => {
+        day.classList.remove('selected');
+    });
     
     // Reset time selection
     document.querySelectorAll('.time-slot').forEach(slot => {
@@ -699,25 +951,44 @@ function resetForm() {
     });
     
     // Reset form fields
-    document.getElementById('coupon').value = '';
-    elements.couponMessage.textContent = '';
-    elements.mobileInput.value = '';
+    document.getElementById('mobile').value = '';
     elements.mobileError.textContent = '';
     document.getElementById('name-address').value = '';
     elements.captchaInput.value = '';
     elements.captchaError.textContent = '';
-    document.getElementById('location-status').textContent = 'Location not fetched yet';
+    elements.locationStatus.textContent = 'Location not shared yet';
+    elements.locationStatus.style.color = '#aaa';
+    elements.locationError.textContent = '';
     elements.latitude.value = '';
     elements.longitude.value = '';
+    
+    // Reset categories
+    document.querySelectorAll('.category-content').forEach(content => {
+        content.classList.remove('expanded');
+    });
+    document.querySelectorAll('.category-header i').forEach(icon => {
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-chevron-down');
+    });
     
     // Update UI
     elements.addonSection.classList.add('disabled');
     updateCart();
+    updateServiceCounts();
+    updateCategoryCounts();
     updateCheckoutButton();
+    generateTimeSlots(); // Reset time slots
 }
 
 function closeConfirmation() {
     elements.confirmationOverlay.style.display = 'none';
+}
+
+// Scroll to booking form
+function scrollToBooking() {
+    document.getElementById('booking-form').scrollIntoView({ 
+        behavior: 'smooth' 
+    });
 }
 
 // Setup event listeners
@@ -735,10 +1006,16 @@ function setupEventListeners() {
         }
     });
     
-    // Close popup when clicking outside
+    // Close popups when clicking outside
     elements.checkoutPopup.addEventListener('click', (e) => {
         if (e.target === elements.checkoutPopup) {
             closeCheckoutPopup();
+        }
+    });
+    
+    elements.termsPopup.addEventListener('click', (e) => {
+        if (e.target === elements.termsPopup) {
+            closeTermsPopup();
         }
     });
     
@@ -751,3 +1028,54 @@ function setupEventListeners() {
 
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', init);
+
+// Google Apps Script Code (for reference)
+// Copy this to your Google Sheets Apps Script editor
+/*
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    
+    // Get or create "Bookings" sheet
+    let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Bookings");
+    if (!sheet) {
+      sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Bookings");
+      // Add headers
+      sheet.getRange(1, 1, 1, 12).setValues([[
+        "Timestamp", "Booking ID", "Mobile", "Name & Address", "Services", 
+        "Addons", "Date", "Time", "Location Status", "Latitude", "Longitude", 
+        "Subtotal", "GST", "Total"
+      ]]);
+    }
+    
+    // Append booking data
+    const rowData = [
+      new Date(),
+      data.data.bookingId,
+      data.data.mobile,
+      data.data.nameAddress,
+      data.data.services,
+      data.data.addons,
+      data.data.date,
+      data.data.time,
+      data.data.locationStatus,
+      data.data.latitude,
+      data.data.longitude,
+      data.data.subtotal,
+      data.data.gst,
+      data.data.total
+    ];
+    
+    sheet.appendRow(rowData);
+    
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: true, message: "Booking saved!" }))
+      .setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: error.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+*/
