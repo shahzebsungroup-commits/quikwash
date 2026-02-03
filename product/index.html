@@ -1,1 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car & Sofa Cleaning Services</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-spray-can"></i> ProClean Services</h1>
+            <p>Book professional cleaning services at your convenience</p>
+        </header>
 
+        <main>
+            <!-- Main Services Section -->
+            <section class="services-section">
+                <h2><i class="fas fa-concierge-bell"></i> Main Services</h2>
+                <p class="section-subtitle">Select one or more main services (required for add-ons)</p>
+                
+                <div class="service-category">
+                    <div class="category-header" onclick="toggleCategory('car5')">
+                        <h3>Cars (5 seater)</h3>
+                        <i class="fas fa-chevron-down" id="car5-icon"></i>
+                    </div>
+                    <div class="category-content" id="car5-content">
+                        <!-- Car 5-seater services will be loaded by JS -->
+                    </div>
+                </div>
+
+                <div class="service-category">
+                    <div class="category-header" onclick="toggleCategory('car7')">
+                        <h3>Cars (7 seater)</h3>
+                        <i class="fas fa-chevron-down" id="car7-icon"></i>
+                    </div>
+                    <div class="category-content" id="car7-content">
+                        <!-- Car 7-seater services will be loaded by JS -->
+                    </div>
+                </div>
+
+                <div class="service-category">
+                    <div class="category-header" onclick="toggleCategory('sofa')">
+                        <h3>Sofa Cleaning</h3>
+                        <i class="fas fa-chevron-down" id="sofa-icon"></i>
+                    </div>
+                    <div class="category-content" id="sofa-content">
+                        <!-- Sofa services will be loaded by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Add-on Services Section -->
+            <section class="services-section addon-section" id="addon-section">
+                <h2><i class="fas fa-plus-circle"></i> Add-on Services</h2>
+                <p class="section-subtitle">Available only when main service is selected</p>
+                
+                <div class="service-category">
+                    <div class="category-header" onclick="toggleCategory('addon')">
+                        <h3>Additional Services</h3>
+                        <i class="fas fa-chevron-down" id="addon-icon"></i>
+                    </div>
+                    <div class="category-content" id="addon-content">
+                        <!-- Add-on services will be loaded by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Time Selection Section -->
+            <section class="time-section">
+                <h2><i class="far fa-clock"></i> Select Time Slot</h2>
+                <p class="section-subtitle">Available time slots based on employee availability</p>
+                <div class="time-slots" id="time-slots">
+                    <!-- Time slots will be loaded by JS -->
+                    <div class="loading-slots">Loading available time slots...</div>
+                </div>
+            </section>
+
+            <!-- Cart Summary -->
+            <section class="cart-section">
+                <h2><i class="fas fa-shopping-cart"></i> Order Summary</h2>
+                <div class="cart-items" id="cart-items">
+                    <div class="empty-cart">No services selected yet</div>
+                </div>
+                <div class="cart-total">
+                    <div class="total-line">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">₹0</span>
+                    </div>
+                    <div class="total-line">
+                        <span>Tax (18% GST):</span>
+                        <span id="tax">₹0</span>
+                    </div>
+                    <div class="total-line grand-total">
+                        <span>Total (Including all taxes):</span>
+                        <span id="total">₹0</span>
+                    </div>
+                </div>
+                <button class="checkout-btn" id="checkout-btn" onclick="openCheckoutPopup()">
+                    <i class="fas fa-lock"></i> Proceed to Checkout
+                </button>
+            </section>
+        </main>
+
+        <footer>
+            <p>All prices include taxes. Cancellation allowed up to 2 hours before appointment.</p>
+        </footer>
+    </div>
+
+    <!-- Checkout Popup -->
+    <div class="popup-overlay" id="checkout-popup">
+        <div class="popup-content">
+            <div class="popup-header">
+                <h2><i class="fas fa-check-circle"></i> Final Checkout</h2>
+                <button class="close-btn" onclick="closeCheckoutPopup()">&times;</button>
+            </div>
+
+            <div class="popup-body">
+                <!-- Order Summary in Popup -->
+                <div class="popup-summary">
+                    <h3>Order Summary</h3>
+                    <div id="popup-cart-items"></div>
+                    <div class="popup-total">
+                        <span>Total Amount:</span>
+                        <span id="popup-total">₹0</span>
+                    </div>
+                </div>
+
+                <!-- Coupon Code -->
+                <div class="form-group">
+                    <label for="coupon"><i class="fas fa-tag"></i> Coupon Code</label>
+                    <div class="input-with-btn">
+                        <input type="text" id="coupon" placeholder="Enter coupon code">
+                        <button class="apply-btn" onclick="applyCoupon()">Apply</button>
+                    </div>
+                    <div id="coupon-message"></div>
+                </div>
+
+                <!-- Mobile Number -->
+                <div class="form-group">
+                    <label for="mobile"><i class="fas fa-mobile-alt"></i> Mobile Number</label>
+                    <input type="tel" id="mobile" maxlength="10" placeholder="Enter 10-digit mobile number">
+                    <div class="error-message" id="mobile-error"></div>
+                </div>
+
+                <!-- Location -->
+                <div class="form-group">
+                    <label><i class="fas fa-map-marker-alt"></i> Your Location</label>
+                    <button class="location-btn" onclick="getLocation()">
+                        <i class="fas fa-location-arrow"></i> Auto-fetch Location
+                    </button>
+                    <div id="location-status">Location not fetched yet</div>
+                    <input type="hidden" id="latitude">
+                    <input type="hidden" id="longitude">
+                </div>
+
+                <!-- Name and Address -->
+                <div class="form-group">
+                    <label for="name-address"><i class="fas fa-user"></i> Name and Address</label>
+                    <textarea id="name-address" rows="3" placeholder="Enter your name and full address"></textarea>
+                </div>
+
+                <!-- Captcha -->
+                <div class="form-group">
+                    <label><i class="fas fa-shield-alt"></i> Verification</label>
+                    <div class="captcha-container">
+                        <div class="captcha-code" id="captcha-code">A3B8C</div>
+                        <button class="refresh-btn" onclick="generateCaptcha()">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                        <input type="text" id="captcha-input" placeholder="Enter the code above">
+                    </div>
+                    <div class="error-message" id="captcha-error"></div>
+                </div>
+
+                <!-- Confirm Button -->
+                <button class="confirm-btn" onclick="submitBooking()">
+                    <i class="fas fa-paper-plane"></i> Confirm Booking
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Message -->
+    <div class="confirmation-overlay" id="confirmation-overlay">
+        <div class="confirmation-box">
+            <div class="confirmation-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2>Booking Confirmed!</h2>
+            <p class="confirmation-message">
+                Thank you for choosing ProClean Services! Your booking has been successfully confirmed.
+            </p>
+            <div class="confirmation-details">
+                <p><i class="fas fa-receipt"></i> <strong>Booking ID:</strong> <span id="booking-id">PC-001</span></p>
+                <p><i class="far fa-clock"></i> <strong>Estimated Time:</strong> <span id="estimated-time">45 mins</span></p>
+                <p><i class="fas fa-rupee-sign"></i> <strong>Total Amount:</strong> <span id="final-amount">₹0</span></p>
+            </div>
+            <p class="confirmation-note">
+                Our team will contact you shortly to confirm the appointment details.
+            </p>
+            <button class="done-btn" onclick="closeConfirmation()">
+                <i class="fas fa-thumbs-up"></i> Done
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
