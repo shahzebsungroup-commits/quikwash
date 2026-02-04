@@ -289,12 +289,15 @@ function setupCTAButton() {
     return;
   }
   
+  // CTA बटन का टेक्स्ट "Step In" करें
+  const buttonText = ctaBtn.querySelector("span");
+  if (buttonText) {
+    buttonText.textContent = "Step In";
+  }
+  
   ctaBtn.addEventListener("click", () => {
-    // You can change this to actual booking logic
-    alert("🚗 Book your car wash!\nCall: +91-XXXXXXXXXX\nOr visit our website for online booking.");
-    
-    // Optional: Open booking link
-    // window.open('https://your-booking-link.com', '_blank');
+    // Same page पर URL लोड करें
+    window.location.href = "https://quikwash.in/product/";
   });
 }
 
@@ -333,3 +336,4 @@ window.addEventListener('load', () => {
   console.log("installBtn:", document.getElementById("installBtn"));
   console.log("ctaBtn:", document.getElementById("ctaBtn"));
 });
+
