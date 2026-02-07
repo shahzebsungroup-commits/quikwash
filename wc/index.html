@@ -1,1 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+<title>WebControls</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --accent: #F6C84C;
+  --accent-dark: #d4a93e;
+  --bg: #000;
+  --bg-light: #111;
+  --card: rgba(255,255,255,.06);
+  --card-hover: rgba(255,255,255,.09);
+  --border: rgba(246,200,76,.25);
+  --border-light: rgba(246,200,76,.15);
+  --text: #fff;
+  --text-muted: #aaa;
+  --success: #4CAF50;
+  --warning: #ff9800;
+  --danger: #f44336;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 16px rgba(0,0,0,0.3);
+  --transition: all 0.3s ease;
+  --sidebar-width: 240px;
+}
 
+/* ===== RESET ===== */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  font-family: 'Poppins', system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.4;
+}
+
+/* ===== HEADER ===== */
+.header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-light);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  font-size: 1.3rem;
+  color: var(--accent);
+}
+
+.logo-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.menu-toggle {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  color: var(--text);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 1.1rem;
+}
+
+.menu-toggle:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: var(--accent);
+}
+
+/* ===== SIDEBAR/MOBILE MENU ===== */
+.sidebar {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: var(--sidebar-width);
+  height: calc(100vh - 60px);
+  background: var(--bg-light);
+  border-right: 1px solid var(--border-light);
+  z-index: 99;
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.sidebar.active {
+  transform: translateX(0);
+}
+
+.sidebar-header {
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.sidebar-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Compact Controls List */
+.controls-list {
+  padding: 12px 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+  gap: 10px;
+  text-decoration: none;
+  position: relative;
+  min-height: 44px;
+}
+
+.control-item:hover {
+  background: var(--card-hover);
+  border-color: var(--accent);
+  transform: translateX(3px);
+}
+
+.control-item.active {
+  background: linear-gradient(145deg, rgba(246, 200, 76, 0.15), rgba(246, 200, 76, 0.05));
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(246, 200, 76, 0.1);
+}
+
+.control-item.disabled {
+  opacity: 0.5;
+  filter: grayscale(0.7);
+  cursor: not-allowed;
+}
+
+.control-item.disabled:hover {
+  transform: none;
+  border-color: var(--border-light);
+  background: var(--card);
+}
+
+.control-icon {
+  font-size: 16px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(246, 200, 76, 0.1);
+  border-radius: 6px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.control-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Status indicator dot instead of badge */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-active {
+  background: var(--success);
+  box-shadow: 0 0 8px var(--success);
+}
+
+.dot-soon {
+  background: var(--warning);
+  box-shadow: 0 0 8px var(--warning);
+}
+
+/* ===== MAIN CONTENT ===== */
+.main-content {
+  padding: 16px;
+  min-height: calc(100vh - 60px);
+  transition: margin-left 0.3s ease;
+}
+
+/* Welcome State */
+.welcome-state {
+  height: calc(100vh - 92px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+  animation: fadeIn 0.4s ease;
+}
+
+.welcome-icon {
+  font-size: 40px;
+  color: var(--accent);
+  margin-bottom: 16px;
+  background: rgba(246, 200, 76, 0.1);
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.welcome-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--accent);
+}
+
+.welcome-text {
+  color: var(--text-muted);
+  max-width: 280px;
+  margin-bottom: 20px;
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+.quick-action {
+  background: var(--card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 12px 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.quick-action:hover {
+  background: var(--card-hover);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+/* Panel Container */
+.panel-container {
+  height: calc(100vh - 92px);
+  display: none;
+  animation: fadeIn 0.4s ease;
+}
+
+.panel-container.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Sub-buttons Container */
+.sub-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.sub-btn {
+  flex: 1;
+  min-width: 140px;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+}
+
+.sub-btn:hover {
+  background: var(--card-hover);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.sub-btn.active {
+  background: linear-gradient(145deg, rgba(246, 200, 76, 0.15), rgba(246, 200, 76, 0.05));
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(246, 200, 76, 0.1);
+}
+
+.sub-btn.disabled {
+  opacity: 0.5;
+  filter: grayscale(0.7);
+  cursor: not-allowed;
+}
+
+.sub-btn.disabled:hover {
+  transform: none;
+  border-color: var(--border-light);
+  background: var(--card);
+}
+
+.sub-btn-icon {
+  font-size: 16px;
+}
+
+/* Panel Header */
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.panel-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.back-btn {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  color: var(--text);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.9rem;
+}
+
+.back-btn:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: var(--accent);
+}
+
+.panel-content {
+  height: calc(100vh - 200px);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #fff;
+  box-shadow: var(--shadow);
+  flex: 1;
+}
+
+iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  transform: translateY(30px);
+  background: rgba(20, 20, 20, 0.95);
+  color: var(--accent);
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  border: 1px solid var(--border);
+  opacity: 0;
+  pointer-events: none;
+  transition: var(--transition);
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast-close {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
+
+/* ===== OVERLAY ===== */
+.overlay {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 98;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== RESPONSIVE ===== */
+/* Tablet */
+@media (min-width: 768px) {
+  :root {
+    --sidebar-width: 220px;
+  }
+  
+  .sidebar {
+    transform: translateX(0);
+  }
+  
+  .main-content {
+    margin-left: var(--sidebar-width);
+  }
+  
+  .menu-toggle {
+    display: none;
+  }
+  
+  .overlay {
+    display: none;
+  }
+  
+  .back-btn {
+    display: none;
+  }
+  
+  .panel-content {
+    height: calc(100vh - 180px);
+  }
+  
+  .welcome-state {
+    height: calc(100vh - 92px);
+  }
+  
+  .toast {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%) translateY(30px);
+    width: 280px;
+    max-width: 280px;
+  }
+  
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+  }
+  
+  .sub-btn {
+    min-width: 160px;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  :root {
+    --sidebar-width: 240px;
+  }
+  
+  .welcome-state {
+    padding: 30px;
+  }
+  
+  .welcome-icon {
+    font-size: 48px;
+    width: 80px;
+    height: 80px;
+  }
+  
+  .welcome-title {
+    font-size: 1.5rem;
+  }
+  
+  .welcome-text {
+    max-width: 320px;
+  }
+  
+  .sub-btn {
+    min-width: 180px;
+  }
+}
+
+/* Safe area for notches */
+@supports (padding: max(0px)) {
+  .header, .main-content, .sidebar-header, .controls-list {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+  
+  .header {
+    padding-top: max(8px, env(safe-area-inset-top));
+    height: calc(60px + max(0px, env(safe-area-inset-top) - 8px));
+  }
+  
+  .sidebar {
+    top: calc(60px + max(0px, env(safe-area-inset-top) - 8px));
+    height: calc(100vh - (60px + max(0px, env(safe-area-inset-top) - 8px)));
+  }
+  
+  .overlay {
+    top: calc(60px + max(0px, env(safe-area-inset-top) - 8px));
+  }
+  
+  .toast {
+    bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+</style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="logo-container">
+      <div class="logo">
+        <i class="fas fa-sliders-h"></i>
+      </div>
+      <div class="logo-text">WebControls</div>
+    </div>
+    
+    <button class="menu-toggle" id="menuToggle">
+      <i class="fas fa-bars"></i>
+    </button>
+  </header>
+  
+  <!-- Overlay for mobile menu -->
+  <div class="overlay" id="overlay"></div>
+  
+  <!-- Sidebar / Mobile Menu -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3 class="sidebar-title">
+        <i class="fas fa-th-large"></i> Controls
+      </h3>
+    </div>
+    
+    <div class="controls-list">
+      <div class="control-item active" onclick="openPanel('testimonials')">
+        <div class="control-icon">🧾</div>
+        <div class="control-label">Testimonials</div>
+        <div class="status-dot dot-active"></div>
+      </div>
+      
+      <div class="control-item" onclick="comingSoon()">
+        <div class="control-icon">📅</div>
+        <div class="control-label">Bookings</div>
+        <div class="status-dot dot-soon"></div>
+      </div>
+      
+      <div class="control-item" onclick="comingSoon()">
+        <div class="control-icon">📊</div>
+        <div class="control-label">Analytics</div>
+        <div class="status-dot dot-soon"></div>
+      </div>
+    </div>
+  </nav>
+  
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent">
+    <!-- Welcome State (Default on mobile) -->
+    <div class="welcome-state" id="welcomeState">
+      <div class="welcome-icon">
+        <i class="fas fa-sliders-h"></i>
+      </div>
+      <h2 class="welcome-title">Welcome to WebControls</h2>
+      <p class="welcome-text">Select a control panel from the menu to manage your website components. Tap the menu icon ☰ to begin.</p>
+      <div class="quick-action" onclick="openPanel('testimonials')">
+        <i class="fas fa-star"></i> Open Testimonials
+      </div>
+    </div>
+    
+    <!-- Panel Container -->
+    <div class="panel-container" id="panelContainer">
+      <div class="panel-header">
+        <h2 class="panel-title" id="panelTitle">
+          <i class="fas fa-star"></i> Testimonials
+        </h2>
+        <button class="back-btn" onclick="closePanel()" id="backBtn">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <!-- Testimonials Sub-Buttons -->
+      <div class="sub-buttons" id="subButtons">
+        <button class="sub-btn active" id="addBtn" onclick="switchToAdd()">
+          <span class="sub-btn-icon">➕</span> Add Testimonial
+        </button>
+        
+        <button class="sub-btn disabled" id="viewBtn" onclick="showComingSoon()">
+          <span class="sub-btn-icon">📋</span> View/Update List
+        </button>
+      </div>
+      
+      <div class="panel-content" id="panelContent">
+        <!-- Iframe will be loaded here -->
+      </div>
+    </div>
+  </main>
+  
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <span id="toastMessage">🚧 Feature coming soon!</span>
+    <button class="toast-close" onclick="hideToast()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <script>
+    let currentPanel = null;
+    let testimonialsLoaded = false;
+    let isMobile = window.innerWidth < 768;
+    let currentView = 'add'; // 'add' or 'view'
+    
+    // DOM Elements
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const mainContent = document.getElementById('mainContent');
+    const welcomeState = document.getElementById('welcomeState');
+    const panelContainer = document.getElementById('panelContainer');
+    const panelContent = document.getElementById('panelContent');
+    const backBtn = document.getElementById('backBtn');
+    const addBtn = document.getElementById('addBtn');
+    const viewBtn = document.getElementById('viewBtn');
+    
+    // Initialize
+    if (!isMobile) {
+      // On desktop, open testimonials by default
+      openPanel('testimonials');
+    }
+    
+    // Menu toggle functionality
+    menuToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+      document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+    });
+    
+    // Close sidebar when clicking overlay
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('active');
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    });
+    
+    // Open panel function
+    function openPanel(panelId) {
+      // Close sidebar on mobile
+      if (isMobile) {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+      
+      // Update active item in sidebar
+      document.querySelectorAll('.control-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      
+      // If opening testimonials
+      if (panelId === 'testimonials') {
+        document.querySelector('.control-item:nth-child(1)').classList.add('active');
+        
+        // Set panel title
+        document.getElementById('panelTitle').innerHTML = '<i class="fas fa-star"></i> Testimonials';
+        
+        // Load testimonials if not already loaded
+        if (!testimonialsLoaded) {
+          loadAddView();
+          testimonialsLoaded = true;
+        }
+        
+        // Show panel and hide welcome state
+        welcomeState.style.display = 'none';
+        panelContainer.classList.add('active');
+        currentPanel = panelId;
+        
+        // Reset to Add view by default
+        switchToAdd();
+      }
+    }
+    
+    // Switch to Add view
+    function switchToAdd() {
+      currentView = 'add';
+      addBtn.classList.add('active');
+      viewBtn.classList.remove('active');
+      loadAddView();
+    }
+    
+    // Load Add view iframe
+    function loadAddView() {
+      panelContent.innerHTML = `
+        <iframe 
+          src="https://quikwash.in/controls/testm/"
+          loading="lazy"
+          title="Add Testimonial"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+        </iframe>`;
+    }
+    
+    // Show coming soon for View/Update
+    function showComingSoon() {
+      if (!viewBtn.classList.contains('disabled')) {
+        showToast('📋 View/Update feature coming soon!');
+      }
+    }
+    
+    // Close panel function (mobile only)
+    function closePanel() {
+      if (isMobile) {
+        welcomeState.style.display = 'flex';
+        panelContainer.classList.remove('active');
+        currentPanel = null;
+      }
+    }
+    
+    // Coming soon toast
+    function comingSoon() {
+      showToast('🚧 Coming soon!');
+    }
+    
+    // Toast notification
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toastMessage');
+      
+      toastMessage.textContent = message;
+      toast.classList.add('show');
+      
+      // Auto-hide after 2.5 seconds
+      clearTimeout(window.toastTimeout);
+      window.toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+      
+      // Close sidebar if open on mobile
+      if (isMobile && sidebar.classList.contains('active')) {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+    
+    function hideToast() {
+      document.getElementById('toast').classList.remove('show');
+    }
+    
+    // Handle responsive behavior
+    window.addEventListener('resize', function() {
+      isMobile = window.innerWidth < 768;
+      
+      // Reset sidebar state on resize
+      if (!isMobile) {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+        
+        // Open testimonials if nothing is open
+        if (!currentPanel) {
+          openPanel('testimonials');
+        }
+      } else {
+        // On mobile switch, show back button
+        backBtn.innerHTML = '<i class="fas fa-arrow-left"></i>';
+        backBtn.onclick = closePanel;
+      }
+    });
+    
+    // Initialize back button for mobile
+    if (isMobile) {
+      backBtn.innerHTML = '<i class="fas fa-arrow-left"></i>';
+      backBtn.onclick = closePanel;
+    }
+    
+    // Close sidebar when clicking on a control item (for mobile)
+    document.querySelectorAll('.control-item').forEach(item => {
+      item.addEventListener('click', function() {
+        if (isMobile && !this.classList.contains('disabled')) {
+          sidebar.classList.remove('active');
+          overlay.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
