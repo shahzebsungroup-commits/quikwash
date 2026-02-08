@@ -44,12 +44,6 @@ const servicesData = {
     ]
 };
 
-// Google Sheets URLs
-const GAS_URLS = {
-    RESPONSES: 'https://script.google.com/macros/s/AKfycbzTRh1lz11Of_3Y5HaHtR_T2WHuG3MZGhhbtp6XMHt6XQ5fbDX3EBE1bjoy4wN91cZt/exec',
-    AVAILABILITY: 'https://script.google.com/macros/s/AKfycbzOW1V-UO70zwzwLxxcbHhRjV7iBu_n-PvLdzImKF4r-VDZSSSUt0gHThrMtyp82J7W/exec'
-};
-
 // Serviceable Areas Configuration
 const SERVICEABLE_AREAS = [
     {
@@ -464,39 +458,33 @@ function selectDate(date, element) {
     updateCheckoutButton();
 }
 
-// Fetch available slots from Google Sheets
-async function loadAvailableSlotsForDate(date) {
+// Load available slots for selected date
+function loadAvailableSlotsForDate(date) {
     if (!date) return;
     
-    const formattedDate = formatDateForAPI(date);
-    state.isLoadingSlots = true;
+    // Simple slot generation (9 AM to 6 PM, 15-minute intervals)
+    const slots = [];
+    const startHour = 9;
+    const endHour = 18;
     
-    // Show loading state
-    elements.timeSlots.innerHTML = `
-        <div class="loading-slots" style="grid-column: 1 / -1;">
-            <i class="fas fa-spinner fa-spin"></i> Loading available slots...
-        </div>
-    `;
-    
-    try {
-        // Fetch slots from Google Sheets
-        const slots = await fetchAvailableSlotsFromGoogleSheets(formattedDate);
-        state.availableSlots = slots;
-        
-        // Display slots
-        displayTimeSlots(slots);
-        
-    } catch (error) {
-        console.error('Error loading slots:', error);
-        elements.timeSlots.innerHTML = `
-            <div class="loading-slots" style="color: #ff6b6b; grid-column: 1 / -1;">
-                <i class="fas fa-exclamation-circle"></i> Unable to load slots. Please try again.
-            </div>
-        `;
-        state.availableSlots = [];
-    } finally {
-        state.isLoadingSlots = false;
+    for (let hour = startHour; hour < endHour; hour++) {
+        for (let minute = 0; minute < 60; minute += 15) {
+            const timeString = `${hour % 12 || 12}:${minute === 0 ? '00' : minute} ${hour < 12 ? 'AM' : 'PM'}`;
+            // Random availability (for demo)
+            const isAvailable = Math.random() > 0.4; // 60% available
+            
+            slots.push({
+                time: timeString,
+                available: isAvailable,
+                employees: isAvailable ? Math.floor(Math.random() * 3) + 1 : 0,
+                capacity: 3,
+                slotsLeft: isAvailable ? Math.floor(Math.random() * 3) + 1 : 0
+            });
+        }
     }
+    
+    state.availableSlots = slots;
+    displayTimeSlots(slots);
 }
 
 function displayTimeSlots(slots) {
@@ -551,65 +539,12 @@ function selectTimeSlot(time, element) {
     updateCheckoutButton();
 }
 
-// Format date for API (YYYY-MM-DD)
+// Format date for display
 function formatDateForAPI(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
-}
-
-// Fetch available slots from Google Sheets
-async function fetchAvailableSlotsFromGoogleSheets(date) {
-    try {
-        const url = `${GAS_URLS.AVAILABILITY}?action=getAvailableSlots&date=${date}`;
-        
-        // Using a proxy to avoid CORS issues
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-        
-        const response = await fetch(proxyUrl);
-        const data = await response.json();
-        
-        if (data.contents) {
-            const result = JSON.parse(data.contents);
-            if (result.success && result.data) {
-                return result.data;
-            }
-        }
-        
-        // Fallback to default slots if API fails
-        return generateDefaultSlots();
-        
-    } catch (error) {
-        console.error('Error fetching slots from Google Sheets:', error);
-        // Fallback to default slots
-        return generateDefaultSlots();
-    }
-}
-
-// Generate default time slots (fallback)
-function generateDefaultSlots() {
-    const slots = [];
-    const startHour = 9;
-    const endHour = 18;
-    
-    for (let hour = startHour; hour < endHour; hour++) {
-        for (let minute = 0; minute < 60; minute += 15) {
-            const timeString = `${hour % 12 || 12}:${minute === 0 ? '00' : minute} ${hour < 12 ? 'AM' : 'PM'}`;
-            // Simulate some unavailable slots
-            const isAvailable = Math.random() > 0.4; // 60% available
-            
-            slots.push({
-                time: timeString,
-                available: isAvailable,
-                employees: isAvailable ? Math.floor(Math.random() * 3) + 1 : 0,
-                capacity: 3,
-                slotsLeft: isAvailable ? Math.floor(Math.random() * 3) + 1 : 0
-            });
-        }
-    }
-    
-    return slots;
 }
 
 // Update cart and totals
@@ -852,7 +787,7 @@ function validateForm() {
     return isValid;
 }
 
-// Submit booking to Google Sheets
+// Submit booking to app.bo.co.in API
 async function submitBooking() {
     if (!validateForm()) {
         return;
@@ -872,7 +807,8 @@ async function submitBooking() {
         longitude: elements.longitude.value || '',
         subtotal: parseFloat(elements.subtotalEl.textContent.replace('₹', '')),
         gst: parseFloat(elements.taxEl.textContent.replace('₹', '')),
-        total: state.cartTotal
+        total: state.cartTotal,
+        bookingId: generateBookingId()
     };
     
     // Check location serviceability
@@ -887,8 +823,8 @@ async function submitBooking() {
         confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
         confirmBtn.disabled = true;
         
-        // Submit to Google Sheets
-        const result = await submitToGoogleSheets(bookingData);
+        // Submit to app.bo.co.in API
+        const result = await submitToAppBoAPI(bookingData);
         
         // Show appropriate confirmation message
         showConfirmation(result, areaCheck);
@@ -908,68 +844,42 @@ async function submitBooking() {
     }
 }
 
-// Google Sheets submission
-async function submitToGoogleSheets(bookingData) {
+// Submit data to your own API
+async function submitToAppBoAPI(bookingData) {
     try {
-        const payload = {
-            action: 'createBooking',
-            data: bookingData
-        };
+        // CHANGED: Use production domain
+        const API_URL = 'https://app.vbo.co.in/userin';
         
-        console.log('Submitting to Google Sheets:', payload);
+        console.log('Submitting to Production API:', API_URL);
         
-        // Using a proxy to avoid CORS issues
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(GAS_URLS.RESPONSES)}`;
-        
-        const response = await fetch(proxyUrl, {
+        const response = await fetch(API_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(bookingData)
         });
         
-        const data = await response.json();
-        
-        if (data.contents) {
-            const result = JSON.parse(data.contents);
-            console.log('Google Sheets response:', result);
-            
-            if (result.success) {
-                return {
-                    ...result.data,
-                    bookingId: result.data.bookingId || generateBookingId()
-                };
-            } else {
-                throw new Error(result.error || 'Failed to submit booking');
-            }
-        } else {
-            // If using direct fetch without proxy (for testing)
-            const directResponse = await fetch(GAS_URLS.RESPONSES, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload)
-            });
-            
-            // Generate booking ID locally for no-cors mode
-            return {
-                bookingId: generateBookingId(),
-                message: "Booking submitted successfully",
-                serviceAreaStatus: "Pending"
-            };
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-    } catch (error) {
-        console.error('Error in submitToGoogleSheets:', error);
+        const data = await response.json();
+        console.log('API Response:', data);
         
-        // Fallback: Generate booking ID locally
         return {
-            bookingId: generateBookingId(),
-            message: "Booking recorded locally",
-            serviceAreaStatus: "Pending"
+            bookingId: bookingData.bookingId,
+            message: "Booking submitted successfully",
+            apiResponse: data
+        };
+        
+    } catch (error) {
+        console.error('Error submitting to API:', error);
+        
+        return {
+            bookingId: bookingData.bookingId,
+            message: "Booking saved locally",
+            apiError: error.message
         };
     }
 }
