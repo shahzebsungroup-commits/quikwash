@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kwikkwash – Analytics</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #0b0b0b;
+  color: #fff;
+  min-height: 100vh;
+}
+
+/* HEADER */
+header {
+  padding: 14px;
+  text-align: center;
+  background: #000;
+  border-bottom: 1px solid #222;
+}
+header h1 {
+  margin: 0;
+  color: #F6C84C;
+  font-size: 20px;
+}
+
+/* LAYOUT */
+.container {
+  padding: 14px;
+}
+
+/* FILTER CONTROLS */
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  background: #121212;
+  border-radius: 12px;
+  padding: 12px;
+  flex: 1;
+  min-width: 150px;
+}
+
+.filter-group label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 6px;
+  opacity: 0.7;
+}
+
+.filter-group select {
+  width: 100%;
+  background: #1a1a1a;
+  color: white;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* STATS */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.stat {
+  background: #121212;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+}
+.stat h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #F6C84C;
+}
+.stat p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  opacity: .7;
+}
+
+/* MAP SECTION */
+.map-section {
+  background: #111;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #222;
+}
+
+.map-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #F6C84C;
+  text-align: center;
+}
+
+/* HEATMAP CANVAS */
+#heatmap {
+  width: 100%;
+  height: 260px;
+  border-radius: 8px;
+  background: #000;
+  display: block;
+}
+
+/* GRAPH SECTION */
+.graph-section {
+  background: #111;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #222;
+}
+
+.graph-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #F6C84C;
+  text-align: center;
+}
+
+#chart {
+  width: 100%;
+  height: 180px;
+  border-radius: 8px;
+  background: #000;
+  display: block;
+}
+
+/* FOOTER */
+footer {
+  text-align: center;
+  font-size: 11px;
+  opacity: .6;
+  padding: 12px;
+  border-top: 1px solid #222;
+  background: #000;
+}
+
+/* LOADING */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #F6C84C;
+  font-style: italic;
+}
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+  .filters {
+    flex-direction: column;
+  }
+  
+  .filter-group {
+    min-width: 100%;
+  }
+  
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+  
+  #heatmap {
+    height: 220px;
+  }
+  
+  #chart {
+    height: 160px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Kwikkwash Analytics</h1>
+</header>
+
+<div class="container">
+
+  <!-- FILTER CONTROLS -->
+  <div class="filters">
+    <div class="filter-group">
+      <label for="cityFilter">📍 City</label>
+      <select id="cityFilter">
+        <option value="all">All Cities</option>
+        <!-- Cities will be populated by JS -->
+      </select>
+    </div>
+    
+    <div class="filter-group">
+      <label for="typeFilter">📱 User Type</label>
+      <select id="typeFilter">
+        <option value="all">All Users</option>
+        <option value="PWA">PWA Users</option>
+        <option value="BROWSER">Browser Users</option>
+      </select>
+    </div>
+    
+    <div class="filter-group">
+      <label for="dateFilter">📅 Time Period</label>
+      <select id="dateFilter">
+        <option value="7d">Last 7 Days</option>
+        <option value="30d">Last 30 Days</option>
+        <option value="90d">Last 90 Days</option>
+        <option value="all">All Time</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat">
+      <h2 id="total">0</h2>
+      <p>Total Users</p>
+    </div>
+    <div class="stat">
+      <h2 id="pwa">0</h2>
+      <p>PWA Users</p>
+    </div>
+    <div class="stat">
+      <h2 id="browser">0</h2>
+      <p>Browser Users</p>
+    </div>
+  </div>
+
+  <!-- MAP -->
+  <div class="map-section">
+    <h3>🌍 User Activity Heatmap</h3>
+    <div id="loadingMap" class="loading">Loading heatmap...</div>
+    <canvas id="heatmap" width="800" height="260"></canvas>
+  </div>
+
+  <!-- GRAPH -->
+  <div class="graph-section">
+    <h3>📊 Daily Activity</h3>
+    <div id="loadingChart" class="loading">Loading chart...</div>
+    <canvas id="chart" width="800" height="180"></canvas>
+  </div>
+
+</div>
+
+<footer>
+  Kwikkwash • Live Analytics • Auto-updates every 5 minutes
+</footer>
+
+<script src="analytics.js"></script>
+
+</body>
+</html>
