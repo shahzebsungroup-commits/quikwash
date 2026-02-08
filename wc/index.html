@@ -633,10 +633,11 @@ iframe {
         <div class="status-dot dot-soon"></div>
       </div>
       
-      <div class="control-item" onclick="comingSoon()">
+      <!-- ANALYTICS BUTTON ACTIVATE -->
+      <div class="control-item" onclick="openPanel('analytics')">
         <div class="control-icon">📊</div>
         <div class="control-label">Analytics</div>
-        <div class="status-dot dot-soon"></div>
+        <div class="status-dot dot-active"></div>
       </div>
     </div>
   </nav>
@@ -694,6 +695,7 @@ iframe {
   <script>
     let currentPanel = null;
     let testimonialsLoaded = false;
+    let analyticsLoaded = false; // Analytics ke liye naya variable
     let isMobile = window.innerWidth < 768;
     let currentView = 'add'; // 'add' or 'view'
     
@@ -708,6 +710,8 @@ iframe {
     const backBtn = document.getElementById('backBtn');
     const addBtn = document.getElementById('addBtn');
     const viewBtn = document.getElementById('viewBtn');
+    const subButtons = document.getElementById('subButtons');
+    const panelTitle = document.getElementById('panelTitle');
     
     // Initialize
     if (!isMobile) {
@@ -729,7 +733,7 @@ iframe {
       document.body.style.overflow = '';
     });
     
-    // Open panel function
+    // Open panel function - UPDATED FOR ANALYTICS
     function openPanel(panelId) {
       // Close sidebar on mobile
       if (isMobile) {
@@ -748,30 +752,57 @@ iframe {
         document.querySelector('.control-item:nth-child(1)').classList.add('active');
         
         // Set panel title
-        document.getElementById('panelTitle').innerHTML = '<i class="fas fa-star"></i> Testimonials';
+        panelTitle.innerHTML = '<i class="fas fa-star"></i> Testimonials';
+        
+        // Show sub-buttons for testimonials
+        subButtons.style.display = 'flex';
         
         // Load testimonials if not already loaded
         if (!testimonialsLoaded) {
           loadAddView();
           testimonialsLoaded = true;
+        } else {
+          // If already loaded, show add view by default
+          switchToAdd();
         }
         
         // Show panel and hide welcome state
         welcomeState.style.display = 'none';
         panelContainer.classList.add('active');
         currentPanel = panelId;
+      }
+      
+      // If opening analytics
+      else if (panelId === 'analytics') {
+        document.querySelector('.control-item:nth-child(3)').classList.add('active');
         
-        // Reset to Add view by default
-        switchToAdd();
+        // Set panel title
+        panelTitle.innerHTML = '<i class="fas fa-chart-line"></i> Analytics';
+        
+        // Hide sub-buttons for analytics
+        subButtons.style.display = 'none';
+        
+        // Load analytics if not already loaded
+        if (!analyticsLoaded) {
+          loadAnalytics();
+          analyticsLoaded = true;
+        }
+        
+        // Show panel and hide welcome state
+        welcomeState.style.display = 'none';
+        panelContainer.classList.add('active');
+        currentPanel = panelId;
       }
     }
     
     // Switch to Add view
     function switchToAdd() {
-      currentView = 'add';
-      addBtn.classList.add('active');
-      viewBtn.classList.remove('active');
-      loadAddView();
+      if (currentPanel === 'testimonials') {
+        currentView = 'add';
+        addBtn.classList.add('active');
+        viewBtn.classList.remove('active');
+        loadAddView();
+      }
     }
     
     // Load Add view iframe
@@ -781,6 +812,17 @@ iframe {
           src="https://quikwash.in/controls/testm/"
           loading="lazy"
           title="Add Testimonial"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+        </iframe>`;
+    }
+    
+    // Load Analytics view iframe - NEW FUNCTION
+    function loadAnalytics() {
+      panelContent.innerHTML = `
+        <iframe 
+          src="https://quikwash.in/analytics"
+          loading="eager"
+          title="Analytics Dashboard"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
         </iframe>`;
     }
@@ -798,6 +840,9 @@ iframe {
         welcomeState.style.display = 'flex';
         panelContainer.classList.remove('active');
         currentPanel = null;
+        
+        // Reset sub-buttons visibility for next time
+        subButtons.style.display = 'flex';
       }
     }
     
