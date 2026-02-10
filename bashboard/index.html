@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KWIKKWASH Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>Loading KWIKKWASH Dashboard...</p>
+        </div>
+    </div>
+
+    <!-- App Container -->
+    <div class="app-container" id="appContainer">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <button class="menu-btn" id="menuBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="logo">
+                    <span class="logo-icon">🚗</span>
+                    <span class="logo-text">KWIKKWASH</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="time-display" id="currentTime"></div>
+                <button class="refresh-btn" id="refreshBtn">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Sidebar (Hidden on mobile) -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="bookings">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>All Bookings</span>
+                    <span class="badge" id="bookingCount">0</span>
+                </a>
+                <!-- Removed Today, This Week, This Month options -->
+                <a href="#" class="nav-item" data-page="revenue">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Revenue</span>
+                </a>
+                <a href="#" class="nav-item" data-page="customers">
+                    <i class="fas fa-users"></i>
+                    <span>Customers</span>
+                </a>
+                <a href="#" class="nav-item" data-page="analysis">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>City Analysis</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="api-status">
+                    <span class="status-dot" id="apiStatus"></span>
+                    <span>API: <span id="apiStatusText">Connecting...</span></span>
+                </div>
+                <div class="db-status">
+                    <span class="status-dot" id="dbStatus"></span>
+                    <span>DB: <span id="dbStatusText">Checking...</span></span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Dashboard Page (Default) -->
+            <section class="page active" id="dashboardPage">
+                <div class="page-header">
+                    <h1 class="page-title">Dashboard Overview</h1>
+                    <!-- Removed date filter buttons from dashboard -->
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <i class="fas fa-calendar-check"></i>
+                            <h3>Total Bookings</h3>
+                        </div>
+                        <div class="kpi-value" id="kpiTotalBookings">0</div>
+                        <div class="kpi-trend">
+                            <span class="trend-up" id="bookingTrend">
+                                <i class="fas fa-arrow-up"></i> 0%
+                            </span>
+                            <span>vs last period</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <i class="fas fa-rupee-sign"></i>
+                            <h3>Total Revenue</h3>
+                        </div>
+                        <div class="kpi-value" id="kpiTotalRevenue">₹0</div>
+                        <div class="kpi-trend">
+                            <span class="trend-up" id="revenueTrend">
+                                <i class="fas fa-arrow-up"></i> 0%
+                            </span>
+                            <span>vs last period</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <i class="fas fa-check-circle"></i>
+                            <h3>Completed</h3>
+                        </div>
+                        <div class="kpi-value" id="kpiCompleted">0</div>
+                        <div class="kpi-trend">
+                            <span class="trend-up" id="completedTrend">
+                                <i class="fas fa-arrow-up"></i> 0%
+                            </span>
+                            <span>Completion Rate</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <h3>Top City</h3>
+                        </div>
+                        <div class="kpi-value" id="kpiTopCity">-</div>
+                        <div class="kpi-trend">
+                            <span class="trend-up" id="cityTrend">
+                                <i class="fas fa-arrow-up"></i> 0%
+                            </span>
+                            <span>Most Bookings</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Bookings & Charts -->
+                <div class="content-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Recent Bookings</h3>
+                            <!-- Modified to go directly to All Bookings -->
+                            <a href="#" class="view-all" id="viewAllBookings">View All</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Customer</th>
+                                            <th>City</th>
+                                            <th>Status</th>
+                                            <th>Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentBookingsTable">
+                                        <tr class="loading-row">
+                                            <td colspan="5">Loading recent bookings...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>City-wise Distribution</h3>
+                            <div class="chart-controls">
+                                <button class="chart-type active" data-chart="pie">Pie</button>
+                                <button class="chart-type" data-chart="bar">Bar</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="cityChart"></canvas>
+                            </div>
+                            <div class="chart-legend" id="cityLegend"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h3>Quick Actions</h3>
+                    <div class="actions-grid">
+                        <button class="action-btn" id="newBookingBtn">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>New Booking</span>
+                        </button>
+                        <button class="action-btn" id="barcodeGenerateBtn">
+                            <i class="fas fa-qrcode"></i>
+                            <span>Generate UPI QR</span>
+                        </button>
+                        <button class="action-btn" id="refreshDataBtn">
+                            <i class="fas fa-sync"></i>
+                            <span>Refresh All</span>
+                        </button>
+                        <button class="action-btn" id="cityReportBtn">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>City Report</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- All Bookings Page -->
+            <section class="page" id="bookingsPage">
+                <div class="page-header">
+                    <h1 class="page-title">All Bookings</h1>
+                    <div class="page-controls">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="bookingSearch" placeholder="Search bookings...">
+                        </div>
+                        <button class="filter-toggle" id="filterToggle">
+                            <i class="fas fa-filter"></i>
+                            <span>Filter</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filter Panel -->
+                <div class="filter-panel" id="filterPanel">
+                    <div class="filter-group">
+                        <label>Date Range</label>
+                        <div class="date-inputs">
+                            <input type="date" id="startDate" value="">
+                            <span>to</span>
+                            <input type="date" id="endDate" value="">
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <div class="status-filters">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="status" value="pending" checked>
+                                <span class="checkbox-custom"></span>
+                                <span>Pending</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="status" value="confirmed" checked>
+                                <span class="checkbox-custom"></span>
+                                <span>Confirmed</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="status" value="completed" checked>
+                                <span class="checkbox-custom"></span>
+                                <span>Completed</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="status" value="cancelled">
+                                <span class="checkbox-custom"></span>
+                                <span>Cancelled</span>
+                            </label>
+                            <!-- Removed Rescheduled option -->
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>City</label>
+                        <select id="cityFilter">
+                            <option value="all">All Cities</option>
+                            <!-- Cities will be populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn-secondary" id="clearFilters">Clear</button>
+                        <button class="btn-primary" id="applyFilters">Apply Filters</button>
+                    </div>
+                </div>
+
+                <!-- Bookings Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Bookings List</h3>
+                        <div class="table-summary">
+                            Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> bookings
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="data-table full-table">
+                                <thead>
+                                    <tr>
+                                        <th>Booking ID</th>
+                                        <th>Customer</th>
+                                        <th>Date & Time</th>
+                                        <th>City</th>
+                                        <th>Team</th>
+                                        <th>Amount</th>
+                                        <th>Payment</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="allBookingsTable"></tbody>
+                            </table>
+                        </div>
+                        <div class="table-footer">
+                            <div class="pagination">
+                                <button class="pagination-btn" id="prevPage" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span class="page-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+                                <button class="pagination-btn" id="nextPage" disabled>
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                            <div class="rows-per-page">
+                                <label>Show:</label>
+                                <select id="rowsPerPage">
+                                    <option value="10">10</option>
+                                    <option value="25" selected>25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Revenue Page -->
+            <section class="page" id="revenuePage">
+                <div class="page-header">
+                    <h1 class="page-title">Revenue Analytics</h1>
+                    <div class="revenue-filters">
+                        <div class="period-selector">
+                            <select id="revenuePeriod">
+                                <option value="week">Last 7 Days</option>
+                                <option value="month" selected>Last 30 Days</option>
+                                <option value="quarter">Last 3 Months</option>
+                                <option value="year">Last 12 Months</option>
+                            </select>
+                        </div>
+                        <div class="city-selector">
+                            <select id="revenueCity">
+                                <option value="all">All Cities</option>
+                                <!-- Cities will be populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revenue Charts -->
+                <div class="content-grid">
+                    <div class="card full-width">
+                        <div class="card-header">
+                            <h3>Revenue Trend (Pending vs Received)</h3>
+                            <div class="revenue-summary">
+                                <div class="revenue-total">
+                                    Total Revenue: <span id="periodRevenue">₹0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container large">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Payment Methods</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="paymentMethodsChart"></canvas>
+                            </div>
+                            <div class="chart-legend" id="paymentMethodsLegend"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Top Services</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="servicesChart"></canvas>
+                            </div>
+                            <div class="chart-legend" id="servicesLegend"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Customers Page -->
+            <section class="page" id="customersPage">
+                <div class="page-header">
+                    <h1 class="page-title">Customers</h1>
+                    <div class="page-controls">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="customerSearch" placeholder="Search customers...">
+                        </div>
+                        <!-- Removed Add Customer button -->
+                    </div>
+                </div>
+
+                <!-- Customers Stats -->
+                <div class="customers-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalCustomers">0</div>
+                        <div class="stat-label">Total Customers</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="activeCustomers">0</div>
+                        <div class="stat-label">Active (Last 30 days)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="repeatCustomers">0%</div>
+                        <div class="stat-label">Repeat Rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgBookings">0</div>
+                        <div class="stat-label">Avg Bookings/Customer</div>
+                    </div>
+                </div>
+
+                <!-- Customers Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Customer List</h3>
+                        <div class="sort-options">
+                            <select id="customerSort">
+                                <option value="recent">Most Recent</option>
+                                <option value="bookings">Most Bookings</option>
+                                <option value="spent">Most Spent</option>
+                                <option value="name">Name A-Z</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Customer</th>
+                                        <th>Phone</th>
+                                        <th>Bookings</th>
+                                        <th>Total Spent</th>
+                                        <th>Last Visit</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customersTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- City Analysis Page -->
+            <section class="page" id="analysisPage">
+                <div class="page-header">
+                    <h1 class="page-title">City-wise Analysis</h1>
+                    <div class="analysis-controls">
+                        <div class="date-range-selector">
+                            <input type="date" id="analysisStartDate">
+                            <span>to</span>
+                            <input type="date" id="analysisEndDate">
+                        </div>
+                        <button class="btn-primary" id="exportCityReport">
+                            <i class="fas fa-file-export"></i>
+                            Export Report
+                        </button>
+                    </div>
+                </div>
+
+                <!-- City Performance Grid -->
+                <div class="city-performance-grid" id="cityPerformanceGrid">
+                    <!-- Will be populated by JS -->
+                </div>
+
+                <!-- Detailed Analysis -->
+                <div class="content-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>City Performance</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container large">
+                                <canvas id="cityPerformanceChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Top Cities</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="top-cities-list" id="topCitiesList">
+                                <!-- Will be populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- City-wise Bookings -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Recent Bookings by City</h3>
+                        <div class="city-filter">
+                            <select id="citySelect">
+                                <option value="">All Cities</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Booking ID</th>
+                                        <th>Customer</th>
+                                        <th>Date</th>
+                                        <th>Services</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>City</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cityBookingsTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Mobile Bottom Navigation -->
+        <nav class="mobile-nav" id="mobileNav">
+            <a href="#" class="mobile-nav-item active" data-page="dashboard">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Home</span>
+            </a>
+            <a href="#" class="mobile-nav-item" data-page="bookings">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Bookings</span>
+            </a>
+            <!-- Removed Today option -->
+            <a href="#" class="mobile-nav-item" data-page="revenue">
+                <i class="fas fa-chart-line"></i>
+                <span>Revenue</span>
+            </a>
+            <a href="#" class="mobile-nav-item" data-page="analysis">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Cities</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="bookingDetailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Booking Details</h3>
+                <button class="modal-close" id="closeBookingModal">&times;</button>
+            </div>
+            <div class="modal-body" id="bookingDetailsContent"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="editBookingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Booking</h3>
+                <button class="modal-close" id="closeEditModal">&times;</button>
+            </div>
+            <div class="modal-body" id="editBookingContent"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="addCommentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Comment</h3>
+                <button class="modal-close" id="closeCommentModal">&times;</button>
+            </div>
+            <div class="modal-body" id="addCommentContent"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="barcodeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>UPI Payment QR Code</h3>
+                <button class="modal-close" id="closeBarcodeModal">&times;</button>
+            </div>
+            <div class="modal-body" id="barcodeContent"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="addCustomerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Customer</h3>
+                <button class="modal-close" id="closeCustomerModal">&times;</button>
+            </div>
+            <div class="modal-body" id="addCustomerContent"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="updateCityModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Update City</h3>
+                <button class="modal-close" id="closeCityModal">&times;</button>
+            </div>
+            <div class="modal-body" id="updateCityContent"></div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>
