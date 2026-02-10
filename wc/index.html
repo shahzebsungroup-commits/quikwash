@@ -3,32 +3,32 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
-<title>WebControls</title>
+<title>KWIKKWASH Control Panel</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --accent: #F6C84C;
   --accent-dark: #d4a93e;
-  --bg: #000;
-  --bg-light: #111;
-  --card: rgba(255,255,255,.06);
-  --card-hover: rgba(255,255,255,.09);
+  --bg: #000000;
+  --bg-light: #111111;
+  --card: rgba(255,255,255,.05);
+  --card-hover: rgba(255,255,255,.08);
   --border: rgba(246,200,76,.25);
   --border-light: rgba(246,200,76,.15);
-  --text: #fff;
-  --text-muted: #aaa;
+  --text: #ffffff;
+  --text-muted: #aaaaaa;
   --success: #4CAF50;
   --warning: #ff9800;
   --danger: #f44336;
   --radius: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 4px 16px rgba(0,0,0,0.3);
-  --transition: all 0.3s ease;
-  --sidebar-width: 240px;
+  --radius-sm: 6px;
+  --shadow: 0 2px 10px rgba(0,0,0,0.4);
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-width: 260px;
 }
 
-/* ===== RESET ===== */
+/* ===== MOBILE-FIRST RESET ===== */
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -43,20 +43,25 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   line-height: 1.4;
+  font-size: 14px;
 }
 
-/* ===== HEADER ===== */
+/* ===== COMPACT HEADER ===== */
 .header {
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-light);
-  position: sticky;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.98);
+  position: fixed;
   top: 0;
-  z-index: 100;
+  left: 0;
+  right: 0;
+  height: 60px;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 60px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 1px 5px rgba(0,0,0,0.3);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .logo-container {
@@ -65,19 +70,31 @@ body {
   gap: 10px;
 }
 
-.logo {
-  font-size: 1.3rem;
+.logo-icon {
+  font-size: 18px;
   color: var(--accent);
+  background: rgba(246, 200, 76, 0.1);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .logo-text {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--accent);
+  font-size: 1rem;
+  font-weight: 700;
+  background: linear-gradient(45deg, var(--accent), #ffaa00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
 }
 
 .menu-toggle {
-  background: transparent;
+  background: var(--card);
   border: 1px solid var(--border-light);
   color: var(--text);
   width: 40px;
@@ -88,29 +105,32 @@ body {
   justify-content: center;
   cursor: pointer;
   transition: var(--transition);
-  font-size: 1.1rem;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
 .menu-toggle:hover {
-  background: rgba(255,255,255,0.05);
+  background: var(--card-hover);
   border-color: var(--accent);
+  transform: scale(1.05);
 }
 
-/* ===== SIDEBAR/MOBILE MENU ===== */
+/* ===== HAMBURGER MENU SIDEBAR (ALL SCREENS) ===== */
 .sidebar {
   position: fixed;
   top: 60px;
   left: 0;
   width: var(--sidebar-width);
   height: calc(100vh - 60px);
-  background: var(--bg-light);
-  border-right: 1px solid var(--border-light);
-  z-index: 99;
+  background: rgba(0, 0, 0, 0.98);
+  border-right: 1px solid var(--border);
+  z-index: 999;
   transform: translateX(-100%);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  backdrop-filter: blur(10px);
 }
 
 .sidebar.active {
@@ -123,18 +143,20 @@ body {
 }
 
 .sidebar-title {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 600;
   margin: 0;
   color: var(--accent);
   display: flex;
   align-items: center;
   gap: 8px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 /* Compact Controls List */
 .controls-list {
-  padding: 12px 8px;
+  padding: 16px 12px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -144,16 +166,28 @@ body {
 .control-item {
   display: flex;
   align-items: center;
-  padding: 10px 12px;
+  padding: 12px 14px;
   background: var(--card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: var(--transition);
-  gap: 10px;
+  gap: 12px;
   text-decoration: none;
   position: relative;
-  min-height: 44px;
+  overflow: hidden;
+}
+
+.control-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--accent);
+  transform: scaleY(0);
+  transition: transform 0.2s ease;
 }
 
 .control-item:hover {
@@ -168,33 +202,25 @@ body {
   box-shadow: 0 2px 8px rgba(246, 200, 76, 0.1);
 }
 
-.control-item.disabled {
-  opacity: 0.5;
-  filter: grayscale(0.7);
-  cursor: not-allowed;
-}
-
-.control-item.disabled:hover {
-  transform: none;
-  border-color: var(--border-light);
-  background: var(--card);
+.control-item.active::before {
+  transform: scaleY(1);
 }
 
 .control-icon {
   font-size: 16px;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(246, 200, 76, 0.1);
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--accent);
   flex-shrink: 0;
 }
 
 .control-label {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 500;
   flex: 1;
   white-space: nowrap;
@@ -202,7 +228,6 @@ body {
   text-overflow: ellipsis;
 }
 
-/* Status indicator dot instead of badge */
 .status-dot {
   width: 8px;
   height: 8px;
@@ -212,40 +237,44 @@ body {
 
 .dot-active {
   background: var(--success);
-  box-shadow: 0 0 8px var(--success);
 }
 
 .dot-soon {
   background: var(--warning);
-  box-shadow: 0 0 8px var(--warning);
 }
 
 /* ===== MAIN CONTENT ===== */
 .main-content {
-  padding: 16px;
+  margin-top: 60px;
   min-height: calc(100vh - 60px);
-  transition: margin-left 0.3s ease;
+  position: relative;
+  transition: padding-left 0.3s ease;
 }
 
-/* Welcome State */
+/* When sidebar is open on desktop */
+.main-content.sidebar-open {
+  padding-left: var(--sidebar-width);
+}
+
+/* Compact Welcome State */
 .welcome-state {
-  height: calc(100vh - 92px);
+  min-height: calc(100vh - 60px);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 20px;
+  padding: 24px 16px;
   animation: fadeIn 0.4s ease;
 }
 
 .welcome-icon {
-  font-size: 40px;
+  font-size: 48px;
   color: var(--accent);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   background: rgba(246, 200, 76, 0.1);
-  width: 70px;
-  height: 70px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -253,225 +282,159 @@ body {
 }
 
 .welcome-title {
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 10px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 12px;
   color: var(--accent);
+  background: linear-gradient(45deg, var(--accent), #ffaa00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.welcome-text {
-  color: var(--text-muted);
-  max-width: 280px;
-  margin-bottom: 20px;
-  line-height: 1.5;
+.welcome-subtitle {
   font-size: 0.9rem;
+  color: var(--text-muted);
+  max-width: 100%;
+  margin-bottom: 30px;
+  line-height: 1.5;
+  padding: 0 10px;
+}
+
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
 }
 
 .quick-action {
   background: var(--card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
-  padding: 12px 20px;
-  display: inline-flex;
+  padding: 14px 20px;
+  display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   cursor: pointer;
   transition: var(--transition);
   font-weight: 500;
   font-size: 0.9rem;
+  width: 100%;
 }
 
 .quick-action:hover {
   background: var(--card-hover);
   border-color: var(--accent);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(246, 200, 76, 0.1);
 }
 
-/* Panel Container */
-.panel-container {
-  height: calc(100vh - 92px);
+.quick-action i {
+  color: var(--accent);
+  font-size: 1rem;
+}
+
+/* ===== PAGE CONTENT ===== */
+.page-content {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg);
+  z-index: 100;
+  overflow: auto;
   display: none;
-  animation: fadeIn 0.4s ease;
 }
 
-.panel-container.active {
-  display: flex;
-  flex-direction: column;
+.page-content.active {
+  display: block;
 }
 
-/* Sub-buttons Container */
-.sub-buttons {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
+/* When sidebar is open on desktop, adjust page content */
+.main-content.sidebar-open .page-content.active {
+  left: var(--sidebar-width);
 }
 
-.sub-btn {
-  flex: 1;
-  min-width: 140px;
+/* Compact Page Header */
+.page-header {
+  position: sticky;
+  top: 0;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
   padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
+}
+
+.back-btn {
   background: var(--card);
   border: 1px solid var(--border-light);
-  border-radius: var(--radius-sm);
   color: var(--text);
-  font-weight: 500;
-  font-size: 0.9rem;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: var(--transition);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
-.sub-btn:hover {
+.back-btn:hover {
   background: var(--card-hover);
   border-color: var(--accent);
-  transform: translateY(-2px);
+  transform: scale(1.05);
 }
 
-.sub-btn.active {
-  background: linear-gradient(145deg, rgba(246, 200, 76, 0.15), rgba(246, 200, 76, 0.05));
-  border-color: var(--accent);
-  box-shadow: 0 2px 8px rgba(246, 200, 76, 0.1);
-}
-
-.sub-btn.disabled {
-  opacity: 0.5;
-  filter: grayscale(0.7);
-  cursor: not-allowed;
-}
-
-.sub-btn.disabled:hover {
-  transform: none;
-  border-color: var(--border-light);
-  background: var(--card);
-}
-
-.sub-btn-icon {
-  font-size: 16px;
-}
-
-/* Panel Header */
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border-light);
-}
-
-.panel-title {
-  font-size: 1.2rem;
+.page-title {
+  font-size: 1.1rem;
   font-weight: 600;
   margin: 0;
   color: var(--accent);
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.back-btn {
-  background: transparent;
-  border: 1px solid var(--border-light);
-  color: var(--text);
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: var(--transition);
-  font-size: 0.9rem;
-}
-
-.back-btn:hover {
-  background: rgba(255,255,255,0.05);
-  border-color: var(--accent);
-}
-
-.panel-content {
-  height: calc(100vh - 200px);
-  border-radius: var(--radius);
   overflow: hidden;
-  border: 1px solid var(--border);
-  background: #fff;
-  box-shadow: var(--shadow);
-  flex: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-iframe {
+/* Page Body */
+.page-body {
+  padding: 0;
+  height: calc(100vh - 108px);
+  overflow: hidden;
+}
+
+/* Full Page Frame */
+.full-page-frame {
   width: 100%;
   height: 100%;
   border: none;
+  display: block;
 }
 
-/* ===== TOAST ===== */
-.toast {
-  position: fixed;
-  bottom: 16px;
-  left: 16px;
-  right: 16px;
-  transform: translateY(30px);
-  background: rgba(20, 20, 20, 0.95);
-  color: var(--accent);
-  padding: 12px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 0.85rem;
-  border: 1px solid var(--border);
-  opacity: 0;
-  pointer-events: none;
-  transition: var(--transition);
-  z-index: 1000;
-  backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-}
-
-.toast.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.toast-close {
-  background: transparent;
-  border: none;
-  color: var(--text);
-  font-size: 16px;
-  cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-  padding: 0;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.toast-close:hover {
-  opacity: 1;
-}
-
-/* ===== OVERLAY ===== */
+/* ===== OVERLAY (MOBILE ONLY) ===== */
 .overlay {
   position: fixed;
   top: 60px;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(4px);
-  z-index: 98;
+  z-index: 998;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
 .overlay.active {
@@ -481,161 +444,352 @@ iframe {
 
 /* ===== ANIMATIONS ===== */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* ===== RESPONSIVE ===== */
-/* Tablet */
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+/* ===== TABLET RESPONSIVE ===== */
 @media (min-width: 768px) {
-  :root {
-    --sidebar-width: 220px;
+  .header {
+    height: 70px;
+    padding: 14px 20px;
   }
   
   .sidebar {
-    transform: translateX(0);
+    top: 70px;
+    height: calc(100vh - 70px);
+    --sidebar-width: 280px;
   }
   
   .main-content {
-    margin-left: var(--sidebar-width);
-  }
-  
-  .menu-toggle {
-    display: none;
-  }
-  
-  .overlay {
-    display: none;
-  }
-  
-  .back-btn {
-    display: none;
-  }
-  
-  .panel-content {
-    height: calc(100vh - 180px);
+    margin-top: 70px;
   }
   
   .welcome-state {
-    height: calc(100vh - 92px);
-  }
-  
-  .toast {
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%) translateY(30px);
-    width: 280px;
-    max-width: 280px;
-  }
-  
-  .toast.show {
-    transform: translateX(-50%) translateY(0);
-  }
-  
-  .sub-btn {
-    min-width: 160px;
-  }
-}
-
-/* Desktop */
-@media (min-width: 1024px) {
-  :root {
-    --sidebar-width: 240px;
-  }
-  
-  .welcome-state {
-    padding: 30px;
-  }
-  
-  .welcome-icon {
-    font-size: 48px;
-    width: 80px;
-    height: 80px;
+    padding: 40px;
   }
   
   .welcome-title {
-    font-size: 1.5rem;
+    font-size: 2rem;
   }
   
-  .welcome-text {
-    max-width: 320px;
+  .welcome-subtitle {
+    font-size: 1rem;
+    max-width: 500px;
   }
   
-  .sub-btn {
+  .quick-actions {
+    flex-direction: row;
+    max-width: 600px;
+    flex-wrap: wrap;
+  }
+  
+  .quick-action {
+    flex: 1;
     min-width: 180px;
+  }
+  
+  .page-content, .overlay {
+    top: 70px;
+  }
+  
+  .page-body {
+    height: calc(100vh - 118px);
+  }
+  
+  /* Overlay only on mobile */
+  .overlay {
+    display: none;
+  }
+}
+
+/* ===== DESKTOP RESPONSIVE ===== */
+@media (min-width: 1024px) {
+  :root {
+    --sidebar-width: 280px;
+  }
+  
+  .header {
+    height: 70px;
+    padding: 16px 24px;
+  }
+  
+  .sidebar {
+    top: 70px;
+    height: calc(100vh - 70px);
+  }
+  
+  .logo-text {
+    font-size: 1.1rem;
+  }
+  
+  .menu-toggle {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+  }
+  
+  .sidebar-header {
+    padding: 20px 20px 16px;
+  }
+  
+  .sidebar-title {
+    font-size: 0.9rem;
+  }
+  
+  .controls-list {
+    padding: 20px 16px;
+    gap: 8px;
+  }
+  
+  .control-item {
+    padding: 16px;
+    gap: 14px;
+  }
+  
+  .control-icon {
+    font-size: 18px;
+    width: 36px;
+    height: 36px;
+  }
+  
+  .control-label {
+    font-size: 0.95rem;
+  }
+  
+  .welcome-state {
+    padding: 60px 40px;
+  }
+  
+  .welcome-title {
+    font-size: 2.5rem;
+  }
+  
+  .welcome-icon {
+    font-size: 64px;
+    width: 100px;
+    height: 100px;
+  }
+  
+  .welcome-subtitle {
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin-bottom: 40px;
+  }
+  
+  .quick-action {
+    padding: 16px 28px;
+    font-size: 1rem;
+    min-width: 200px;
+  }
+  
+  .page-header {
+    padding: 16px 24px;
+  }
+  
+  .page-title {
+    font-size: 1.3rem;
+  }
+  
+  .back-btn {
+    width: 44px;
+    height: 44px;
+  }
+  
+  /* Desktop sidebar behavior */
+  .main-content.sidebar-open .welcome-state,
+  .main-content.sidebar-open .page-content.active {
+    padding-left: var(--sidebar-width);
+  }
+}
+
+/* ===== LARGE DESKTOP ===== */
+@media (min-width: 1440px) {
+  :root {
+    --sidebar-width: 300px;
+  }
+  
+  .welcome-title {
+    font-size: 3rem;
+  }
+  
+  .welcome-icon {
+    font-size: 72px;
+    width: 120px;
+    height: 120px;
   }
 }
 
 /* Safe area for notches */
 @supports (padding: max(0px)) {
-  .header, .main-content, .sidebar-header, .controls-list {
+  .header, .sidebar-header, .controls-list {
     padding-left: max(12px, env(safe-area-inset-left));
     padding-right: max(12px, env(safe-area-inset-right));
   }
   
   .header {
-    padding-top: max(8px, env(safe-area-inset-top));
-    height: calc(60px + max(0px, env(safe-area-inset-top) - 8px));
+    padding-top: max(6px, env(safe-area-inset-top));
+    height: calc(60px + max(0px, env(safe-area-inset-top) - 6px));
   }
   
   .sidebar {
-    top: calc(60px + max(0px, env(safe-area-inset-top) - 8px));
-    height: calc(100vh - (60px + max(0px, env(safe-area-inset-top) - 8px)));
+    top: calc(60px + max(0px, env(safe-area-inset-top) - 6px));
+    height: calc(100vh - (60px + max(0px, env(safe-area-inset-top) - 6px)));
   }
   
-  .overlay {
-    top: calc(60px + max(0px, env(safe-area-inset-top) - 8px));
+  .overlay, .page-content {
+    top: calc(60px + max(0px, env(safe-area-inset-top) - 6px));
   }
   
-  .toast {
-    bottom: max(16px, env(safe-area-inset-bottom));
+  .main-content {
+    margin-top: calc(60px + max(0px, env(safe-area-inset-top) - 6px));
   }
+  
+  @media (min-width: 768px) {
+    .header {
+      padding-top: max(10px, env(safe-area-inset-top));
+      height: calc(70px + max(0px, env(safe-area-inset-top) - 10px));
+    }
+    
+    .sidebar {
+      top: calc(70px + max(0px, env(safe-area-inset-top) - 10px));
+      height: calc(100vh - (70px + max(0px, env(safe-area-inset-top) - 10px)));
+    }
+    
+    .overlay, .page-content {
+      top: calc(70px + max(0px, env(safe-area-inset-top) - 10px));
+    }
+    
+    .main-content {
+      margin-top: calc(70px + max(0px, env(safe-area-inset-top) - 10px));
+    }
+  }
+}
+
+/* Loading State */
+.loading-spinner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(246, 200, 76, 0.3);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  z-index: 1001;
+  display: none;
+}
+
+.loading-spinner.active {
+  display: block;
+}
+
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Progress Bar */
+.progress-bar {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background: var(--accent);
+  z-index: 1001;
+  transition: width 0.2s ease;
+}
+
+/* Scrollbar Styling */
+.sidebar::-webkit-scrollbar,
+.page-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-track,
+.page-body::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.page-body::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+/* Sidebar toggle animation */
+@keyframes slideInDesktop {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideOutDesktop {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
 }
 </style>
 </head>
 
 <body>
-  <!-- Header -->
+  <!-- Loading Spinner -->
+  <div class="loading-spinner" id="loadingSpinner"></div>
+  
+  <!-- Progress Bar -->
+  <div class="progress-bar" id="progressBar"></div>
+  
+  <!-- Header with Hamburger Menu for ALL screens -->
   <header class="header">
     <div class="logo-container">
-      <div class="logo">
-        <i class="fas fa-sliders-h"></i>
+      <div class="logo-icon">
+        <i class="fas fa-cogs"></i>
       </div>
-      <div class="logo-text">WebControls</div>
+      <div class="logo-text">KWIKKWASH Control</div>
     </div>
     
     <button class="menu-toggle" id="menuToggle">
-      <i class="fas fa-bars"></i>
+      <i class="fas fa-bars" id="menuIcon"></i>
     </button>
   </header>
   
-  <!-- Overlay for mobile menu -->
+  <!-- Overlay (Mobile Only) -->
   <div class="overlay" id="overlay"></div>
   
-  <!-- Sidebar / Mobile Menu -->
+  <!-- Sidebar - Hidden by default, shown via hamburger menu -->
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <h3 class="sidebar-title">
-        <i class="fas fa-th-large"></i> Controls
+        <i class="fas fa-th-large"></i> Control Panels
       </h3>
     </div>
     
     <div class="controls-list">
-      <div class="control-item active" onclick="openPanel('testimonials')">
-        <div class="control-icon">🧾</div>
+      <div class="control-item active" onclick="openPage('testimonials')">
+        <div class="control-icon">
+          <i class="fas fa-star"></i>
+        </div>
         <div class="control-label">Testimonials</div>
         <div class="status-dot dot-active"></div>
       </div>
       
-      <div class="control-item" onclick="comingSoon()">
-        <div class="control-icon">📅</div>
-        <div class="control-label">Bookings</div>
-        <div class="status-dot dot-soon"></div>
+      <div class="control-item" onclick="openPage('bookings')">
+        <div class="control-icon">
+          <i class="fas fa-calendar-alt"></i>
+        </div>
+        <div class="control-label">Bookings Dashboard</div>
+        <div class="status-dot dot-active"></div>
       </div>
       
-      <!-- ANALYTICS BUTTON ACTIVATE -->
-      <div class="control-item" onclick="openPanel('analytics')">
-        <div class="control-icon">📊</div>
+      <div class="control-item" onclick="openPage('analytics')">
+        <div class="control-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
         <div class="control-label">Analytics</div>
         <div class="status-dot dot-active"></div>
       </div>
@@ -644,275 +798,375 @@ iframe {
   
   <!-- Main Content -->
   <main class="main-content" id="mainContent">
-    <!-- Welcome State (Default on mobile) -->
+    <!-- Welcome State -->
     <div class="welcome-state" id="welcomeState">
       <div class="welcome-icon">
-        <i class="fas fa-sliders-h"></i>
+        <i class="fas fa-cogs"></i>
       </div>
-      <h2 class="welcome-title">Welcome to WebControls</h2>
-      <p class="welcome-text">Select a control panel from the menu to manage your website components. Tap the menu icon ☰ to begin.</p>
-      <div class="quick-action" onclick="openPanel('testimonials')">
-        <i class="fas fa-star"></i> Open Testimonials
-      </div>
-    </div>
-    
-    <!-- Panel Container -->
-    <div class="panel-container" id="panelContainer">
-      <div class="panel-header">
-        <h2 class="panel-title" id="panelTitle">
-          <i class="fas fa-star"></i> Testimonials
-        </h2>
-        <button class="back-btn" onclick="closePanel()" id="backBtn">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
+      <h1 class="welcome-title">Control Panel</h1>
+      <p class="welcome-subtitle">Manage all aspects of your KWIKKWASH business from one centralized dashboard</p>
       
-      <!-- Testimonials Sub-Buttons -->
-      <div class="sub-buttons" id="subButtons">
-        <button class="sub-btn active" id="addBtn" onclick="switchToAdd()">
-          <span class="sub-btn-icon">➕</span> Add Testimonial
-        </button>
+      <div class="quick-actions">
+        <div class="quick-action" onclick="openPage('testimonials')">
+          <i class="fas fa-star"></i>
+          <span>Manage Testimonials</span>
+        </div>
         
-        <button class="sub-btn disabled" id="viewBtn" onclick="showComingSoon()">
-          <span class="sub-btn-icon">📋</span> View/Update List
-        </button>
-      </div>
-      
-      <div class="panel-content" id="panelContent">
-        <!-- Iframe will be loaded here -->
+        <div class="quick-action" onclick="openPage('bookings')">
+          <i class="fas fa-calendar-alt"></i>
+          <span>Bookings Dashboard</span>
+        </div>
+        
+        <div class="quick-action" onclick="openPage('analytics')">
+          <i class="fas fa-chart-line"></i>
+          <span>View Analytics</span>
+        </div>
       </div>
     </div>
   </main>
   
-  <!-- Toast Notification -->
-  <div id="toast" class="toast">
-    <span id="toastMessage">🚧 Feature coming soon!</span>
-    <button class="toast-close" onclick="hideToast()">
-      <i class="fas fa-times"></i>
-    </button>
+  <!-- Page Content - Testimonials -->
+  <div class="page-content" id="pageTestimonials">
+    <div class="page-header">
+      <button class="back-btn" onclick="closePage()">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <h2 class="page-title">
+        <i class="fas fa-star"></i> Testimonials Management
+      </h2>
+    </div>
+    <div class="page-body">
+      <iframe src="https://quikwash.in/controls/testm/" class="full-page-frame"></iframe>
+    </div>
+  </div>
+  
+  <!-- Page Content - Bookings -->
+  <div class="page-content" id="pageBookings">
+    <div class="page-header">
+      <button class="back-btn" onclick="closePage()">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <h2 class="page-title">
+        <i class="fas fa-calendar-alt"></i> Bookings Dashboard
+      </h2>
+    </div>
+    <div class="page-body">
+      <iframe src="https://quikwash.in/bashboard/" class="full-page-frame"></iframe>
+    </div>
+  </div>
+  
+  <!-- Page Content - Analytics -->
+  <div class="page-content" id="pageAnalytics">
+    <div class="page-header">
+      <button class="back-btn" onclick="closePage()">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <h2 class="page-title">
+        <i class="fas fa-chart-line"></i> Analytics Dashboard
+      </h2>
+    </div>
+    <div class="page-body">
+      <iframe src="https://quikwash.in/analytics" class="full-page-frame"></iframe>
+    </div>
   </div>
 
   <script>
-    let currentPanel = null;
-    let testimonialsLoaded = false;
-    let analyticsLoaded = false; // Analytics ke liye naya variable
-    let isMobile = window.innerWidth < 768;
-    let currentView = 'add'; // 'add' or 'view'
+    // State management
+    let currentPage = null;
+    let isLoading = false;
+    let isSidebarOpen = false;
     
     // DOM Elements
     const menuToggle = document.getElementById('menuToggle');
+    const menuIcon = document.getElementById('menuIcon');
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('overlay');
     const mainContent = document.getElementById('mainContent');
     const welcomeState = document.getElementById('welcomeState');
-    const panelContainer = document.getElementById('panelContainer');
-    const panelContent = document.getElementById('panelContent');
-    const backBtn = document.getElementById('backBtn');
-    const addBtn = document.getElementById('addBtn');
-    const viewBtn = document.getElementById('viewBtn');
-    const subButtons = document.getElementById('subButtons');
-    const panelTitle = document.getElementById('panelTitle');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const progressBar = document.getElementById('progressBar');
     
-    // Initialize
-    if (!isMobile) {
-      // On desktop, open testimonials by default
-      openPanel('testimonials');
+    // Page elements
+    const pageTestimonials = document.getElementById('pageTestimonials');
+    const pageBookings = document.getElementById('pageBookings');
+    const pageAnalytics = document.getElementById('pageAnalytics');
+    
+    // Check if mobile
+    const isMobile = window.innerWidth < 768;
+    
+    // Initialize - Check localStorage for sidebar state
+    const savedSidebarState = localStorage.getItem('sidebarOpen');
+    if (savedSidebarState === 'true') {
+      openSidebar();
     }
     
     // Menu toggle functionality
-    menuToggle.addEventListener('click', () => {
-      sidebar.classList.toggle('active');
-      overlay.classList.toggle('active');
-      document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+    menuToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleSidebar();
     });
     
-    // Close sidebar when clicking overlay
-    overlay.addEventListener('click', () => {
+    // Toggle sidebar function
+    function toggleSidebar() {
+      if (isSidebarOpen) {
+        closeSidebar();
+      } else {
+        openSidebar();
+      }
+    }
+    
+    // Open sidebar function
+    function openSidebar() {
+      sidebar.classList.add('active');
+      isSidebarOpen = true;
+      
+      // Add class to main content for desktop
+      if (!isMobile) {
+        mainContent.classList.add('sidebar-open');
+      }
+      
+      // Show overlay only on mobile
+      if (isMobile) {
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+      
+      // Update menu icon
+      menuIcon.classList.remove('fa-bars');
+      menuIcon.classList.add('fa-times');
+      
+      // Save state to localStorage
+      localStorage.setItem('sidebarOpen', 'true');
+    }
+    
+    // Close sidebar function
+    function closeSidebar() {
       sidebar.classList.remove('active');
-      overlay.classList.remove('active');
-      document.body.style.overflow = '';
+      isSidebarOpen = false;
+      
+      // Remove class from main content for desktop
+      if (!isMobile) {
+        mainContent.classList.remove('sidebar-open');
+      }
+      
+      // Hide overlay only on mobile
+      if (isMobile) {
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+      
+      // Update menu icon
+      menuIcon.classList.remove('fa-times');
+      menuIcon.classList.add('fa-bars');
+      
+      // Save state to localStorage
+      localStorage.setItem('sidebarOpen', 'false');
+    }
+    
+    // Close sidebar when clicking overlay (mobile only)
+    overlay.addEventListener('click', () => {
+      closeSidebar();
     });
     
-    // Open panel function - UPDATED FOR ANALYTICS
-    function openPanel(panelId) {
-      // Close sidebar on mobile
-      if (isMobile) {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
-      }
-      
-      // Update active item in sidebar
-      document.querySelectorAll('.control-item').forEach(item => {
-        item.classList.remove('active');
+    // Close sidebar when clicking outside on mobile
+    if (isMobile) {
+      document.addEventListener('click', (e) => {
+        if (sidebar.classList.contains('active') && 
+            !sidebar.contains(e.target) && 
+            e.target !== menuToggle) {
+          closeSidebar();
+        }
       });
-      
-      // If opening testimonials
-      if (panelId === 'testimonials') {
-        document.querySelector('.control-item:nth-child(1)').classList.add('active');
-        
-        // Set panel title
-        panelTitle.innerHTML = '<i class="fas fa-star"></i> Testimonials';
-        
-        // Show sub-buttons for testimonials
-        subButtons.style.display = 'flex';
-        
-        // Load testimonials if not already loaded
-        if (!testimonialsLoaded) {
-          loadAddView();
-          testimonialsLoaded = true;
-        } else {
-          // If already loaded, show add view by default
-          switchToAdd();
-        }
-        
-        // Show panel and hide welcome state
-        welcomeState.style.display = 'none';
-        panelContainer.classList.add('active');
-        currentPanel = panelId;
-      }
-      
-      // If opening analytics
-      else if (panelId === 'analytics') {
-        document.querySelector('.control-item:nth-child(3)').classList.add('active');
-        
-        // Set panel title
-        panelTitle.innerHTML = '<i class="fas fa-chart-line"></i> Analytics';
-        
-        // Hide sub-buttons for analytics
-        subButtons.style.display = 'none';
-        
-        // Load analytics if not already loaded
-        if (!analyticsLoaded) {
-          loadAnalytics();
-          analyticsLoaded = true;
-        }
-        
-        // Show panel and hide welcome state
-        welcomeState.style.display = 'none';
-        panelContainer.classList.add('active');
-        currentPanel = panelId;
-      }
     }
     
-    // Switch to Add view
-    function switchToAdd() {
-      if (currentPanel === 'testimonials') {
-        currentView = 'add';
-        addBtn.classList.add('active');
-        viewBtn.classList.remove('active');
-        loadAddView();
-      }
-    }
-    
-    // Load Add view iframe
-    function loadAddView() {
-      panelContent.innerHTML = `
-        <iframe 
-          src="https://quikwash.in/controls/testm/"
-          loading="lazy"
-          title="Add Testimonial"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
-        </iframe>`;
-    }
-    
-    // Load Analytics view iframe - NEW FUNCTION
-    function loadAnalytics() {
-      panelContent.innerHTML = `
-        <iframe 
-          src="https://quikwash.in/analytics"
-          loading="eager"
-          title="Analytics Dashboard"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
-        </iframe>`;
-    }
-    
-    // Show coming soon for View/Update
-    function showComingSoon() {
-      if (!viewBtn.classList.contains('disabled')) {
-        showToast('📋 View/Update feature coming soon!');
-      }
-    }
-    
-    // Close panel function (mobile only)
-    function closePanel() {
+    // Open page function
+    function openPage(pageId) {
+      // Close sidebar on mobile when opening a page
       if (isMobile) {
-        welcomeState.style.display = 'flex';
-        panelContainer.classList.remove('active');
-        currentPanel = null;
+        closeSidebar();
+      }
+      
+      // Reset all pages
+      hideAllPages();
+      
+      // Hide welcome state
+      welcomeState.style.display = 'none';
+      mainContent.style.display = 'none';
+      
+      // Show loading
+      showLoading();
+      
+      // Open requested page
+      setTimeout(() => {
+        switch(pageId) {
+          case 'testimonials':
+            pageTestimonials.classList.add('active');
+            currentPage = 'testimonials';
+            updateSidebarActive(0);
+            break;
+            
+          case 'bookings':
+            pageBookings.classList.add('active');
+            currentPage = 'bookings';
+            updateSidebarActive(1);
+            break;
+            
+          case 'analytics':
+            pageAnalytics.classList.add('active');
+            currentPage = 'analytics';
+            updateSidebarActive(2);
+            break;
+        }
         
-        // Reset sub-buttons visibility for next time
-        subButtons.style.display = 'flex';
+        // Adjust page content position if sidebar is open on desktop
+        if (!isMobile && isSidebarOpen) {
+          adjustPageContentForSidebar();
+        }
+        
+        // Hide loading after page is shown
+        setTimeout(() => {
+          hideLoading();
+        }, 600);
+        
+      }, 200);
+    }
+    
+    // Adjust page content when sidebar is open on desktop
+    function adjustPageContentForSidebar() {
+      const activePage = document.querySelector('.page-content.active');
+      if (activePage) {
+        activePage.style.left = 'var(--sidebar-width)';
       }
     }
     
-    // Coming soon toast
-    function comingSoon() {
-      showToast('🚧 Coming soon!');
-    }
-    
-    // Toast notification
-    function showToast(message) {
-      const toast = document.getElementById('toast');
-      const toastMessage = document.getElementById('toastMessage');
-      
-      toastMessage.textContent = message;
-      toast.classList.add('show');
-      
-      // Auto-hide after 2.5 seconds
-      clearTimeout(window.toastTimeout);
-      window.toastTimeout = setTimeout(() => {
-        toast.classList.remove('show');
-      }, 2500);
-      
-      // Close sidebar if open on mobile
-      if (isMobile && sidebar.classList.contains('active')) {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
+    // Close page function
+    function closePage() {
+      // Hide current page
+      if (currentPage) {
+        const currentPageElement = document.getElementById(`page${currentPage.charAt(0).toUpperCase() + currentPage.slice(1)}`);
+        if (currentPageElement) {
+          currentPageElement.classList.remove('active');
+          currentPageElement.style.left = '0';
+        }
       }
+      
+      // Reset to welcome state
+      setTimeout(() => {
+        welcomeState.style.display = 'flex';
+        mainContent.style.display = 'block';
+        currentPage = null;
+        updateSidebarActive(null);
+      }, 100);
     }
     
-    function hideToast() {
-      document.getElementById('toast').classList.remove('show');
+    // Update active state in sidebar
+    function updateSidebarActive(index) {
+      const controlItems = document.querySelectorAll('.control-item');
+      controlItems.forEach((item, i) => {
+        if (index === i) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+    }
+    
+    // Hide all pages
+    function hideAllPages() {
+      pageTestimonials.classList.remove('active');
+      pageBookings.classList.remove('active');
+      pageAnalytics.classList.remove('active');
+      
+      // Reset positions
+      pageTestimonials.style.left = '0';
+      pageBookings.style.left = '0';
+      pageAnalytics.style.left = '0';
+    }
+    
+    // Show loading indicator
+    function showLoading() {
+      isLoading = true;
+      loadingSpinner.classList.add('active');
+      progressBar.style.width = '30%';
+      
+      setTimeout(() => {
+        progressBar.style.width = '70%';
+      }, 200);
+    }
+    
+    // Hide loading indicator
+    function hideLoading() {
+      isLoading = false;
+      progressBar.style.width = '100%';
+      
+      setTimeout(() => {
+        loadingSpinner.classList.remove('active');
+        progressBar.style.width = '0%';
+      }, 200);
     }
     
     // Handle responsive behavior
     window.addEventListener('resize', function() {
-      isMobile = window.innerWidth < 768;
+      const newIsMobile = window.innerWidth < 768;
       
-      // Reset sidebar state on resize
-      if (!isMobile) {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
-        
-        // Open testimonials if nothing is open
-        if (!currentPanel) {
-          openPanel('testimonials');
+      if (newIsMobile !== isMobile) {
+        // Mobile/Desktop switch
+        if (newIsMobile) {
+          // Switched to mobile
+          mainContent.classList.remove('sidebar-open');
+          overlay.style.display = 'block';
+          
+          // Close sidebar if open
+          if (isSidebarOpen) {
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+          }
+        } else {
+          // Switched to desktop
+          overlay.style.display = 'none';
+          overlay.classList.remove('active');
+          document.body.style.overflow = '';
+          
+          // Adjust sidebar if open
+          if (isSidebarOpen) {
+            mainContent.classList.add('sidebar-open');
+            adjustPageContentForSidebar();
+          }
         }
-      } else {
-        // On mobile switch, show back button
-        backBtn.innerHTML = '<i class="fas fa-arrow-left"></i>';
-        backBtn.onclick = closePanel;
       }
     });
     
-    // Initialize back button for mobile
-    if (isMobile) {
-      backBtn.innerHTML = '<i class="fas fa-arrow-left"></i>';
-      backBtn.onclick = closePanel;
-    }
-    
-    // Close sidebar when clicking on a control item (for mobile)
-    document.querySelectorAll('.control-item').forEach(item => {
-      item.addEventListener('click', function() {
-        if (isMobile && !this.classList.contains('disabled')) {
-          sidebar.classList.remove('active');
-          overlay.classList.remove('active');
-          document.body.style.overflow = '';
+    // Add ESC key support
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        if (currentPage) {
+          closePage();
+        } else if (isSidebarOpen) {
+          closeSidebar();
         }
+      }
+    });
+    
+    // Handle iframe loading
+    document.querySelectorAll('iframe').forEach(iframe => {
+      iframe.addEventListener('load', function() {
+        console.log('Iframe loaded:', this.src);
       });
+      
+      iframe.addEventListener('error', function() {
+        console.error('Iframe failed to load:', this.src);
+        hideLoading();
+      });
+    });
+    
+    // Preload iframes for better performance
+    window.addEventListener('load', function() {
+      // Set iframe sources after page load
+      setTimeout(() => {
+        document.querySelectorAll('iframe').forEach(iframe => {
+          iframe.src = iframe.getAttribute('src');
+        });
+      }, 500);
     });
   </script>
 </body>
