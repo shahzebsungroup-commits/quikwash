@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendance</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #000;
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+}
+
+.card {
+    max-width: 400px;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #F6C84C;
+    border-radius: 10px;
+}
+
+button {
+    padding: 12px;
+    width: 100%;
+    margin-top: 10px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.disabled {
+    background: #444;
+    color: #999;
+}
+
+.active {
+    background: #F6C84C;
+    color: black;
+}
+
+.status {
+    margin-top: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>📍 Attendance</h2>
+
+    <div id="status">Getting location...</div>
+
+    <button id="markBtn" class="disabled" disabled onclick="markAttendance()">
+        Mark Attendance
+    </button>
+</div>
+
+<script>
+
+// ================= CONFIG =================
+const EMPLOYEE_ID = "emp01"; // 👈 change here
+// ==========================================
+
+let currentLat = null;
+let currentLng = null;
+let employeeData = null;
+let actualDistance = 0;
+
+// ================= INIT =================
+init();
+
+function init() {
+    forceLocationFetch();
+}
+
+// ================= FORCE LOCATION =================
+function forceLocationFetch() {
+    if (!navigator.geolocation) {
+        updateStatus("Geolocation not supported ❌");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            currentLat = pos.coords.latitude;
+            currentLng = pos.coords.longitude;
+
+            updateStatus("Location captured ✅");
+
+            verifyEmployee();
+        },
+        () => {
+            updateStatus("Location required ⚠️ Allow it...");
+            setTimeout(forceLocationFetch, 2000); // retry
+        }
+    );
+}
+
+// ================= VERIFY EMPLOYEE =================
+function verifyEmployee() {
+    updateStatus("Verifying employee...");
+
+    fetch("https://app.vbo.co.in/userin/settings", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            table: "employee",
+            action: "get"
+        })
+    })
+    .then(res => res.json())
+    .then(res => {
+
+        const emp = res.data.find(e => e.is_active === EMPLOYEE_ID);
+
+        if (!emp) {
+            updateStatus("Employee not found ❌");
+            return;
+        }
+
+        employeeData = emp;
+
+        validateLocation();
+    });
+}
+
+// ================= DISTANCE =================
+function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const toRad = x => x * Math.PI / 180;
+
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+
+    const a =
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ================= VALIDATE LOCATION =================
+function validateLocation() {
+    const [lat, lng, range] = employeeData.phone.split(",").map(Number);
+
+    actualDistance = getDistance(lat, lng, currentLat, currentLng);
+
+    if (actualDistance <= range) {
+        updateStatus(`Valid ✅ (${Math.round(actualDistance)}m)`);
+
+        const btn = document.getElementById("markBtn");
+        btn.disabled = false;
+        btn.className = "active";
+    } else {
+        updateStatus(`Out of range ❌ (${Math.round(actualDistance)}m)`);
+    }
+}
+
+// ================= MARK =================
+function markAttendance() {
+    const payload = {
+        employee_code: EMPLOYEE_ID,
+        employee_name: employeeData.name,
+        city: employeeData.city,
+        lat: currentLat,
+        lng: currentLng,
+        permissible_distance: employeeData.phone.split(",")[2],
+        actual_distance: Math.round(actualDistance)
+    };
+
+    fetch("https://app.vbo.co.in/userin/attendancekwikkwash", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(() => {
+        updateStatus("Attendance Marked ✅");
+    })
+    .catch(() => {
+        updateStatus("Error ❌");
+    });
+}
+
+// ================= UI =================
+function updateStatus(msg) {
+    document.getElementById("status").innerText = msg;
+}
+
+</script>
+
+</body>
+</html>
