@@ -3,15 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Attendance</title>
+<title>Attendance System</title>
 
 <style>
+/* ========== MOBILE-FIRST UI ========== */
 body {
     font-family: Arial;
     background: #000;
     color: #fff;
     text-align: center;
-    padding: 20px;
+    padding: 10px;
+    margin: 0;
 }
 
 .card {
@@ -20,20 +22,26 @@ body {
     padding: 20px;
     border: 1px solid #F6C84C;
     border-radius: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 button {
-    padding: 12px;
+    padding: 14px;
     width: 100%;
     margin-top: 10px;
     border: none;
     border-radius: 8px;
     font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
 }
 
 .disabled {
     background: #444;
     color: #999;
+    cursor: not-allowed;
 }
 
 .active {
@@ -43,44 +51,393 @@ button {
 
 .status {
     margin-top: 15px;
+    font-weight: bold;
+    font-size: 14px;
+    color: #F6C84C;
+    min-height: 20px;
+}
+
+/* Welcome Section - Easy to understand for field staff */
+.welcome-section {
+    background: #111;
+    border: 1px solid #F6C84C;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.employee-name {
+    color: #F6C84C;
+    font-size: 24px;
+    font-weight: bold;
+    margin: 5px 0;
+}
+
+.employee-city {
+    color: #fff;
+    font-size: 16px;
+    margin: 5px 0;
+}
+
+.employee-id {
+    color: #888;
+    font-size: 14px;
+    margin: 5px 0;
+}
+
+.instruction-box {
+    background: #222;
+    border-left: 4px solid #F6C84C;
+    padding: 10px;
+    margin: 15px 0 5px 0;
+    text-align: left;
+    font-size: 14px;
+}
+
+.instruction-box i {
+    color: #F6C84C;
+    margin-right: 8px;
+}
+
+/* Date Range Section */
+.date-section {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 15px;
+    border: 1px solid #F6C84C;
+    border-radius: 10px;
+}
+
+.date-filters {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 15px 0;
+    flex-wrap: wrap;
+}
+
+.date-filters label {
+    color: #F6C84C;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.date-filters input {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #F6C84C;
+    background: #222;
+    color: #fff;
+    margin-left: 5px;
+    font-size: 14px;
+    width: 130px;
+}
+
+.fetch-btn {
+    background: #F6C84C;
+    color: black;
+    max-width: 200px;
+    margin: 0 auto;
+    font-size: 16px;
+    padding: 12px;
+}
+
+/* Table Section */
+.table-section {
+    max-width: 1200px;
+    margin: 20px auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #111;
+    color: #fff;
+    font-size: 12px;
+    min-width: 600px;
+}
+
+th {
+    background: #F6C84C;
+    color: black;
+    padding: 8px;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+td {
+    padding: 8px;
+    border: 1px solid #333;
+    font-size: 12px;
+}
+
+tr:hover {
+    background: #222;
+}
+
+/* Summary Section */
+.summary-section {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 15px;
+    border: 1px solid #F6C84C;
+    border-radius: 10px;
+    background: #111;
+}
+
+.summary-stats {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.stat-item {
+    padding: 8px;
+    background: #222;
+    border-radius: 5px;
+    min-width: 70px;
+    flex: 1 1 auto;
+}
+
+.stat-label {
+    color: #F6C84C;
+    font-size: 12px;
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Welcome Header */
+.welcome-header {
+    color: #F6C84C;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+/* Status Colors */
+.status-full { color: #4CAF50; }
+.status-late { color: #FFC107; }
+.status-half { color: #FF9800; }
+.status-off { color: #9E9E9E; }
+.status-incomplete { color: #f44336; }
+
+.loading {
+    padding: 20px;
+    color: #F6C84C;
+    font-style: italic;
+}
+
+/* Location Status */
+.location-status {
+    font-size: 14px;
+    margin: 10px 0;
+    padding: 8px;
+    border-radius: 5px;
+}
+
+.location-valid {
+    background: #1a3a1a;
+    color: #4CAF50;
+}
+
+.location-invalid {
+    background: #3a1a1a;
+    color: #f44336;
+}
+
+/* Mobile-specific tweaks */
+@media (max-width: 480px) {
+    .date-filters {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .date-filters input {
+        width: 90%;
+        margin: 5px 0;
+    }
+    
+    .stat-item {
+        min-width: 50px;
+    }
+    
+    .stat-value {
+        font-size: 16px;
+    }
+    
+    .employee-name {
+        font-size: 20px;
+    }
 }
 </style>
 </head>
 
 <body>
 
+<!-- ========== ATTENDANCE MARKING CARD ========== -->
 <div class="card">
-    <h2>📍 Attendance</h2>
-
-    <div id="status">Initializing...</div>
-
+    <h2>📍 हाजिरी लगाएं</h2>
+    
+    <div id="status">शुरू हो रहा है...</div>
     <button id="markBtn" class="disabled" disabled onclick="markAttendance()">
-        Mark Attendance
+        हाजिरी लगाएं
     </button>
 </div>
 
-<script>
+<!-- ========== EMPLOYEE WELCOME SECTION (Easy to understand) ========== -->
+<div class="welcome-section" id="welcomeSection" style="display: none;">
+    <div class="employee-name" id="welcomeName"></div>
+    <div class="employee-city" id="welcomeCity"></div>
+    <div class="employee-id" id="welcomeId"></div>
+    
+    <div class="instruction-box">
+        <i>📌</i> <span id="todayInstruction">आज की हाजिरी के लिए नीचे दिए गए बटन पर क्लिक करें</span>
+    </div>
+    
+    <div id="locationStatus" class="location-status"></div>
+</div>
 
+<!-- ========== DATE RANGE FILTER ========== -->
+<div class="date-section">
+    <h3>📅 हाजिरी रिकॉर्ड</h3>
+    
+    <div class="date-filters">
+        <div>
+            <label>कब से:</label>
+            <input type="date" id="fromDate">
+        </div>
+        <div>
+            <label>कब तक:</label>
+            <input type="date" id="toDate" max="">
+        </div>
+    </div>
+    
+    <button class="fetch-btn" onclick="fetchAttendance()">रिकॉर्ड दिखाएं</button>
+</div>
+
+<!-- ========== SUMMARY SECTION ========== -->
+<div class="summary-section">
+    <h3>📊 हाजिरी का सारांश</h3>
+    <div id="summary" class="summary-stats">
+        <div class="stat-item">
+            <div class="stat-label">पूरा दिन</div>
+            <div class="stat-value" id="summary-full">0</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">लेट</div>
+            <div class="stat-value" id="summary-late">0</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">आधा दिन</div>
+            <div class="stat-value" id="summary-half">0</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">छुट्टी</div>
+            <div class="stat-value" id="summary-off">0</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">अधूरा</div>
+            <div class="stat-value" id="summary-incomplete">0</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">पेट्रोल (किमी)</div>
+            <div class="stat-value" id="summary-petrol">0</div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== ATTENDANCE TABLE ========== -->
+<div class="table-section">
+    <table>
+        <thead>
+            <tr>
+                <th>क्र.</th>
+                <th>तारीख</th>
+                <th>आने का समय</th>
+                <th>जाने का समय</th>
+                <th>स्थिति</th>
+                <th>घंटे</th>
+                <th>पेट्रोल (किमी)</th>
+            </tr>
+        </thead>
+        <tbody id="attendanceTable">
+            <tr>
+                <td colspan="7" style="text-align: center;">तारीख चुनें और रिकॉर्ड दिखाएं</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div id="loading" class="loading" style="display: none;">डेटा लोड हो रहा है...</div>
+
+<script>
 // ================= CONFIG =================
-const EMPLOYEE_ID = "emp01"; // 🔥 change per employee
+const EMPLOYEE_ID = "emp01"; // 🔥 हर कर्मचारी के लिए बदलें
 // ==========================================
 
 let employeeData = null;
 let currentLat = null;
 let currentLng = null;
 let actualDistance = 0;
+let isSubmitting = false; // 🟢 FIX 2: Extra lock for double click
 
 // ================= INIT =================
 init();
 
 function init() {
+    setDefaultDateRange();
+    setMaxDate();
     forceLocation();
+}
+
+// ================= LOCAL DATE FUNCTION =================
+function getLocalDate(ts) {
+    const d = new Date(ts);
+    return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, '0') + "-" +
+        String(d.getDate()).padStart(2, '0');
+}
+
+// ================= FORMAT DATE FOR DISPLAY =================
+function formatDisplayDate(dateStr) {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('hi-IN', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric' 
+    });
+}
+
+// ================= SET MAX DATE =================
+function setMaxDate() {
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("toDate").setAttribute("max", today);
+    document.getElementById("fromDate").setAttribute("max", today);
+}
+
+// ================= SET DEFAULT DATE RANGE =================
+function setDefaultDateRange() {
+    const today = new Date();
+    const lastMonth = new Date();
+    lastMonth.setMonth(today.getMonth() - 1);
+
+    document.getElementById("toDate").value = today.toISOString().split("T")[0];
+    document.getElementById("fromDate").value = lastMonth.toISOString().split("T")[0];
 }
 
 // ================= FORCE LOCATION =================
 function forceLocation() {
     if (!navigator.geolocation) {
-        updateStatus("Geolocation not supported ❌");
+        updateStatus("लोकेशन नहीं मिल रही ❌");
         return;
     }
 
@@ -89,20 +446,19 @@ function forceLocation() {
             currentLat = pos.coords.latitude;
             currentLng = pos.coords.longitude;
 
-            updateStatus("Location captured ✅");
-
+            updateStatus("लोकेशन मिल गई ✅");
             verifyEmployee();
         },
         () => {
-            updateStatus("Allow location to continue ⚠️");
+            updateStatus("लोकेशन की अनुमति दें ⚠️");
             setTimeout(forceLocation, 2000);
         }
     );
 }
 
-// ================= VERIFY =================
+// ================= VERIFY EMPLOYEE =================
 function verifyEmployee() {
-    updateStatus("Verifying employee...");
+    updateStatus("कर्मचारी की जांच हो रही है...");
 
     fetch("https://app.vbo.co.in/userin/settings", {
         method: "POST",
@@ -114,21 +470,32 @@ function verifyEmployee() {
     })
     .then(res => res.json())
     .then(res => {
-
         const emp = res.data.find(e => e.is_active === EMPLOYEE_ID);
 
         if (!emp) {
-            updateStatus("Employee not found ❌");
+            updateStatus("कर्मचारी नहीं मिला ❌");
             return;
         }
 
         employeeData = emp;
-
+        
+        // Show welcome section with employee details
+        document.getElementById("welcomeSection").style.display = "block";
+        document.getElementById("welcomeName").innerText = emp.name;
+        document.getElementById("welcomeCity").innerText = `शहर: ${emp.city}`;
+        document.getElementById("welcomeId").innerText = `कर्मचारी कोड: ${EMPLOYEE_ID}`;
+        
         validateLocation();
+        updateButtonState(); // Initial button state
+        fetchAttendance();
+    })
+    .catch(err => {
+        updateStatus("कर्मचारी जांच में त्रुटि ❌");
+        console.error(err);
     });
 }
 
-// ================= DISTANCE =================
+// ================= DISTANCE CALCULATION =================
 function getDistance(lat1, lon1, lat2, lon2) {
     const R = 6371000;
     const toRad = x => x * Math.PI / 180;
@@ -144,26 +511,140 @@ function getDistance(lat1, lon1, lat2, lon2) {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-// ================= VALIDATE =================
+// ================= VALIDATE LOCATION =================
 function validateLocation() {
+    if (!employeeData) return;
+    
     const [lat, lng, range] = employeeData.phone.split(",").map(Number);
-
     actualDistance = getDistance(lat, lng, currentLat, currentLng);
 
+    const locationDiv = document.getElementById("locationStatus");
+    
     if (actualDistance <= range) {
-        updateStatus(`Valid ✅ (${Math.round(actualDistance)}m)`);
-
-        const btn = document.getElementById("markBtn");
-        btn.disabled = false;
-        btn.className = "active";
-
+        locationDiv.className = "location-status location-valid";
+        locationDiv.innerText = `✅ आप सही जगह पर हैं (${Math.round(actualDistance)} मीटर दूर)`;
+        updateButtonState();
     } else {
-        updateStatus(`Out of range ❌ (${Math.round(actualDistance)}m)`);
+        locationDiv.className = "location-status location-invalid";
+        locationDiv.innerText = `❌ आप तय जगह से बाहर हैं (${Math.round(actualDistance)} मीटर दूर)`;
+        document.getElementById("markBtn").disabled = true;
+        document.getElementById("markBtn").className = "disabled";
     }
 }
 
-// ================= MARK =================
-function markAttendance() {
+// ================= 🟢 FIX 1: GET TODAY RECORD FROM BACKEND =================
+async function getTodayRecord() {
+    const today = getLocalDate(new Date());
+
+    try {
+        const res = await fetch(`https://app.vbo.co.in/userin/attendancekwikkwash?employee=${EMPLOYEE_ID}&from=${today}&to=${today}`);
+        const data = await res.json();
+
+        let record = { in: false, out: false };
+
+        data.forEach(item => {
+            if (item.type === "IN") record.in = true;
+            if (item.type === "OUT") record.out = true;
+        });
+
+        return record;
+    } catch (error) {
+        console.error("Error fetching today's record:", error);
+        return { in: false, out: false };
+    }
+}
+
+// ================= UPDATE BUTTON STATE (Using Backend) =================
+async function updateButtonState() {
+    const btn = document.getElementById("markBtn");
+    const instructionSpan = document.getElementById("todayInstruction");
+    
+    // 🟢 FIX 1: Get today's record from backend
+    const todayRecord = await getTodayRecord();
+    
+    if (!todayRecord.in && !todayRecord.out) {
+        btn.innerText = "आज की हाजिरी (IN) लगाएं";
+        instructionSpan.innerText = "👉 आज की हाजिरी शुरू करने के लिए बटन दबाएं";
+        btn.disabled = false;
+        btn.className = "active";
+    } else if (todayRecord.in && !todayRecord.out) {
+        btn.innerText = "आज की हाजिरी (OUT) लगाएं";
+        instructionSpan.innerText = "👉 घर जाने से पहले OUT दबाएं";
+        btn.disabled = false;
+        btn.className = "active";
+    } else {
+        btn.innerText = "आज की हाजिरी पूरी हो चुकी है";
+        instructionSpan.innerText = "✅ आपकी आज की हाजिरी पूरी हो चुकी है। कल फिर आएं!";
+        btn.disabled = true;
+        btn.className = "disabled";
+    }
+}
+
+// ================= 🟢 FIX 2 & 3: MARK ATTENDANCE WITH FRESH LOCATION =================
+async function markAttendance() {
+    const btn = document.getElementById("markBtn");
+
+    // 🟢 FIX 2: Extra lock for double click
+    if (btn.disabled || isSubmitting) return;
+    
+    // 🟢 FIX 3: Fresh location check
+    updateStatus("लोकेशन फिर से जांची जा रही है...");
+    
+    navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+            currentLat = pos.coords.latitude;
+            currentLng = pos.coords.longitude;
+
+            validateLocation();
+
+            const [lat, lng, range] = employeeData.phone.split(",").map(Number);
+            if (actualDistance > range) {
+                alert("❌ आप तय जगह से बाहर हैं। हाजिरी नहीं लग सकती।");
+                return;
+            }
+
+            // Proceed with attendance marking
+            await proceedMarkAttendance();
+        },
+        () => {
+            alert("लोकेशन नहीं मिल रही। कृपया अनुमति दें।");
+        }
+    );
+}
+
+// ================= PROCEED WITH ATTENDANCE MARKING =================
+async function proceedMarkAttendance() {
+    const btn = document.getElementById("markBtn");
+    
+    // 🟢 FIX 2: Set submitting lock
+    isSubmitting = true;
+
+    // 🟢 FIX 1: Get today's record from backend
+    const todayRecord = await getTodayRecord();
+
+    // Auto decide type
+    let type = "IN";
+    if (todayRecord.in && !todayRecord.out) {
+        type = "OUT";
+    } else if (todayRecord.in && todayRecord.out) {
+        alert("✅ आपकी आज की हाजिरी पहले ही पूरी हो चुकी है।");
+        isSubmitting = false;
+        return;
+    }
+
+    // Confirm in Hindi
+    const confirmMsg = type === "IN" 
+        ? "आज की हाजिरी (IN) लगाएं?" 
+        : "आज की हाजिरी (OUT) लगाएं?";
+        
+    if (!confirm(confirmMsg)) {
+        updateStatus("रद्द किया गया");
+        isSubmitting = false;
+        return;
+    }
+
+    btn.disabled = true;
+    updateStatus(`${type === "IN" ? "IN" : "OUT"} लग रही है...`);
 
     const payload = {
         employee_code: EMPLOYEE_ID,
@@ -174,10 +655,8 @@ function markAttendance() {
         permissible_distance: employeeData.phone.split(",")[2],
         actual_distance: Math.round(actualDistance),
         timestamp: new Date().toISOString(),
-        type: "auto"
+        type: type
     };
-
-    updateStatus("Marking attendance...");
 
     fetch("https://app.vbo.co.in/userin/attendancekwikkwash", {
         method: "POST",
@@ -186,18 +665,184 @@ function markAttendance() {
     })
     .then(res => res.json())
     .then(res => {
-        updateStatus(res.message);
+        const successMsg = type === "IN" 
+            ? "✅ आपकी IN हाजिरी लग गई! अब OUT दबाएं जब घर जाएं" 
+            : "✅ आपकी OUT हाजिरी लग गई! कल फिर मिलेंगे";
+            
+        updateStatus(res.message || successMsg);
+        
+        // Refresh everything
+        fetchAttendance();
+        updateButtonState();
+        
+        // 🟢 FIX 2: Release lock
+        isSubmitting = false;
     })
     .catch(() => {
-        updateStatus("Error ❌");
+        updateStatus(`❌ ${type} लगाने में त्रुटि`);
+        btn.disabled = false;
+        updateButtonState();
+        isSubmitting = false;
     });
 }
 
-// ================= UI =================
+// ================= GET ALL DATES =================
+function getAllDates(from, to) {
+    const dates = [];
+    let current = new Date(from);
+    const end = new Date(to);
+
+    while (current <= end) {
+        dates.push(getLocalDate(current));
+        current.setDate(current.getDate() + 1);
+    }
+
+    return dates;
+}
+
+// ================= FETCH ATTENDANCE DATA =================
+async function fetchAttendance() {
+    const from = document.getElementById("fromDate").value;
+    const to = document.getElementById("toDate").value;
+
+    if (!from || !to) {
+        alert("कृपया तारीख चुनें");
+        return;
+    }
+
+    const today = new Date().toISOString().split("T")[0];
+    if (to > today) {
+        alert("भविष्य की तारीख नहीं चुन सकते");
+        return;
+    }
+
+    document.getElementById("loading").style.display = "block";
+    document.getElementById("attendanceTable").innerHTML = '<tr><td colspan="7" style="text-align: center;">लोड हो रहा है...</td></tr>';
+
+    try {
+        const res = await fetch(`https://app.vbo.co.in/userin/attendancekwikkwash?employee=${EMPLOYEE_ID}&from=${from}&to=${to}`);
+        const data = await res.json();
+        
+        processAttendanceData(data, from, to);
+    } catch (error) {
+        document.getElementById("attendanceTable").innerHTML = '<tr><td colspan="7" style="text-align: center;">डेटा लोड करने में त्रुटि ❌</td></tr>';
+        console.error(error);
+    } finally {
+        document.getElementById("loading").style.display = "none";
+        updateButtonState();
+    }
+}
+
+// ================= PROCESS ATTENDANCE DATA =================
+function processAttendanceData(data, from, to) {
+    const grouped = {};
+
+    const allDates = getAllDates(from, to);
+    allDates.forEach(date => {
+        grouped[date] = { in: null, out: null, petrol: 0 };
+    });
+
+    data.forEach(item => {
+        const date = getLocalDate(item.timestamp);
+
+        if (!grouped[date]) {
+            grouped[date] = { in: null, out: null, petrol: 0 };
+        }
+
+        if (item.type === "IN") {
+            if (!grouped[date].in || new Date(item.timestamp) < new Date(grouped[date].in)) {
+                grouped[date].in = item.timestamp;
+            }
+        } else if (item.type === "OUT") {
+            if (!grouped[date].out || new Date(item.timestamp) > new Date(grouped[date].out)) {
+                grouped[date].out = item.timestamp;
+            }
+        }
+        
+        grouped[date].petrol += item.petrol_km || 0;
+    });
+
+    renderAttendanceTable(grouped);
+}
+
+// ================= CALCULATE STATUS =================
+function calculateStatus(inTime, outTime) {
+    if (!inTime && !outTime) return { status: "छुट्टी", hours: 0, class: "status-off" };
+    if (inTime && !outTime) return { status: "अधूरा", hours: 0, class: "status-incomplete" };
+
+    const diff = (new Date(outTime) - new Date(inTime)) / (1000 * 60 * 60);
+
+    if (diff >= 10) return { status: "पूरा दिन", hours: diff.toFixed(1), class: "status-full" };
+    if (diff >= 8.5) return { status: "लेट", hours: diff.toFixed(1), class: "status-late" };
+
+    return { status: "आधा दिन", hours: diff.toFixed(1), class: "status-half" };
+}
+
+// ================= RENDER ATTENDANCE TABLE =================
+function renderAttendanceTable(grouped) {
+    const tbody = document.getElementById("attendanceTable");
+    tbody.innerHTML = "";
+
+    let sn = 1;
+    let summary = {
+        full: 0, late: 0, half: 0, off: 0, incomplete: 0, petrol: 0
+    };
+
+    const sortedDates = Object.keys(grouped).sort().reverse();
+
+    sortedDates.forEach(date => {
+        const record = grouped[date];
+        const result = calculateStatus(record.in, record.out);
+
+        if (result.status === "पूरा दिन") summary.full++;
+        else if (result.status === "लेट") summary.late++;
+        else if (result.status === "आधा दिन") summary.half++;
+        else if (result.status === "छुट्टी") summary.off++;
+        else if (result.status === "अधूरा") summary.incomplete++;
+
+        summary.petrol += record.petrol || 0;
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${sn++}</td>
+            <td>${formatDisplayDate(date)}</td>
+            <td>${formatTime(record.in)}</td>
+            <td>${formatTime(record.out)}</td>
+            <td class="${result.class}">${result.status}</td>
+            <td>${result.hours > 0 ? result.hours + 'h' : '-'}</td>
+            <td>${record.petrol || 0}</td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    renderSummary(summary);
+}
+
+// ================= RENDER SUMMARY =================
+function renderSummary(s) {
+    document.getElementById("summary-full").innerText = s.full;
+    document.getElementById("summary-late").innerText = s.late;
+    document.getElementById("summary-half").innerText = s.half;
+    document.getElementById("summary-off").innerText = s.off;
+    document.getElementById("summary-incomplete").innerText = s.incomplete;
+    document.getElementById("summary-petrol").innerText = s.petrol;
+}
+
+// ================= FORMAT TIME HELPER =================
+function formatTime(ts) {
+    if (!ts) return "-";
+    try {
+        const d = new Date(ts);
+        return d.toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' });
+    } catch {
+        return "-";
+    }
+}
+
+// ================= UI UPDATE HELPER =================
 function updateStatus(msg) {
     document.getElementById("status").innerText = msg;
 }
-
 </script>
 
 </body>
