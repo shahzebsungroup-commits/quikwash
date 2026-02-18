@@ -52,7 +52,7 @@ button {
 <div class="card">
     <h2>📍 Attendance</h2>
 
-    <div id="status">Getting location...</div>
+    <div id="status">Initializing...</div>
 
     <button id="markBtn" class="disabled" disabled onclick="markAttendance()">
         Mark Attendance
@@ -62,23 +62,23 @@ button {
 <script>
 
 // ================= CONFIG =================
-const EMPLOYEE_ID = "emp01"; // 👈 change here
+const EMPLOYEE_ID = "emp01"; // 🔥 change per employee
 // ==========================================
 
+let employeeData = null;
 let currentLat = null;
 let currentLng = null;
-let employeeData = null;
 let actualDistance = 0;
 
 // ================= INIT =================
 init();
 
 function init() {
-    forceLocationFetch();
+    forceLocation();
 }
 
 // ================= FORCE LOCATION =================
-function forceLocationFetch() {
+function forceLocation() {
     if (!navigator.geolocation) {
         updateStatus("Geolocation not supported ❌");
         return;
@@ -94,13 +94,13 @@ function forceLocationFetch() {
             verifyEmployee();
         },
         () => {
-            updateStatus("Location required ⚠️ Allow it...");
-            setTimeout(forceLocationFetch, 2000); // retry
+            updateStatus("Allow location to continue ⚠️");
+            setTimeout(forceLocation, 2000);
         }
     );
 }
 
-// ================= VERIFY EMPLOYEE =================
+// ================= VERIFY =================
 function verifyEmployee() {
     updateStatus("Verifying employee...");
 
@@ -144,7 +144,7 @@ function getDistance(lat1, lon1, lat2, lon2) {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-// ================= VALIDATE LOCATION =================
+// ================= VALIDATE =================
 function validateLocation() {
     const [lat, lng, range] = employeeData.phone.split(",").map(Number);
 
@@ -156,6 +156,7 @@ function validateLocation() {
         const btn = document.getElementById("markBtn");
         btn.disabled = false;
         btn.className = "active";
+
     } else {
         updateStatus(`Out of range ❌ (${Math.round(actualDistance)}m)`);
     }
@@ -163,6 +164,7 @@ function validateLocation() {
 
 // ================= MARK =================
 function markAttendance() {
+
     const payload = {
         employee_code: EMPLOYEE_ID,
         employee_name: employeeData.name,
@@ -170,8 +172,12 @@ function markAttendance() {
         lat: currentLat,
         lng: currentLng,
         permissible_distance: employeeData.phone.split(",")[2],
-        actual_distance: Math.round(actualDistance)
+        actual_distance: Math.round(actualDistance),
+        timestamp: new Date().toISOString(),
+        type: "auto"
     };
+
+    updateStatus("Marking attendance...");
 
     fetch("https://app.vbo.co.in/userin/attendancekwikkwash", {
         method: "POST",
@@ -179,8 +185,8 @@ function markAttendance() {
         body: JSON.stringify(payload)
     })
     .then(res => res.json())
-    .then(() => {
-        updateStatus("Attendance Marked ✅");
+    .then(res => {
+        updateStatus(res.message);
     })
     .catch(() => {
         updateStatus("Error ❌");
