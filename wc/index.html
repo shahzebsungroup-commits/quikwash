@@ -734,6 +734,24 @@ body {
   from { transform: translateX(0); }
   to { transform: translateX(-100%); }
 }
+
+/* Toast Message Styles */
+#toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #111;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(246,200,76,0.3);
+  font-size: 14px;
+  z-index: 2000;
+  opacity: 0;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
 </style>
 </head>
 
@@ -778,12 +796,13 @@ body {
         <div class="status-dot dot-active"></div>
       </div>
       
-      <div class="control-item" onclick="openPage('bookings')">
+      <!-- Changed: Bookings Dashboard → Reporting Panel with Coming Soon toast -->
+      <div class="control-item" onclick="showComingSoon()">
         <div class="control-icon">
-          <i class="fas fa-calendar-alt"></i>
+          <i class="fas fa-chart-pie"></i>
         </div>
-        <div class="control-label">Bookings Dashboard</div>
-        <div class="status-dot dot-active"></div>
+        <div class="control-label">Reporting Panel</div>
+        <div class="status-dot dot-soon"></div>
       </div>
       
       <div class="control-item" onclick="openPage('analytics')">
@@ -791,6 +810,15 @@ body {
           <i class="fas fa-chart-line"></i>
         </div>
         <div class="control-label">Analytics</div>
+        <div class="status-dot dot-active"></div>
+      </div>
+      
+      <!-- New: Control Panel section - opens full page -->
+      <div class="control-item" onclick="openFullControlPanel()">
+        <div class="control-icon">
+          <i class="fas fa-sliders-h"></i>
+        </div>
+        <div class="control-label">Control Panel</div>
         <div class="status-dot dot-active"></div>
       </div>
     </div>
@@ -812,14 +840,21 @@ body {
           <span>Manage Testimonials</span>
         </div>
         
-        <div class="quick-action" onclick="openPage('bookings')">
-          <i class="fas fa-calendar-alt"></i>
-          <span>Bookings Dashboard</span>
+        <!-- Updated quick action for Reporting Panel -->
+        <div class="quick-action" onclick="showComingSoon()">
+          <i class="fas fa-chart-pie"></i>
+          <span>Reporting Panel</span>
         </div>
         
         <div class="quick-action" onclick="openPage('analytics')">
           <i class="fas fa-chart-line"></i>
           <span>View Analytics</span>
+        </div>
+        
+        <!-- New quick action for Control Panel -->
+        <div class="quick-action" onclick="openFullControlPanel()">
+          <i class="fas fa-sliders-h"></i>
+          <span>Full Control Panel</span>
         </div>
       </div>
     </div>
@@ -840,7 +875,7 @@ body {
     </div>
   </div>
   
-  <!-- Page Content - Bookings -->
+  <!-- Page Content - Bookings (keeping for compatibility, but not used directly now) -->
   <div class="page-content" id="pageBookings">
     <div class="page-header">
       <button class="back-btn" onclick="closePage()">
@@ -869,6 +904,9 @@ body {
       <iframe src="https://quikwash.in/analytics" class="full-page-frame"></iframe>
     </div>
   </div>
+  
+  <!-- Toast Message for Coming Soon -->
+  <div id="toast">Coming Soon!</div>
 
   <script>
     // State management
@@ -1168,6 +1206,24 @@ body {
         });
       }, 500);
     });
+    
+    // New function: Show Coming Soon toast
+    function showComingSoon() {
+      const toast = document.getElementById('toast');
+      
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(-50%) translateY(0)';
+      
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-50%) translateY(100px)';
+      }, 2000);
+    }
+    
+    // New function: Open Full Control Panel (redirects to external URL)
+    function openFullControlPanel() {
+      window.location.href = "https://quikwash.in/cp/";
+    }
   </script>
 </body>
 </html>
