@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KwikkWash | Business Management Platform</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo-area">
+                    <span class="logo-icon">🧼</span>
+                    <div class="logo-text">
+                        <h1>KwikkWash</h1>
+                        <span class="logo-badge">Business Management</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <div class="platform-status">
+                        <span class="status-indicator"></span>
+                        <span>Live</span>
+                    </div>
+                    <div class="user-profile">
+                        <span class="profile-initials">KA</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3 class="section-title">Navigation</h3>
+                    <nav class="db-nav">
+                        <button class="db-nav-item active" data-db="user">
+                            <span class="nav-icon">👤</span>
+                            <span class="nav-label">Customers</span>
+                        </button>
+                        <button class="db-nav-item" data-db="employee">
+                            <span class="nav-icon">👥</span>
+                            <span class="nav-label">Team Members</span>
+                        </button>
+                        <button class="db-nav-item" data-db="partner">
+                            <span class="nav-icon">🤝</span>
+                            <span class="nav-label">Partners</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="section-title">Current View</h3>
+                    <div id="tableSelector" class="table-nav"></div>
+                </div>
+
+                <div class="sidebar-section quick-stats">
+                    <h3 class="section-title">Quick Overview</h3>
+                    <div class="stats-card">
+                        <div class="stat-row">
+                            <span>Total Records</span>
+                            <strong id="totalCount">0</strong>
+                        </div>
+                        <div class="stat-row">
+                            <span>Active</span>
+                            <strong class="text-success" id="activeCount">0</strong>
+                        </div>
+                        <div class="stat-row">
+                            <span>Inactive</span>
+                            <strong class="text-muted" id="inactiveCount">0</strong>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Search & Actions Bar -->
+                <div class="action-bar">
+                    <div class="search-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchInput" placeholder="Search across all fields..." autocomplete="off">
+                        <button id="clearSearch" class="clear-btn" title="Clear search">✕</button>
+                    </div>
+                    <button id="addBtn" class="btn-primary">
+                        <span>➕</span>
+                        <span>Add New Record</span>
+                    </button>
+                </div>
+
+                <!-- Toast Notifications -->
+                <div id="toast" class="toast-container"></div>
+
+                <!-- Data Table Card -->
+                <div class="data-card">
+                    <div class="card-header">
+                        <h2 id="tableTitle">Loading...</h2>
+                        <span class="record-badge" id="recordCount">0 records</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="tableContainer" class="table-responsive">
+                            <div class="loading-state">
+                                <div class="spinner"></div>
+                                <p>Loading data...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modal -->
+        <div id="modal" class="modal">
+            <div class="modal-dialog">
+                <div class="modal-header">
+                    <h3 id="modalTitle">Add New Record</h3>
+                    <button class="modal-close" onclick="closeModal()">✕</button>
+                </div>
+                <div class="modal-body">
+                    <form id="modalForm" onsubmit="event.preventDefault()"></form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModal()" class="btn-secondary">Cancel</button>
+                    <button type="button" onclick="saveItem()" class="btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
