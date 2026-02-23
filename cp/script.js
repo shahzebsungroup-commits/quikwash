@@ -10,59 +10,62 @@ let filteredData = [];
 // ==================== TABLE CONFIGURATION ====================
 const tableConfig = {
     user: {
-        // In user.services section, make sure partner_code is saved correctly
-services: {
-    name: 'Services',
-    url: `${BASE_URL}/kwikkwash/services?city=`,
-    columns: ['service_code', 'service_name', 'partner_code', 'price', 'active', 'created_at'],
-    idField: 'service_code',
-    idType: 'single',
-    getDropdowns: async () => {
-        const partnersResponse = await fetch(`${BASE_URL}/kwikkwash/partners?city=`);
-        const partners = await partnersResponse.json();
-        return { partners };
-    },
-    addForm: (dropdowns) => `
-        <div class="form-group">
-            <label class="required">Service Code</label>
-            <input type="text" id="service_code" placeholder="e.g., DRY wash" required>
-        </div>
-        <div class="form-group">
-            <label class="required">Service Name</label>
-            <input type="text" id="service_name" placeholder="e.g., Dry Wash Service" required>
-        </div>
-        <div class="form-group">
-            <label class="required">Partner</label>
-            <select id="partner_code" required>
-                <option value="">Select Partner</option>
-                ${dropdowns.partners?.map(p => `<option value="${p.partner_code}">${p.partner_code} - ${p.franchise_name || p.owner_name} (${p.city})</option>`).join('')}
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Price (₹)</label>
-            <input type="number" id="price" step="0.01" value="0">
-        </div>
-        <div class="form-group">
-            <label>Status</label>
-            <select id="active">
-                <option value="1">Active</option>
-                <option value="0">Inactive</option>
-            </select>
-        </div>
-    `,
-    addEndpoint: `${BASE_URL}/kwikkwash/services`,
-    deleteUrl: (id) => `${BASE_URL}/kwikkwash/services/${id}`
-},
+        services: {
+            name: 'Services',
+            url: `${BASE_URL}/kwikkwash/services?city=`,
+            columns: ['service_code', 'service_name', 'partner_code', 'price', 'active', 'created_at'],
+            idField: 'service_code',
+            idType: 'single',
+            getDropdowns: async () => {
+                const partnersResponse = await fetch(`${BASE_URL}/kwikkwash/partners?city=`);
+                const partners = await partnersResponse.json();
+                return { partners };
+            },
+            addForm: (dropdowns) => `
+                <div class="form-group">
+                    <label class="required">Service Code</label>
+                    <input type="text" id="service_code" placeholder="e.g., DRY wash" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Service Name</label>
+                    <input type="text" id="service_name" placeholder="e.g., Dry Wash Service" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Partner Code **</label>
+                    <select id="partner_code" required>
+                        <option value="">Select Partner</option>
+                        ${dropdowns.partners?.map(p => `<option value="${p.partner_code}">${p.partner_code} - ${p.franchise_name || p.owner_name} (${p.city})</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="required">Price (₹)</label>
+                    <input type="number" id="price" step="0.01" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Status</label>
+                    <select id="active" required>
+                        <option value="1">Active</option>
+                        <option value="0">Inactive</option>
+                    </select>
+                </div>
+            `,
+            addEndpoint: `${BASE_URL}/kwikkwash/services`,
+            deleteUrl: (id) => `${BASE_URL}/kwikkwash/services/${id}`
+        },
         bookings: {
             name: 'Bookings',
             url: `${BASE_URL}/kwikkwash/bookings?city=`,
-            columns: ['booking_id', 'customer_name', 'phone', 'city', 'service_code', 'booking_date', 'status'],
+            columns: ['booking_id', 'customer_name', 'phone', 'city', 'service_code', 'assigned_employee_code', 'booking_date', 'status'],
             idField: 'booking_id',
             idType: 'single',
             getDropdowns: async () => {
-                const response = await fetch(`${BASE_URL}/kwikkwash/services?city=`);
-                const services = await response.json();
-                return { services };
+                const [servicesResponse, employeesResponse] = await Promise.all([
+                    fetch(`${BASE_URL}/kwikkwash/services?city=`),
+                    fetch(`${BASE_URL}/kwikkwash/employees?city=`)
+                ]);
+                const services = await servicesResponse.json();
+                const employees = await employeesResponse.json();
+                return { services, employees };
             },
             addForm: (dropdowns) => `
                 <div class="form-group">
@@ -74,27 +77,35 @@ services: {
                     <input type="text" id="customer_name" required>
                 </div>
                 <div class="form-group">
-                    <label>Phone</label>
-                    <input type="text" id="phone">
+                    <label class="required">Phone</label>
+                    <input type="tel" id="phone" pattern="[0-9]{10}" placeholder="Enter 10-digit mobile number" required>
+                    <small style="color: var(--text-muted);">10-digit mobile number</small>
                 </div>
                 <div class="form-group">
-                    <label>City</label>
-                    <input type="text" id="city">
+                    <label class="required">City</label>
+                    <input type="text" id="city" required>
                 </div>
                 <div class="form-group">
-                    <label>Service</label>
-                    <select id="service_code">
+                    <label class="required">Service</label>
+                    <select id="service_code" required>
                         <option value="">Select Service</option>
                         ${dropdowns.services?.map(s => `<option value="${s.service_code}">${s.service_code} - ${s.service_name}</option>`).join('')}
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Booking Date</label>
-                    <input type="date" id="booking_date">
+                    <label class="required">Assigned Employee</label>
+                    <select id="assigned_employee_code" required>
+                        <option value="">Select Employee</option>
+                        ${dropdowns.employees?.map(e => `<option value="${e.employee_code}">${e.employee_code} - ${e.employee_name}</option>`).join('')}
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label>Status</label>
-                    <select id="status">
+                    <label class="required">Booking Date</label>
+                    <input type="date" id="booking_date" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Status</label>
+                    <select id="status" required>
                         <option value="pending">Pending</option>
                         <option value="confirmed">Confirmed</option>
                         <option value="completed">Completed</option>
@@ -110,8 +121,8 @@ services: {
         employees: {
             name: 'Team Members',
             url: `${BASE_URL}/kwikkwash/employees?city=`,
-            columns: ['employee_code', 'employee_name', 'phone', 'partner_code', 'active', 'skills'],
-            idField: 'employee_code',
+            columns: ['id', 'employee_code', 'employee_name', 'phone', 'partner_code', 'joining_date', 'ref_by', 'background', 'allowed_lat', 'allowed_lng', 'allowed_range', 'salary', 'active', 'skills'],
+            idField: 'id',  // FIXED: Using id instead of employee_code
             idType: 'single',
             getDropdowns: async () => {
                 const partnersResponse = await fetch(`${BASE_URL}/kwikkwash/partners?city=`);
@@ -128,15 +139,50 @@ services: {
                     <input type="text" id="employee_name" required>
                 </div>
                 <div class="form-group">
-                    <label>Phone</label>
-                    <input type="text" id="phone">
+                    <label class="required">Phone</label>
+                    <input type="tel" id="phone" pattern="[0-9]{10}" placeholder="Enter 10-digit mobile number" required>
+                    <small style="color: var(--text-muted);">10-digit mobile number</small>
                 </div>
                 <div class="form-group">
-                    <label class="required">Partner</label>
+                    <label class="required">Partner Code **</label>
                     <select id="partner_code" required onchange="updateSkillsByPartner(this.value)">
                         <option value="">Select Partner</option>
                         ${dropdowns.partners?.map(p => `<option value="${p.partner_code}">${p.partner_code} - ${p.franchise_name || p.owner_name} (${p.city})</option>`).join('')}
                     </select>
+                </div>
+                <div class="form-group">
+                    <label class="required">Joining Date</label>
+                    <input type="date" id="joining_date" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Referred By</label>
+                    <input type="text" id="ref_by" placeholder="Person who referred this employee" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Background Check</label>
+                    <select id="background" required>
+                        <option value="">Select Status</option>
+                        <option value="clear">Clear</option>
+                        <option value="pending">Pending</option>
+                        <option value="verified">Verified</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="required">Allowed Latitude</label>
+                    <input type="number" step="0.000001" id="allowed_lat" placeholder="e.g., 28.6139" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Allowed Longitude</label>
+                    <input type="number" step="0.000001" id="allowed_lng" placeholder="e.g., 77.2090" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Allowed Range (km)</label>
+                    <input type="number" id="allowed_range" step="0.1" placeholder="e.g., 5" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Salary (₹)</label>
+                    <input type="number" id="salary" step="0.01" placeholder="e.g., 25000" required>
                 </div>
                 <div class="form-group">
                     <label>Skills</label>
@@ -150,12 +196,8 @@ services: {
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Salary (₹)</label>
-                    <input type="number" id="salary" step="0.01">
-                </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select id="active">
+                    <label class="required">Status</label>
+                    <select id="active" required>
                         <option value="1">Active</option>
                         <option value="0">Inactive</option>
                     </select>
@@ -167,7 +209,7 @@ services: {
         attendance: {
             name: 'Attendance',
             url: `${BASE_URL}/kwikkwash/attendance/all`,
-            columns: ['employee_code', 'attendance_date', 'in_time', 'out_time'],
+            columns: ['id', 'employee_code', 'attendance_date', 'in_time', 'out_time'],
             idField: 'id',
             idType: 'single',
             getDropdowns: async () => {
@@ -188,12 +230,12 @@ services: {
                     <input type="date" id="attendance_date" required>
                 </div>
                 <div class="form-group">
-                    <label>In Time</label>
-                    <input type="text" id="in_time" placeholder="09:00">
+                    <label class="required">In Time</label>
+                    <input type="text" id="in_time" placeholder="09:00" required>
                 </div>
                 <div class="form-group">
-                    <label>Out Time</label>
-                    <input type="text" id="out_time" placeholder="18:00">
+                    <label class="required">Out Time</label>
+                    <input type="text" id="out_time" placeholder="18:00" required>
                 </div>
             `,
             addEndpoint: `${BASE_URL}/kwikkwash/attendance`,
@@ -202,7 +244,7 @@ services: {
         jobs: {
             name: 'Assignments',
             url: `${BASE_URL}/kwikkwash/employee-jobs/all`,
-            columns: ['employee_code', 'booking_id', 'status', 'job_address', 'created_at'],
+            columns: ['id', 'employee_code', 'booking_id', 'status', 'job_address', 'created_at'],
             idField: 'id',
             idType: 'single',
             getDropdowns: async () => {
@@ -223,23 +265,23 @@ services: {
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Booking</label>
-                    <select id="booking_id">
+                    <label class="required">Booking</label>
+                    <select id="booking_id" required>
                         <option value="">Select Booking</option>
                         ${dropdowns.bookings?.map(b => `<option value="${b.booking_id}">${b.booking_id} - ${b.customer_name}</option>`).join('')}
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Job Address</label>
-                    <textarea id="job_address" rows="2" placeholder="Full address..."></textarea>
+                    <label class="required">Job Address</label>
+                    <textarea id="job_address" rows="2" placeholder="Full address..." required></textarea>
                 </div>
                 <div class="form-group">
                     <label>Service Code</label>
                     <input type="text" id="service_code" placeholder="e.g., WASH001">
                 </div>
                 <div class="form-group">
-                    <label>Status</label>
-                    <select id="status">
+                    <label class="required">Status</label>
+                    <select id="status" required>
                         <option value="assigned">Assigned</option>
                         <option value="in_progress">In Progress</option>
                         <option value="completed">Completed</option>
@@ -254,8 +296,8 @@ services: {
         partners: {
             name: 'Partners',
             url: `${BASE_URL}/kwikkwash/partners?city=`,
-            columns: ['partner_code', 'franchise_name', 'owner_name', 'phone', 'city', 'active'],
-            idField: 'partner_code',
+            columns: ['id', 'partner_code', 'franchise_name', 'owner_name', 'phone', 'city', 'business_type', 'office_lat', 'office_lng', 'service_range_km', 'active'],
+            idField: 'id',  // FIXED: Using id instead of partner_code
             idType: 'single',
             getDropdowns: async () => ({}),
             addForm: (dropdowns) => `
@@ -264,24 +306,46 @@ services: {
                     <input type="text" id="partner_code" required>
                 </div>
                 <div class="form-group">
-                    <label>Franchise Name</label>
-                    <input type="text" id="franchise_name">
+                    <label class="required">Franchise Name</label>
+                    <input type="text" id="franchise_name" required>
                 </div>
                 <div class="form-group">
-                    <label>Owner Name</label>
-                    <input type="text" id="owner_name">
+                    <label class="required">Owner Name</label>
+                    <input type="text" id="owner_name" required>
                 </div>
                 <div class="form-group">
-                    <label>Phone</label>
-                    <input type="text" id="phone">
+                    <label class="required">Phone</label>
+                    <input type="tel" id="phone" pattern="[0-9]{10}" placeholder="Enter 10-digit mobile number" required>
+                    <small style="color: var(--text-muted);">10-digit mobile number</small>
                 </div>
                 <div class="form-group">
-                    <label>City</label>
-                    <input type="text" id="city">
+                    <label class="required">City</label>
+                    <input type="text" id="city" required>
                 </div>
                 <div class="form-group">
-                    <label>Status</label>
-                    <select id="active">
+                    <label class="required">Business Type</label>
+                    <select id="business_type" required>
+                        <option value="">Select Business Type</option>
+                        <option value="franchise">Franchise</option>
+                        <option value="independent">Independent</option>
+                        <option value="distributor">Distributor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="required">Office Latitude</label>
+                    <input type="number" step="0.000001" id="office_lat" placeholder="e.g., 28.6139" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Office Longitude</label>
+                    <input type="number" step="0.000001" id="office_lng" placeholder="e.g., 77.2090" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Service Range (km)</label>
+                    <input type="number" id="service_range_km" step="0.1" placeholder="e.g., 10" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Status</label>
+                    <select id="active" required>
                         <option value="1">Active</option>
                         <option value="0">Inactive</option>
                     </select>
@@ -293,7 +357,7 @@ services: {
         partner_services: {
             name: 'Partner Services',
             url: `${BASE_URL}/kwikkwash/partner-services/all?partner_code=`,
-            columns: ['partner_code', 'service_code', 'price', 'active'],
+            columns: ['id', 'partner_code', 'service_code', 'price', 'active'],
             idField: 'id',
             idType: 'composite',
             getDropdowns: async () => {
@@ -314,12 +378,12 @@ services: {
                     <input type="text" id="service_code" placeholder="Enter service code (e.g., WASH001)" required>
                 </div>
                 <div class="form-group">
-                    <label>Price (₹)</label>
-                    <input type="number" id="price" step="0.01" value="0">
+                    <label class="required">Price (₹)</label>
+                    <input type="number" id="price" step="0.01" value="0" required>
                 </div>
                 <div class="form-group">
-                    <label>Status</label>
-                    <select id="active">
+                    <label class="required">Status</label>
+                    <select id="active" required>
                         <option value="1">Active</option>
                         <option value="0">Inactive</option>
                     </select>
@@ -331,14 +395,14 @@ services: {
     }
 };
 
-// ==================== UPDATE SKILLS BASED ON PARTNER CODE (WITH FINAL FIX) ====================
+// ==================== UPDATE SKILLS BASED ON PARTNER CODE ====================
 async function updateSkillsByPartner(partnerCode) {
     const container = document.getElementById('skills-table-container');
     const hiddenInput = document.getElementById('skills');
 
     if (!container) return;
     
-    // FINAL FIX: Clear only in ADD mode (not edit)
+    // Clear only in ADD mode (not edit)
     if (hiddenInput && !editId) {
         hiddenInput.value = '';
     }
@@ -355,7 +419,7 @@ async function updateSkillsByPartner(partnerCode) {
         const data = await res.json();
 
         if (!data || data.length === 0) {
-            container.innerHTML = '<p>No services found</p>';
+            container.innerHTML = '<p>No services found for this partner</p>';
             return;
         }
 
@@ -547,6 +611,16 @@ function renderFilteredTable() {
             } else if (col === 'skills' && value) {
                 const skillsList = value.split(',').map(s => s.trim()).join(', ');
                 displayValue = skillsList;
+            } else if (col === 'business_type') {
+                // SAFE VERSION: Check if value exists and is string
+                displayValue = (value && typeof value === 'string')
+                    ? value.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+                    : '-';
+            } else if (col === 'background') {
+                // SAFE VERSION: Check if value exists and is string
+                displayValue = (value && typeof value === 'string')
+                    ? value.replace(/\b\w/g, l => l.toUpperCase())
+                    : '-';
             } else {
                 displayValue = value !== null && value !== undefined ? value.toString() : '-';
             }
@@ -607,7 +681,7 @@ async function openAddModal() {
     document.getElementById('modalForm').innerHTML = config.addForm(dropdowns);
 }
 
-// ==================== OPEN EDIT MODAL (WITH SAFE HANDLING) ====================
+// ==================== OPEN EDIT MODAL ====================
 async function openEditModal(item) {
     editItemData = item;
     editId = item[tableConfig[currentDB][currentTable].idField];
@@ -629,7 +703,6 @@ async function openEditModal(item) {
             const field = document.getElementById(key);
             if (field) {
                 if (key === 'skills') {
-                    // SAFE HANDLING: Use empty string if null/undefined
                     field.value = item[key] || '';
                 } else {
                     field.value = item[key];
@@ -665,7 +738,8 @@ async function saveItem() {
             
             if (input.id) {
                 if (input.type === 'number') {
-                    data[input.id] = parseFloat(input.value) || 0;
+                    // FIX: Check for empty string, set to null instead of 0
+                    data[input.id] = input.value === '' ? null : parseFloat(input.value);
                 } else {
                     data[input.id] = input.value;
                 }
