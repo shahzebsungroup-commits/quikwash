@@ -122,7 +122,7 @@ const tableConfig = {
             name: 'Team Members',
             url: `${BASE_URL}/kwikkwash/employees?city=`,
             columns: ['id', 'employee_code', 'employee_name', 'phone', 'partner_code', 'joining_date', 'ref_by', 'background', 'allowed_lat', 'allowed_lng', 'allowed_range', 'salary', 'active', 'skills'],
-            idField: 'id',  // FIXED: Using id instead of employee_code
+            idField: 'employee_code',
             idType: 'single',
             getDropdowns: async () => {
                 const partnersResponse = await fetch(`${BASE_URL}/kwikkwash/partners?city=`);
@@ -239,7 +239,8 @@ const tableConfig = {
                 </div>
             `,
             addEndpoint: `${BASE_URL}/kwikkwash/attendance`,
-            deleteUrl: (id) => `${BASE_URL}/kwikkwash/attendance/id/${id}`
+            // FIXED: Changed to composite key URL with employee_code and attendance_date
+            deleteUrl: (item) => `${BASE_URL}/kwikkwash/attendance/${item.employee_code}/${item.attendance_date}`
         },
         jobs: {
             name: 'Assignments',
@@ -297,7 +298,7 @@ const tableConfig = {
             name: 'Partners',
             url: `${BASE_URL}/kwikkwash/partners?city=`,
             columns: ['id', 'partner_code', 'franchise_name', 'owner_name', 'phone', 'city', 'business_type', 'office_lat', 'office_lng', 'service_range_km', 'active'],
-            idField: 'id',  // FIXED: Using id instead of partner_code
+            idField: 'id',
             idType: 'single',
             getDropdowns: async () => ({}),
             addForm: (dropdowns) => `
@@ -621,6 +622,30 @@ function renderFilteredTable() {
                 displayValue = (value && typeof value === 'string')
                     ? value.replace(/\b\w/g, l => l.toUpperCase())
                     : '-';
+            } 
+            // FIXED: Format attendance date
+            else if (col === 'attendance_date' && value) {
+                displayValue = new Date(value).toLocaleDateString('en-IN');
+            }
+            // UPDATED: Format time fields using Date object for consistent formatting
+            else if ((col === 'in_time' || col === 'out_time') && value) {
+                try {
+                    const date = new Date(value);
+                    // Check if date is valid
+                    if (!isNaN(date.getTime())) {
+                        displayValue = date.toLocaleTimeString('en-IN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                        });
+                    } else {
+                        // Fallback for invalid dates
+                        displayValue = value.toString().slice(0, 5);
+                    }
+                } catch (e) {
+                    // Fallback error handling
+                    displayValue = value.toString().slice(0, 5);
+                }
             } else {
                 displayValue = value !== null && value !== undefined ? value.toString() : '-';
             }
@@ -643,7 +668,6 @@ function renderFilteredTable() {
     html += '</tbody></table>';
     container.innerHTML = html;
 }
-
 // ==================== UPDATE SUMMARY ====================
 function updateSummary(data) {
     if (!data || data.length === 0) {
@@ -752,7 +776,10 @@ async function saveItem() {
         return;
     }
     
-    if (editId && config.idType === 'single') {
+    // IMPORTANT: For employees table, ensure employee_code is set as the ID for updates
+    if (editId && config.idField === 'employee_code') {
+        data.employee_code = editId;  // ENSURE: Set employee_code from editId
+    } else if (editId && config.idType === 'single') {
         data[config.idField] = editId;
     }
     
@@ -791,6 +818,14 @@ async function deleteItem(item) {
                 return;
             }
             url = config.deleteUrl(item.partner_code, item.service_code);
+        } 
+        // FIXED: Special handling for attendance table with composite key
+        else if (currentTable === 'attendance') {
+            if (!item.employee_code || !item.attendance_date) {
+                showToast('error', 'Missing employee code or attendance date');
+                return;
+            }
+            url = config.deleteUrl(item);  // Pass the whole item to deleteUrl
         } else {
             const id = item[config.idField];
             if (!id) {
