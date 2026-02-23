@@ -1,1119 +1,1382 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Attendance System</title>
-
-<style>
-/* ========== MOBILE-FIRST UI ========== */
-body {
-    font-family: Arial;
-    background: #000;
-    color: #fff;
-    text-align: center;
-    padding: 10px;
-    margin: 0;
-}
-
-.card {
-    max-width: 400px;
-    margin: auto;
-    padding: 20px;
-    border: 1px solid #F6C84C;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    width: 100%;
-    box-sizing: border-box;
-    background: #111;
-    box-shadow: 0 4px 15px rgba(246, 200, 76, 0.1);
-}
-
-button {
-    padding: 14px;
-    width: 100%;
-    margin-top: 10px;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 16px;
-    transition: all 0.3s ease;
-    -webkit-tap-highlight-color: transparent;
-}
-
-button:active {
-    transform: scale(0.98);
-}
-
-.disabled {
-    background: #444;
-    color: #999;
-    cursor: not-allowed;
-    opacity: 0.7;
-    pointer-events: none;
-}
-
-.active {
-    background: #F6C84C;
-    color: black;
-    box-shadow: 0 2px 10px rgba(246, 200, 76, 0.5);
-}
-
-.status {
-    margin-top: 15px;
-    font-weight: bold;
-    font-size: 14px;
-    color: #F6C84C;
-    min-height: 40px;
-    padding: 8px;
-    border-radius: 5px;
-    background: #222;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Alert Message Styling */
-.alert-message {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #111;
-    border: 2px solid #F6C84C;
-    border-radius: 10px;
-    padding: 15px 25px;
-    color: #fff;
-    font-size: 16px;
-    font-weight: bold;
-    z-index: 1000;
-    box-shadow: 0 4px 20px rgba(246, 200, 76, 0.3);
-    max-width: 80%;
-    text-align: center;
-    animation: slideDown 0.3s ease;
-}
-
-.alert-message.success {
-    border-color: #4CAF50;
-    background: #1a3a1a;
-}
-
-.alert-message.error {
-    border-color: #f44336;
-    background: #3a1a1a;
-}
-
-.alert-message.warning {
-    border-color: #FFC107;
-    background: #3a2a1a;
-}
-
-@keyframes slideDown {
-    from {
-        top: -100px;
-        opacity: 0;
-    }
-    to {
-        top: 20px;
-        opacity: 1;
-    }
-}
-
-/* Welcome Section */
-.welcome-section {
-    background: #111;
-    border: 2px solid #F6C84C;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 20px;
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-    box-shadow: 0 4px 15px rgba(246, 200, 76, 0.1);
-}
-
-.employee-name {
-    color: #F6C84C;
-    font-size: 26px;
-    font-weight: bold;
-    margin: 5px 0;
-    text-shadow: 0 2px 5px rgba(246, 200, 76, 0.3);
-}
-
-.employee-city {
-    color: #fff;
-    font-size: 18px;
-    margin: 5px 0;
-    opacity: 0.9;
-}
-
-.employee-id {
-    color: #888;
-    font-size: 14px;
-    margin: 5px 0;
-}
-
-.instruction-box {
-    background: #222;
-    border-left: 4px solid #F6C84C;
-    padding: 12px;
-    margin: 15px 0 5px 0;
-    text-align: left;
-    font-size: 15px;
-    border-radius: 0 5px 5px 0;
-}
-
-.instruction-box i {
-    color: #F6C84C;
-    margin-right: 10px;
-    font-style: normal;
-}
-
-/* Date Range Section */
-.date-section {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    border: 1px solid #F6C84C;
-    border-radius: 10px;
-    background: #111;
-}
-
-.date-filters {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin: 15px 0;
-    flex-wrap: wrap;
-}
-
-.date-filters label {
-    color: #F6C84C;
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.date-filters input {
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #F6C84C;
-    background: #222;
-    color: #fff;
-    margin-left: 5px;
-    font-size: 14px;
-    width: 130px;
-}
-
-.fetch-btn {
-    background: #F6C84C;
-    color: black;
-    max-width: 200px;
-    margin: 0 auto;
-    font-size: 16px;
-    padding: 12px;
-    font-weight: bold;
-}
-
-/* Table Section */
-.table-section {
-    max-width: 1200px;
-    margin: 20px auto;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #111;
-    color: #fff;
-    font-size: 12px;
-    min-width: 600px;
-    border: 1px solid #F6C84C;
-}
-
-th {
-    background: #F6C84C;
-    color: black;
-    padding: 10px;
-    font-weight: bold;
-    font-size: 12px;
-}
-
-td {
-    padding: 10px;
-    border: 1px solid #333;
-    font-size: 12px;
-}
-
-tr:hover {
-    background: #222;
-}
-
-/* Today row highlight */
-.today-row {
-    background: #2a2a2a !important;
-    border-left: 3px solid #F6C84C;
-    font-weight: bold;
-}
-
-.today-row td:first-child {
-    position: relative;
-}
-
-.today-row td:first-child::before {
-    content: "👉";
-    position: absolute;
-    left: -15px;
-    color: #F6C84C;
-    font-size: 12px;
-}
-
-/* Empty state styling */
-.empty-state {
-    text-align: center;
-    padding: 40px !important;
-    color: #888;
-    font-style: italic;
-}
-
-.empty-state i {
-    color: #F6C84C;
-    font-size: 24px;
-    margin-bottom: 10px;
-}
-
-/* Summary Section */
-.summary-section {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    border: 1px solid #F6C84C;
-    border-radius: 10px;
-    background: #111;
-}
-
-.summary-stats {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.stat-item {
-    padding: 10px;
-    background: #222;
-    border-radius: 8px;
-    min-width: 70px;
-    flex: 1 1 auto;
-    border: 1px solid #333;
-}
-
-.stat-label {
-    color: #F6C84C;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.stat-value {
-    font-size: 20px;
-    font-weight: bold;
-    color: #fff;
-}
-
-/* Status Colors */
-.status-full { color: #4CAF50; font-weight: bold; }
-.status-late { color: #FFC107; font-weight: bold; }
-.status-half { color: #FF9800; font-weight: bold; }
-.status-off { color: #9E9E9E; font-weight: bold; }
-.status-incomplete { color: #f44336; font-weight: bold; }
-
-.loading {
-    padding: 20px;
-    color: #F6C84C;
-    font-style: italic;
-}
-
-/* Location Status */
-.location-status {
-    font-size: 15px;
-    margin: 15px 0;
-    padding: 10px;
-    border-radius: 8px;
-    font-weight: bold;
-}
-
-.location-valid {
-    background: #1a3a1a;
-    color: #4CAF50;
-    border: 1px solid #4CAF50;
-}
-
-.location-invalid {
-    background: #3a1a1a;
-    color: #f44336;
-    border: 1px solid #f44336;
-}
-
-/* Mobile-specific tweaks */
-@media (max-width: 480px) {
-    .date-filters {
-        flex-direction: column;
-        align-items: center;
-    }
+    <title>हाजिरी / Attendance - KwikkWash</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
     
-    .date-filters input {
-        width: 90%;
-        margin: 5px 0;
-    }
-    
-    .stat-item {
-        min-width: 50px;
-    }
-    
-    .stat-value {
-        font-size: 16px;
-    }
-    
-    .employee-name {
-        font-size: 22px;
-    }
-    
-    .alert-message {
-        width: 90%;
-        font-size: 14px;
-        padding: 12px;
-    }
-    
-    .today-row td:first-child::before {
-        left: -5px;
-    }
-}
-</style>
+    <style>
+        /* =========================================
+           KwikkWash Business Management Platform
+           Professional Client Interface v1.0
+           ========================================= */
+
+        /* CSS Variables - Easy Theming */
+        :root {
+            --primary: #F6C84C;
+            --primary-dark: #e5b53a;
+            --primary-light: #fadc8c;
+            --secondary: #2a2a2a;
+            --surface: #1a1a1a;
+            --background: #0a0a0a;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #666666;
+            --success: #4CAF50;
+            --danger: #ff6b6b;
+            --warning: #FFC107;
+            --border: #333333;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            --shadow-gold: 0 4px 20px rgba(246, 200, 76, 0.15);
+        }
+
+        /* Reset & Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text-primary);
+            padding: 12px;
+            min-height: 100vh;
+            font-size: 13px;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 450px;
+            margin: 0 auto;
+        }
+
+        /* Language Selector */
+        .language-selector {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 4px;
+            margin-bottom: 16px;
+            display: inline-flex;
+            width: auto;
+        }
+
+        .lang-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .lang-btn.active {
+            background: var(--primary);
+            color: var(--secondary);
+        }
+
+        /* Profile Card */
+        .profile-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .welcome-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .emp-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            line-height: 1.2;
+        }
+
+        .emp-details {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .emp-city {
+            background: rgba(246, 200, 76, 0.1);
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 13px;
+            color: var(--primary);
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border: 1px solid rgba(246, 200, 76, 0.2);
+        }
+
+        .emp-code {
+            background: var(--background);
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            border: 1px solid var(--border);
+        }
+
+        /* Info Box */
+        .info-box {
+            background: var(--background);
+            border-left: 4px solid var(--primary);
+            padding: 12px;
+            border-radius: 12px;
+            margin: 12px 0 4px 0;
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-icon {
+            background: var(--primary);
+            color: var(--secondary);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Action Card */
+        .action-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .action-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .location-status {
+            background: var(--background);
+            padding: 12px;
+            border-radius: 40px;
+            margin: 8px 0;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .location-ok {
+            color: var(--success);
+        }
+
+        .location-not-ok {
+            color: var(--danger);
+        }
+
+        .mark-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--primary);
+            color: var(--secondary);
+        }
+
+        .mark-btn:active {
+            transform: scale(0.98);
+            background: var(--primary-dark);
+        }
+
+        .mark-btn:disabled {
+            background: var(--border);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .status-message {
+            background: var(--background);
+            padding: 12px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-align: center;
+            min-height: 48px;
+            border: 1px solid var(--border);
+        }
+
+        /* Summary Card */
+        .summary-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .summary-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .summary-value.full { color: var(--success); }
+        .summary-value.late { color: var(--warning); }
+        .summary-value.half { color: #e67e22; }
+        .summary-value.off { color: var(--text-muted); }
+
+        /* Filter Card */
+        .filter-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .filter-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .date-inputs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-direction: column;
+        }
+
+        .date-field {
+            flex: 1;
+        }
+
+        .date-field label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .date-field input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            font-size: 14px;
+            background: var(--background);
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .date-field input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(246, 200, 76, 0.1);
+        }
+
+        .apply-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: var(--secondary);
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .apply-btn:active {
+            transform: scale(0.98);
+            background: var(--primary-dark);
+        }
+
+        /* Table Card */
+        .table-card {
+            background: var(--surface);
+            border-radius: 20px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: none;
+        }
+
+        .table-card.show {
+            display: block;
+        }
+
+        .table-header {
+            background: var(--background);
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-header h3 {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 300px;
+        }
+
+        th {
+            background: var(--background);
+            padding: 12px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .today-highlight {
+            background: rgba(246, 200, 76, 0.1);
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-full { background: rgba(76, 175, 80, 0.1); color: var(--success); border: 1px solid rgba(76, 175, 80, 0.2); }
+        .status-late { background: rgba(255, 193, 7, 0.1); color: var(--warning); border: 1px solid rgba(255, 193, 7, 0.2); }
+        .status-half { background: rgba(230, 126, 34, 0.1); color: #e67e22; border: 1px solid rgba(230, 126, 34, 0.2); }
+        .status-off { background: rgba(102, 102, 102, 0.1); color: var(--text-muted); border: 1px solid var(--border); }
+        .status-pending { background: rgba(246, 200, 76, 0.1); color: var(--primary); border: 1px solid rgba(246, 200, 76, 0.2); }
+
+        .empty-message {
+            text-align: center;
+            padding: 30px !important;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* Toast Container */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 12px;
+            left: 12px;
+            z-index: 1000;
+            max-width: 400px;
+            margin: 0 auto;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 12px 20px;
+            margin-bottom: 8px;
+            box-shadow: var(--shadow);
+            animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--success);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--danger);
+        }
+
+        .toast.info {
+            border-left: 4px solid var(--primary);
+        }
+
+        .toast-message {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0 4px;
+        }
+
+        .toast-close:hover {
+            color: var(--text-primary);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Confirm Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-dialog {
+            max-width: 320px;
+            margin: 20px;
+            background: var(--surface);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-btn.confirm {
+            background: var(--primary);
+            color: var(--secondary);
+        }
+
+        .modal-btn.cancel {
+            background: var(--border);
+            color: var(--text-primary);
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .modal-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--surface);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        /* Hindi text support */
+        [lang="hi"] {
+            font-family: 'Nirmala UI', 'Segoe UI', Roboto, sans-serif;
+        }
+    </style>
 </head>
-
 <body>
-
-<!-- Custom Alert Container -->
-<div id="customAlert" style="display: none;"></div>
-
-<!-- ========== ATTENDANCE MARKING CARD ========== -->
-<div class="card">
-    <h2 style="color: #F6C84C;">📍 हाजिरी लगाएं</h2>
-    
-    <div id="status" class="status">शुरू हो रहा है...</div>
-    <button id="markBtn" class="disabled" disabled onclick="markAttendance()">
-        हाजिरी लगाएं
-    </button>
-</div>
-
-<!-- ========== EMPLOYEE WELCOME SECTION ========== -->
-<div class="welcome-section" id="welcomeSection" style="display: none;">
-    <div class="employee-name" id="welcomeName"></div>
-    <div class="employee-city" id="welcomeCity"></div>
-    <div class="employee-id" id="welcomeId"></div>
-    
-    <div class="instruction-box">
-        <i>📌</i> <span id="todayInstruction">आज की हाजिरी के लिए नीचे दिए गए बटन पर क्लिक करें</span>
-    </div>
-    
-    <div id="locationStatus" class="location-status"></div>
-</div>
-
-<!-- ========== DATE RANGE FILTER ========== -->
-<div class="date-section">
-    <h3 style="color: #F6C84C;">📅 हाजिरी रिकॉर्ड</h3>
-    
-    <div class="date-filters">
-        <div>
-            <label>कब से:</label>
-            <input type="date" id="fromDate">
+    <div class="container">
+        <!-- Language Selector -->
+        <div class="language-selector">
+            <button class="lang-btn" onclick="setLanguage('hinglish')">Hinglish</button>
+            <button class="lang-btn" onclick="setLanguage('hindi')">हिंदी</button>
+            <button class="lang-btn" onclick="setLanguage('english')">English</button>
         </div>
-        <div>
-            <label>कब तक:</label>
-            <input type="date" id="toDate" max="">
-        </div>
-    </div>
-    
-    <button class="fetch-btn" onclick="fetchAttendance()">रिकॉर्ड दिखाएं</button>
-</div>
 
-<!-- ========== SUMMARY SECTION ========== -->
-<div class="summary-section">
-    <h3 style="color: #F6C84C;">📊 हाजिरी का सारांश</h3>
-    <div id="summary" class="summary-stats">
-        <div class="stat-item">
-            <div class="stat-label">पूरा दिन</div>
-            <div class="stat-value" id="summary-full">0</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-label">लेट</div>
-            <div class="stat-value" id="summary-late">0</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-label">आधा दिन</div>
-            <div class="stat-value" id="summary-half">0</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-label">छुट्टी</div>
-            <div class="stat-value" id="summary-off">0</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-label">अधूरा</div>
-            <div class="stat-value" id="summary-incomplete">0</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-label">पेट्रोल</div>
-            <div class="stat-value" id="summary-petrol">0</div>
-        </div>
-    </div>
-</div>
-
-<!-- ========== ATTENDANCE TABLE ========== -->
-<div class="table-section">
-    <table>
-        <thead>
-            <tr>
-                <th>क्र.</th>
-                <th>तारीख</th>
-                <th>आने का समय</th>
-                <th>जाने का समय</th>
-                <th>स्थिति</th>
-                <th>घंटे</th>
-                <th>पेट्रोल (किमी)</th>
-            </tr>
-        </thead>
-        <tbody id="attendanceTable">
-            <tr>
-                <td colspan="7" style="text-align: center; padding: 30px;">तारीख चुनें और रिकॉर्ड दिखाएं</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-
-<div id="loading" class="loading" style="display: none;">⏳ डेटा लोड हो रहा है...</div>
-
-<script>
-// ================= CONFIG =================
-const EMPLOYEE_ID = "emp01"; // 🔥 हर कर्मचारी के लिए बदलें
-// ==========================================
-
-let employeeData = null;
-let currentLat = null;
-let currentLng = null;
-let actualDistance = 0;
-let isSubmitting = false;
-let todayRecordCache = null;
-let isCheckingToday = false;
-let slowNetworkTimer = null;
-
-// ================= CUSTOM ALERT FUNCTION =================
-function showAlert(message, type = 'info', duration = 3000) {
-    const alertDiv = document.getElementById('customAlert');
-    
-    let bgColor = '#111';
-    let borderColor = '#F6C84C';
-    
-    if (type === 'success') {
-        borderColor = '#4CAF50';
-        bgColor = '#1a3a1a';
-    } else if (type === 'error') {
-        borderColor = '#f44336';
-        bgColor = '#3a1a1a';
-    } else if (type === 'warning') {
-        borderColor = '#FFC107';
-        bgColor = '#3a2a1a';
-    }
-    
-    alertDiv.innerHTML = `
-        <div class="alert-message ${type}" style="border-color: ${borderColor}; background: ${bgColor};">
-            ${message}
-        </div>
-    `;
-    
-    alertDiv.style.display = 'block';
-    
-    // Vibration feedback for mobile
-    if (navigator.vibrate) {
-        navigator.vibrate(100);
-    }
-    
-    setTimeout(() => {
-        alertDiv.style.display = 'none';
-    }, duration);
-}
-
-// ================= INIT =================
-init();
-
-function init() {
-    setDefaultDateRange();
-    setMaxDate();
-    forceLocation();
-    
-    // Back button refresh issue
-    window.addEventListener("focus", () => {
-        console.log("Window focused - refreshing data");
-        todayRecordCache = null;
-        if (employeeData) {
-            updateButtonState();
-            fetchAttendance();
-        }
-    });
-}
-
-// ================= LOCAL DATE FUNCTION =================
-function getLocalDate(ts) {
-    const d = new Date(ts);
-    return d.getFullYear() + "-" +
-        String(d.getMonth() + 1).padStart(2, '0') + "-" +
-        String(d.getDate()).padStart(2, '0');
-}
-
-// ================= FORMAT DATE FOR DISPLAY =================
-function formatDisplayDate(dateStr) {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('hi-IN', { 
-        day: '2-digit', 
-        month: '2-digit', 
-        year: 'numeric' 
-    });
-}
-
-// ================= SET MAX DATE =================
-function setMaxDate() {
-    const today = new Date().toISOString().split("T")[0];
-    document.getElementById("toDate").setAttribute("max", today);
-    document.getElementById("fromDate").setAttribute("max", today);
-}
-
-// ================= SET DEFAULT DATE RANGE =================
-function setDefaultDateRange() {
-    const today = new Date();
-    const lastMonth = new Date();
-    lastMonth.setMonth(today.getMonth() - 1);
-
-    document.getElementById("toDate").value = today.toISOString().split("T")[0];
-    document.getElementById("fromDate").value = lastMonth.toISOString().split("T")[0];
-}
-
-// ================= FORCE LOCATION =================
-function forceLocation() {
-    if (!navigator.geolocation) {
-        showAlert("आपका ब्राउज़र लोकेशन सपोर्ट नहीं करता", "error");
-        return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-        (pos) => {
-            currentLat = pos.coords.latitude;
-            currentLng = pos.coords.longitude;
-
-            updateStatus("📍 लोकेशन मिल गई");
-            verifyEmployee();
-        },
-        () => {
-            showAlert("लोकेशन की अनुमति देना जरूरी है ⚠️", "warning");
-            setTimeout(forceLocation, 2000);
-        }
-    );
-}
-
-// ================= VERIFY EMPLOYEE =================
-function verifyEmployee() {
-    updateStatus("👤 कर्मचारी की जांच हो रही है...");
-
-    fetch("https://app.vbo.co.in/userin/settings", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            table: "employee",
-            action: "get"
-        })
-    })
-    .then(res => res.json())
-    .then(res => {
-        const emp = res.data.find(e => e.is_active === EMPLOYEE_ID);
-
-        if (!emp) {
-            showAlert("कर्मचारी नहीं मिला, कोड चेक करें ❌", "error");
-            return;
-        }
-
-        employeeData = emp;
-        
-        // Show welcome section with employee details
-        document.getElementById("welcomeSection").style.display = "block";
-        document.getElementById("welcomeName").innerText = emp.name;
-        document.getElementById("welcomeCity").innerText = `📍 ${emp.city}`;
-        document.getElementById("welcomeId").innerText = `🆔 ${EMPLOYEE_ID}`;
-        
-        validateLocation();
-        updateButtonState();
-        fetchAttendance();
-    })
-    .catch(err => {
-        showAlert("सर्वर से कनेक्शन नहीं हो पाया", "error");
-        console.error(err);
-    });
-}
-
-// ================= DISTANCE CALCULATION =================
-function getDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371000;
-    const toRad = x => x * Math.PI / 180;
-
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-
-    const a =
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-        Math.sin(dLon/2) * Math.sin(dLon/2);
-
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
-// ================= VALIDATE LOCATION =================
-function validateLocation() {
-    if (!employeeData) return;
-    
-    const [lat, lng, range] = employeeData.phone.split(",").map(Number);
-    actualDistance = getDistance(lat, lng, currentLat, currentLng);
-
-    const locationDiv = document.getElementById("locationStatus");
-    
-    if (actualDistance <= range) {
-        locationDiv.className = "location-status location-valid";
-        locationDiv.innerText = `✅ आप सही जगह पर हैं (${Math.round(actualDistance)} मीटर दूर)`;
-        updateButtonState();
-    } else {
-        locationDiv.className = "location-status location-invalid";
-        locationDiv.innerText = `❌ आप तय जगह से बाहर हैं (${Math.round(actualDistance)} मीटर दूर)`;
-        document.getElementById("markBtn").disabled = true;
-        document.getElementById("markBtn").className = "disabled";
-    }
-}
-
-// ================= GET TODAY RECORD WITH CACHE =================
-async function getTodayRecord(force = false) {
-    if (todayRecordCache && !force) {
-        return todayRecordCache;
-    }
-
-    const today = getLocalDate(new Date());
-
-    try {
-        const res = await fetch(`https://app.vbo.co.in/userin/attendancekwikkwash?employee=${EMPLOYEE_ID}&from=${today}&to=${today}`);
-        const data = await res.json();
-
-        let record = { in: false, out: false };
-
-        data.forEach(item => {
-            if (item.type === "IN") record.in = true;
-            if (item.type === "OUT") record.out = true;
-        });
-
-        todayRecordCache = record;
-        return record;
-
-    } catch {
-        return { in: false, out: false };
-    }
-}
-
-// ================= UPDATE BUTTON STATE =================
-async function updateButtonState() {
-    if (isCheckingToday) return;
-    isCheckingToday = true;
-
-    const btn = document.getElementById("markBtn");
-    const instructionSpan = document.getElementById("todayInstruction");
-    
-    const todayRecord = await getTodayRecord();
-    
-    if (!todayRecord.in && !todayRecord.out) {
-        const newText = "🔵 IN हाजिरी लगाएं";
-        if (btn.innerText !== newText) {
-            btn.innerText = newText;
-        }
-        instructionSpan.innerText = "👉 आज की हाजिरी शुरू करें - IN बटन दबाएं";
-        btn.disabled = false;
-        btn.className = "active";
-    } else if (todayRecord.in && !todayRecord.out) {
-        const newText = "🟠 OUT हाजिरी लगाएं";
-        if (btn.innerText !== newText) {
-            btn.innerText = newText;
-        }
-        instructionSpan.innerText = "👉 घर जाते समय OUT बटन दबाएं";
-        btn.disabled = false;
-        btn.className = "active";
-    } else {
-        const newText = "✅ हाजिरी पूरी हो चुकी";
-        if (btn.innerText !== newText) {
-            btn.innerText = newText;
-        }
-        instructionSpan.innerText = "✅ आज की हाजिरी पूरी हो चुकी है। कल फिर आएं!";
-        btn.disabled = true;
-        btn.className = "disabled";
-    }
-
-    isCheckingToday = false;
-}
-
-// ================= MARK ATTENDANCE WITH INSTANT LOCK =================
-async function markAttendance() {
-    const btn = document.getElementById("markBtn");
-
-    // Instant UI lock (before anything)
-    if (btn.disabled) return;
-    btn.disabled = true;
-    btn.className = "disabled";
-    
-    // 🧨 FIX: Set submitting flag early
-    isSubmitting = true;
-
-    // Better user feedback for slow internet
-    updateStatus("⏳ कृपया इंतज़ार करें, नेटवर्क चेक हो रहा है...");
-
-    // Network slow timer
-    if (slowNetworkTimer) clearTimeout(slowNetworkTimer);
-    slowNetworkTimer = setTimeout(() => {
-        if (isSubmitting) {
-            updateStatus("📶 नेटवर्क धीमा है, कृपया इंतज़ार करें...");
-        }
-    }, 4000);
-
-    // Check employee data
-    if (!employeeData) {
-        showAlert("कर्मचारी डेटा नहीं मिला", "error");
-        btn.disabled = false;
-        btn.className = "active";
-        isSubmitting = false;
-        if (slowNetworkTimer) clearTimeout(slowNetworkTimer);
-        return;
-    }
-    
-    navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-            currentLat = pos.coords.latitude;
-            currentLng = pos.coords.longitude;
-
-            validateLocation();
-
-            const [lat, lng, range] = employeeData.phone.split(",").map(Number);
+        <!-- Profile Card -->
+        <div class="profile-card">
+            <div class="welcome-text" id="welcomeText">🙏 Namaste,</div>
+            <div class="emp-name" id="empNameDisplay">Employee Name</div>
+            <div class="emp-details">
+                <span class="emp-city" id="empCityDisplay">
+                    <span>📍</span> City
+                </span>
+                <span class="emp-code" id="empCodeDisplay">EMP001</span>
+            </div>
             
-            // Extra safety check before proceeding
-            if (actualDistance > range) {
-                showAlert("❌ आप तय जगह से बाहर हैं। हाजिरी नहीं लग सकती।", "error");
-                btn.disabled = false;
-                btn.className = "active";
-                isSubmitting = false;
-                if (slowNetworkTimer) clearTimeout(slowNetworkTimer);
+            <div class="info-box" id="infoBox">
+                <span class="info-icon">i</span>
+                <span id="infoText">Press button below</span>
+            </div>
+        </div>
+
+        <!-- Action Card -->
+        <div class="action-card">
+            <div class="action-title" id="todayAttendanceTitle">📍 Today's Attendance</div>
+            <div class="location-status" id="locationDisplay">
+                <span>⏳</span> <span id="locationText">Getting location...</span>
+            </div>
+            <button class="mark-btn" id="attendanceBtn" onclick="handleAttendance()">Duty IN</button>
+            <div class="status-message" id="statusMessage">Press button to mark</div>
+        </div>
+
+        <!-- Summary Card -->
+        <div class="summary-card">
+            <div class="summary-title" id="summaryTitle">📊 Monthly Summary</div>
+            <div class="summary-grid" id="summaryStats">
+                <div class="summary-item">
+                    <div class="summary-label" id="fullLabel">Full Day</div>
+                    <div class="summary-value full" id="fullCount">0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label" id="lateLabel">Late</div>
+                    <div class="summary-value late" id="lateCount">0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label" id="halfLabel">Half Day</div>
+                    <div class="summary-value half" id="halfCount">0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label" id="offLabel">Off Day</div>
+                    <div class="summary-value off" id="offCount">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Card -->
+        <div class="filter-card">
+            <div class="filter-title" id="filterTitle">📅 Select Date Range</div>
+            <div class="date-inputs">
+                <div class="date-field">
+                    <label id="fromLabel">From</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="date-field">
+                    <label id="toLabel">To</label>
+                    <input type="date" id="endDate">
+                </div>
+            </div>
+            <button class="apply-btn" onclick="toggleAttendanceTable()" id="viewBtn">View</button>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="table-card" id="attendanceTableCard">
+            <div class="table-header">
+                <h3 id="tableTitle">📋 Attendance Record</h3>
+            </div>
+            <div class="table-wrapper">
+                <table id="attendanceTable">
+                    <thead>
+                        <tr>
+                            <th id="dateHeader">Date</th>
+                            <th id="inHeader">In</th>
+                            <th id="outHeader">Out</th>
+                            <th id="statusHeader">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="4" class="empty-message" id="emptyMessage">No records found</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Confirm Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 id="modalTitle">Confirm</h3>
+            </div>
+            <div class="modal-body" id="modalMessage">
+                Do you want to mark attendance?
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel" onclick="hideConfirm()" id="cancelBtn">No</button>
+                <button class="modal-btn confirm" onclick="confirmAttendance()" id="confirmBtn">Yes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== CONFIGURATION ==========
+        const API_BASE = "https://app.vbo.co.in";
+        const EMPLOYEE_CODE = "002";
+        
+        // Language System - Clean values, no mixing
+        const TEXT = {
+            hinglish: {
+                welcome: "🙏 Namaste,",
+                info: "Press button below",
+                locationFetch: "Getting location...",
+                locationOk: "✅ You are at correct location",
+                locationNotOk: "❌ You are outside allowed area",
+                locationError: "⚠️ Location not found",
+                markAttendance: "Mark Attendance",
+                dutyIn: "Duty IN",
+                dutyOut: "Duty OUT",
+                completed: "Completed",
+                loading: "Loading...",
+                confirm: "Do you want to mark attendance?",
+                confirmTitle: "Confirm",
+                confirmYes: "Yes",
+                confirmNo: "No",
+                todayTitle: "📍 Today's Attendance",
+                summaryTitle: "📊 Monthly Summary",
+                filterTitle: "📅 Select Date Range",
+                fromLabel: "From",
+                toLabel: "To",
+                viewBtn: "View",
+                tableTitle: "📋 Attendance Record",
+                dateHeader: "Date",
+                inHeader: "In",
+                outHeader: "Out",
+                statusHeader: "Status",
+                emptyMessage: "No records found",
+                fullLabel: "Full Day",
+                lateLabel: "Late",
+                halfLabel: "Half Day",
+                offLabel: "Off Day",
+                fullDay: "Full Day",
+                lateDay: "Late",
+                halfDay: "Half Day",
+                offDay: "Off Day",
+                pending: "Pending",
+                success: "✅ Attendance marked",
+                error: "❌ Something went wrong",
+                locationRequired: "Please enable location",
+                noRecord: "No records found",
+                pressButton: "Press button to mark"
+            },
+            hindi: {
+                welcome: "🙏 नमस्ते,",
+                info: "नीचे बटन दबाएं",
+                locationFetch: "लोकेशन ली जा रही है...",
+                locationOk: "✅ आप सही जगह हैं",
+                locationNotOk: "❌ आप एरिया से बाहर हैं",
+                locationError: "⚠️ लोकेशन नहीं मिली",
+                markAttendance: "हाजिरी मार्क करें",
+                dutyIn: "ड्यूटी इन",
+                dutyOut: "ड्यूटी आउट",
+                completed: "पूरी हो चुकी",
+                loading: "लोड हो रहा है...",
+                confirm: "क्या आप हाजिरी मार्क करना चाहते हैं?",
+                confirmTitle: "पुष्टि करें",
+                confirmYes: "हाँ",
+                confirmNo: "नहीं",
+                todayTitle: "📍 आज की हाजिरी",
+                summaryTitle: "📊 इस महीने का सारांश",
+                filterTitle: "📅 तारीख चुनें",
+                fromLabel: "कब से",
+                toLabel: "कब तक",
+                viewBtn: "देखें",
+                tableTitle: "📋 हाजिरी रिकॉर्ड",
+                dateHeader: "तारीख",
+                inHeader: "In",
+                outHeader: "Out",
+                statusHeader: "स्थिति",
+                emptyMessage: "कोई रिकॉर्ड नहीं",
+                fullLabel: "पूरा दिन",
+                lateLabel: "लेट",
+                halfLabel: "आधा दिन",
+                offLabel: "छुट्टी",
+                fullDay: "पूरा दिन",
+                lateDay: "लेट",
+                halfDay: "आधा दिन",
+                offDay: "छुट्टी",
+                pending: "चालू",
+                success: "✅ हाजिरी मार्क हो गई",
+                error: "❌ कुछ गड़बड़ हुई",
+                locationRequired: "लोकेशन ऑन करें",
+                noRecord: "कोई रिकॉर्ड नहीं",
+                pressButton: "बटन दबाएं"
+            },
+            english: {
+                welcome: "🙏 Welcome,",
+                info: "Press button below",
+                locationFetch: "Getting location...",
+                locationOk: "✅ You are at correct location",
+                locationNotOk: "❌ You are outside allowed area",
+                locationError: "⚠️ Location not found",
+                markAttendance: "Mark Attendance",
+                dutyIn: "Duty IN",
+                dutyOut: "Duty OUT",
+                completed: "Completed",
+                loading: "Loading...",
+                confirm: "Do you want to mark attendance?",
+                confirmTitle: "Confirm",
+                confirmYes: "Yes",
+                confirmNo: "No",
+                todayTitle: "📍 Today's Attendance",
+                summaryTitle: "📊 Monthly Summary",
+                filterTitle: "📅 Select Date Range",
+                fromLabel: "From",
+                toLabel: "To",
+                viewBtn: "View",
+                tableTitle: "📋 Attendance Record",
+                dateHeader: "Date",
+                inHeader: "In",
+                outHeader: "Out",
+                statusHeader: "Status",
+                emptyMessage: "No records found",
+                fullLabel: "Full Day",
+                lateLabel: "Late",
+                halfLabel: "Half Day",
+                offLabel: "Off Day",
+                fullDay: "Full Day",
+                lateDay: "Late",
+                halfDay: "Half Day",
+                offDay: "Off Day",
+                pending: "Pending",
+                success: "✅ Attendance marked",
+                error: "❌ Something went wrong",
+                locationRequired: "Please enable location",
+                noRecord: "No records found",
+                pressButton: "Press button to mark"
+            }
+        };
+
+        let employeeData = null;
+        let currentLang = localStorage.getItem('lang') || 'hinglish';
+        let lastLocation = null;
+        let pendingAttendance = null;
+
+        // ========== LANGUAGE FUNCTIONS ==========
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('lang', lang);
+            
+            // Update active button
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.lang-btn')[lang === 'hinglish' ? 0 : lang === 'hindi' ? 1 : 2].classList.add('active');
+            
+            // Update all text
+            updateUIText();
+            
+            // Update button state based on current attendance
+            updateSmartButton();
+        }
+
+        function updateUIText() {
+            const t = TEXT[currentLang];
+            
+            // Profile card
+            document.getElementById('welcomeText').textContent = t.welcome;
+            document.getElementById('infoText').textContent = t.info;
+            
+            // Action card
+            document.getElementById('todayAttendanceTitle').textContent = t.todayTitle;
+            document.getElementById('statusMessage').innerHTML = t.pressButton;
+            
+            // Summary card
+            document.getElementById('summaryTitle').textContent = t.summaryTitle;
+            document.getElementById('fullLabel').textContent = t.fullLabel;
+            document.getElementById('lateLabel').textContent = t.lateLabel;
+            document.getElementById('halfLabel').textContent = t.halfLabel;
+            document.getElementById('offLabel').textContent = t.offLabel;
+            
+            // Filter card
+            document.getElementById('filterTitle').textContent = t.filterTitle;
+            document.getElementById('fromLabel').textContent = t.fromLabel;
+            document.getElementById('toLabel').textContent = t.toLabel;
+            document.getElementById('viewBtn').textContent = t.viewBtn;
+            
+            // Table card
+            document.getElementById('tableTitle').textContent = t.tableTitle;
+            document.getElementById('dateHeader').textContent = t.dateHeader;
+            document.getElementById('inHeader').textContent = t.inHeader;
+            document.getElementById('outHeader').textContent = t.outHeader;
+            document.getElementById('statusHeader').textContent = t.statusHeader;
+            document.getElementById('emptyMessage').textContent = t.emptyMessage;
+            
+            // Modal
+            document.getElementById('modalTitle').textContent = t.confirmTitle;
+            document.getElementById('modalMessage').textContent = t.confirm;
+            document.getElementById('cancelBtn').textContent = t.confirmNo;
+            document.getElementById('confirmBtn').textContent = t.confirmYes;
+            
+            // Update location text if needed
+            const locationSpan = document.getElementById('locationText');
+            const statusEl = document.getElementById('locationDisplay');
+            if (locationSpan) {
+                if (statusEl.innerHTML.includes('✅')) {
+                    locationSpan.textContent = t.locationOk.replace('✅ ', '');
+                } else if (statusEl.innerHTML.includes('❌')) {
+                    locationSpan.textContent = t.locationNotOk.replace('❌ ', '');
+                } else if (statusEl.innerHTML.includes('⚠️')) {
+                    locationSpan.textContent = t.locationError.replace('⚠️ ', '');
+                } else {
+                    locationSpan.textContent = t.locationFetch;
+                }
+            }
+        }
+
+        // ========== TOAST SYSTEM ==========
+        function toast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="toast-message">${message}</div>
+                <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 3000);
+        }
+
+        // ========== CONFIRM MODAL ==========
+        function showConfirm(message, onConfirm) {
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('confirmModal').style.display = 'flex';
+            pendingAttendance = onConfirm;
+        }
+
+        function hideConfirm() {
+            document.getElementById('confirmModal').style.display = 'none';
+            pendingAttendance = null;
+        }
+
+        function confirmAttendance() {
+            if (pendingAttendance) {
+                pendingAttendance();
+            }
+            hideConfirm();
+        }
+
+        // ========== UTILITY FUNCTIONS ==========
+        function formatDateToDisplay(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return dateStr;
+            
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
+
+        function formatTimeOnly(dateTimeStr) {
+            if (!dateTimeStr) return '-';
+            const date = new Date(dateTimeStr);
+            if (isNaN(date.getTime())) return '-';
+            
+            let hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            return `${hours}:${minutes} ${ampm}`;
+        }
+
+        function setDefaultDates() {
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            
+            document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+        }
+
+        async function getLocation() {
+            // Return cached location if available (less than 1 minute old)
+            if (lastLocation && (Date.now() - lastLocation.timestamp) < 60000) {
+                return lastLocation;
+            }
+            
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject(new Error('Geolocation not supported'));
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(
+                    pos => {
+                        lastLocation = {
+                            lat: pos.coords.latitude,
+                            lng: pos.coords.longitude,
+                            timestamp: Date.now()
+                        };
+                        resolve(lastLocation);
+                    },
+                    err => reject(err)
+                );
+            });
+        }
+
+        function getAttendanceStatus(inTime, outTime) {
+            const t = TEXT[currentLang];
+            
+            if (!inTime) return { text: t.offDay, class: 'off' };
+            if (!outTime) return { text: t.pending, class: 'pending' };
+            
+            const diff = (new Date(outTime) - new Date(inTime)) / (1000 * 60 * 60);
+            
+            if (diff >= 9) return { text: t.fullDay, class: 'full' };
+            if (diff >= 7) return { text: t.lateDay, class: 'late' };
+            return { text: t.halfDay, class: 'half' };
+        }
+
+        // ========== MAIN FUNCTIONS ==========
+        async function loadEmployeeDetails() {
+            try {
+                const res = await fetch(`${API_BASE}/kwikkwash/employees/${EMPLOYEE_CODE}`);
+                return await res.json();
+            } catch (e) {
+                console.error(e);
+                toast(TEXT[currentLang].error, 'error');
+                return null;
+            }
+        }
+
+        async function checkLocationAndUpdateUI() {
+            try {
+                const loc = await getLocation();
+                const dist = calculateDistance(
+                    loc.lat, loc.lng,
+                    employeeData.allowed_lat, employeeData.allowed_lng
+                );
+                
+                const locationDisplay = document.getElementById('locationDisplay');
+                const attendanceBtn = document.getElementById('attendanceBtn');
+                const t = TEXT[currentLang];
+                
+                if (dist <= employeeData.allowed_range) {
+                    locationDisplay.innerHTML = `<span>✅</span> <span id="locationText">${t.locationOk.replace('✅ ', '')}</span>`;
+                    locationDisplay.style.background = 'rgba(76, 175, 80, 0.1)';
+                    locationDisplay.style.color = 'var(--success)';
+                    locationDisplay.style.border = '1px solid rgba(76, 175, 80, 0.2)';
+                    attendanceBtn.disabled = false;
+                    return true;
+                } else {
+                    locationDisplay.innerHTML = `<span>❌</span> <span id="locationText">${t.locationNotOk.replace('❌ ', '')}</span>`;
+                    locationDisplay.style.background = 'rgba(255, 107, 107, 0.1)';
+                    locationDisplay.style.color = 'var(--danger)';
+                    locationDisplay.style.border = '1px solid rgba(255, 107, 107, 0.2)';
+                    attendanceBtn.disabled = true;
+                    return false;
+                }
+            } catch (e) {
+                const t = TEXT[currentLang];
+                document.getElementById('locationDisplay').innerHTML = `<span>⚠️</span> <span id="locationText">${t.locationError}</span>`;
+                document.getElementById('attendanceBtn').disabled = true;
+                return false;
+            }
+        }
+
+        async function handleAttendance() {
+            showConfirm(TEXT[currentLang].confirm, async () => {
+                const btn = document.getElementById('attendanceBtn');
+                const statusEl = document.getElementById('statusMessage');
+                const t = TEXT[currentLang];
+                
+                try {
+                    btn.disabled = true;
+                    btn.textContent = t.loading;
+                    
+                    statusEl.innerHTML = t.locationFetch;
+                    
+                    const loc = await getLocation();
+                    const dist = calculateDistance(
+                        loc.lat, loc.lng,
+                        employeeData.allowed_lat, employeeData.allowed_lng
+                    );
+                    
+                    if (dist > employeeData.allowed_range) {
+                        statusEl.innerHTML = `❌ ${t.locationNotOk}`;
+                        btn.disabled = false;
+                        await updateSmartButton(); // Restore correct button text
+                        return;
+                    }
+                    
+                    const today = new Date().toISOString().split('T')[0];
+                    const res = await fetch(`${API_BASE}/kwikkwash/attendance?employee_code=${EMPLOYEE_CODE}&start_date=${today}&end_date=${today}`);
+                    const data = await res.json();
+                    
+                    let record = data.length ? data[0] : null;
+                    
+                    if (!record) {
+                        await fetch(`${API_BASE}/kwikkwash/attendance`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                employee_code: EMPLOYEE_CODE,
+                                attendance_date: today,
+                                in_time: new Date().toISOString(),
+                                in_lat: loc.lat,
+                                in_lng: loc.lng
+                            })
+                        });
+                        statusEl.innerHTML = `✅ ${t.success}`;
+                        toast(t.success, 'success');
+                        
+                    } else if (!record.out_time) {
+                        await fetch(`${API_BASE}/kwikkwash/attendance`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                employee_code: EMPLOYEE_CODE,
+                                attendance_date: today,
+                                in_time: record.in_time,
+                                out_time: new Date().toISOString(),
+                                in_lat: record.in_lat,
+                                in_lng: record.in_lng,
+                                out_lat: loc.lat,
+                                out_lng: loc.lng
+                            })
+                        });
+                        statusEl.innerHTML = `✅ ${t.success}`;
+                        toast(t.success, 'success');
+                        
+                    } else {
+                        statusEl.innerHTML = `⚠️ ${t.completed}`;
+                        toast(t.completed, 'info');
+                    }
+                    
+                    await loadAttendanceSummary();
+                    await updateSmartButton();
+                    
+                } catch (e) {
+                    statusEl.innerHTML = `❌ ${t.locationRequired}`;
+                    toast(t.locationRequired, 'error');
+                    await updateSmartButton();
+                }
+            });
+        }
+
+        async function updateSmartButton() {
+            const btn = document.getElementById('attendanceBtn');
+            const t = TEXT[currentLang];
+            
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const res = await fetch(`${API_BASE}/kwikkwash/attendance?employee_code=${EMPLOYEE_CODE}&start_date=${today}&end_date=${today}`);
+                const data = await res.json();
+                
+                let record = data.length ? data[0] : null;
+                
+                if (!record) {
+                    btn.textContent = t.dutyIn;
+                } else if (!record.out_time) {
+                    btn.textContent = t.dutyOut;
+                } else {
+                    btn.textContent = t.completed;
+                    btn.disabled = true;
+                }
+            } catch (e) {
+                btn.textContent = t.markAttendance;
+            }
+        }
+
+        async function loadAttendanceSummary() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            
+            try {
+                const res = await fetch(`${API_BASE}/kwikkwash/attendance?employee_code=${EMPLOYEE_CODE}&start_date=${start}&end_date=${end}`);
+                const data = await res.json();
+                
+                let summary = { full: 0, late: 0, half: 0, off: 0 };
+                
+                const map = {};
+                data.forEach(r => map[r.attendance_date] = r);
+                
+                let dates = [];
+                let d = new Date(start);
+                while (d <= new Date(end)) {
+                    dates.push(d.toISOString().split('T')[0]);
+                    d.setDate(d.getDate() + 1);
+                }
+                
+                dates.forEach(date => {
+                    const rec = map[date];
+                    const status = getAttendanceStatus(rec?.in_time, rec?.out_time);
+                    if (status.class === 'full') summary.full++;
+                    else if (status.class === 'late') summary.late++;
+                    else if (status.class === 'half') summary.half++;
+                    else summary.off++;
+                });
+                
+                document.getElementById('fullCount').textContent = summary.full;
+                document.getElementById('lateCount').textContent = summary.late;
+                document.getElementById('halfCount').textContent = summary.half;
+                document.getElementById('offCount').textContent = summary.off;
+                
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function toggleAttendanceTable() {
+            const tableCard = document.getElementById('attendanceTableCard');
+            
+            if (tableCard.classList.contains('show')) {
+                tableCard.classList.remove('show');
+            } else {
+                tableCard.classList.add('show');
+                loadAttendanceTable(); // This will now handle the scroll after loading
+            }
+        }
+
+        async function loadAttendanceTable() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            const tbody = document.getElementById('tableBody');
+            const t = TEXT[currentLang];
+            
+            tbody.innerHTML = `<tr><td colspan="4" class="loading">⏳ ${t.loading}</td></tr>`;
+            
+            try {
+                const res = await fetch(`${API_BASE}/kwikkwash/attendance?employee_code=${EMPLOYEE_CODE}&start_date=${start}&end_date=${end}`);
+                const data = await res.json();
+                
+                const map = {};
+                data.forEach(r => map[r.attendance_date] = r);
+                
+                let dates = [];
+                let d = new Date(start);
+                while (d <= new Date(end)) {
+                    dates.push(d.toISOString().split('T')[0]);
+                    d.setDate(d.getDate() + 1);
+                }
+                
+                dates.reverse();
+                
+                const today = new Date().toISOString().split('T')[0];
+                let html = '';
+                
+                dates.forEach(date => {
+                    const rec = map[date];
+                    const inTime = rec?.in_time || '';
+                    const outTime = rec?.out_time || '';
+                    const status = getAttendanceStatus(inTime, outTime);
+                    
+                    const rowClass = (date === today) ? 'today-highlight' : '';
+                    
+                    html += `
+                        <tr class="${rowClass}">
+                            <td>${formatDateToDisplay(date)}</td>
+                            <td>${formatTimeOnly(inTime)}</td>
+                            <td>${formatTimeOnly(outTime)}</td>
+                            <td><span class="status-badge status-${status.class}">${status.text}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                if (html === '') {
+                    html = `<tr><td colspan="4" class="empty-message">${t.emptyMessage}</td></tr>`;
+                }
+                
+                tbody.innerHTML = html;
+                
+                // Scroll to table after data is loaded
+                setTimeout(() => {
+                    document.getElementById('attendanceTableCard').scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                    // Adjust scroll offset slightly
+                    window.scrollBy(0, -10);
+                }, 150);
+                
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="4" class="empty-message">${t.error}</td></tr>`;
+                toast(t.error, 'error');
+            }
+        }
+
+        // ========== INITIALIZATION ==========
+        window.onload = async () => {
+            // Set language and ensure active button state
+            setLanguage(currentLang);
+            
+            // Set default status message
+            document.getElementById('statusMessage').innerHTML = TEXT[currentLang].pressButton;
+            
+            employeeData = await loadEmployeeDetails();
+            if (!employeeData) {
+                document.getElementById('empNameDisplay').textContent = 'Employee not found';
                 return;
             }
-
-            await proceedMarkAttendance(btn);
-        },
-        () => {
-            showAlert("लोकेशन नहीं मिल रही। कृपया अनुमति दें।", "warning");
-            btn.disabled = false;
-            btn.className = "active";
-            isSubmitting = false;
-            if (slowNetworkTimer) clearTimeout(slowNetworkTimer);
-        }
-    );
-}
-
-// ================= PROCEED WITH ATTENDANCE MARKING =================
-async function proceedMarkAttendance(btn) {
-    if (!isSubmitting) return; // Extra safety
-    
-    const originalText = btn.innerText;
-    const loadingText = "⏳ कृपया इंतज़ार करें...";
-    
-    // Only update if text changed
-    if (btn.innerText !== loadingText) {
-        btn.innerText = loadingText;
-    }
-
-    const todayRecord = await getTodayRecord(true);
-
-    let type = "IN";
-    if (todayRecord.in && !todayRecord.out) {
-        type = "OUT";
-    } else if (todayRecord.in && todayRecord.out) {
-        showAlert("✅ आपकी आज की हाजिरी पहले ही पूरी हो चुकी है।", "success");
-        if (btn.innerText !== originalText) {
-            btn.innerText = originalText;
-        }
-        btn.disabled = false;
-        btn.className = "active";
-        isSubmitting = false;
-        if (slowNetworkTimer) clearTimeout(slowNetworkTimer);
-        return;
-    }
-
-    const confirmMsg = type === "IN" 
-        ? "🔵 IN हाजिरी लगाएं?" 
-        : "🟠 OUT हाजिरी लगाएं?";
-        
-    if (!confirm(confirmMsg)) {
-        updateStatus("रद्द किया गया");
-        if (btn.innerText !== originalText) {
-            btn.innerText = originalText;
-        }
-        btn.disabled = false;
-        btn.className = "active";
-        isSubmitting = false;
-        if (slowNetworkTimer) clearTimeout(slowNetworkTimer);
-        return;
-    }
-
-    updateStatus(`⏳ ${type} हाजिरी लग रही है...`);
-
-    const payload = {
-        employee_code: EMPLOYEE_ID,
-        employee_name: employeeData.name,
-        city: employeeData.city,
-        lat: currentLat,
-        lng: currentLng,
-        permissible_distance: employeeData.phone.split(",")[2],
-        actual_distance: Math.round(actualDistance),
-        timestamp: new Date().toLocaleString("sv-SE"),
-        type: type
-    };
-
-    fetch("https://app.vbo.co.in/userin/attendancekwikkwash", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(payload)
-    })
-    .then(res => res.json())
-    .then(res => {
-        // Clear slow network timer
-        if (slowNetworkTimer) clearTimeout(slowNetworkTimer);
-        
-        // Check for server error
-        if (!res || res.status === "error") {
-            throw new Error(res?.message || "Server error");
-        }
-
-        const successMsg = type === "IN" 
-            ? "✅ IN हाजिरी लग गई! OUT दबाएं जब घर जाएं" 
-            : "✅ OUT हाजिरी लग गई! कल फिर मिलेंगे";
             
-        showAlert(successMsg, "success");
-        
-        if (btn.innerText !== originalText) {
-            btn.innerText = originalText;
-        }
-        
-        todayRecordCache = null;
-        
-        fetchAttendance();
-        updateButtonState();
-        isSubmitting = false;
-    })
-    .catch((err) => {
-        // Clear slow network timer
-        if (slowNetworkTimer) clearTimeout(slowNetworkTimer);
-        
-        if (!navigator.onLine) {
-            showAlert("📶 इंटरनेट कनेक्शन नहीं है", "error");
-        } else {
-            showAlert("❌ सर्वर से कनेक्शन नहीं हो पाया", "error");
-        }
-        
-        if (btn.innerText !== originalText) {
-            btn.innerText = originalText;
-        }
-        btn.disabled = false;
-        btn.className = "active";
-        updateButtonState();
-        isSubmitting = false;
-    });
-}
-
-// ================= GET ALL DATES =================
-function getAllDates(from, to) {
-    const dates = [];
-    let current = new Date(from);
-    const end = new Date(to);
-
-    while (current <= end) {
-        dates.push(getLocalDate(current));
-        current.setDate(current.getDate() + 1);
-    }
-
-    return dates;
-}
-
-// ================= FETCH ATTENDANCE DATA =================
-async function fetchAttendance() {
-    const from = document.getElementById("fromDate").value;
-    const to = document.getElementById("toDate").value;
-
-    if (!from || !to) {
-        showAlert("कृपया तारीख चुनें", "warning");
-        return;
-    }
-
-    const today = new Date().toISOString().split("T")[0];
-    if (to > today) {
-        showAlert("भविष्य की तारीख नहीं चुन सकते", "warning");
-        return;
-    }
-
-    document.getElementById("loading").style.display = "block";
-    document.getElementById("attendanceTable").innerHTML = '<tr><td colspan="7" style="text-align: center;">⏳ लोड हो रहा है...</td></tr>';
-
-    try {
-        const res = await fetch(`https://app.vbo.co.in/userin/attendancekwikkwash?employee=${EMPLOYEE_ID}&from=${from}&to=${to}`);
-        const data = await res.json();
-        
-        processAttendanceData(data, from, to);
-    } catch (error) {
-        document.getElementById("attendanceTable").innerHTML = '<tr><td colspan="7" style="text-align: center;">❌ डेटा लोड करने में त्रुटि</td></tr>';
-        showAlert("डेटा लोड करने में त्रुटि", "error");
-    } finally {
-        document.getElementById("loading").style.display = "none";
-    }
-}
-
-// ================= PROCESS ATTENDANCE DATA =================
-function processAttendanceData(data, from, to) {
-    const grouped = {};
-
-    const allDates = getAllDates(from, to);
-    allDates.forEach(date => {
-        grouped[date] = { in: null, out: null, petrol: 0 };
-    });
-
-    data.forEach(item => {
-        const date = getLocalDate(item.timestamp);
-
-        if (!grouped[date]) {
-            grouped[date] = { in: null, out: null, petrol: 0 };
-        }
-
-        if (item.type === "IN") {
-            if (!grouped[date].in || new Date(item.timestamp) < new Date(grouped[date].in)) {
-                grouped[date].in = item.timestamp;
-            }
-        } else if (item.type === "OUT") {
-            if (!grouped[date].out || new Date(item.timestamp) > new Date(grouped[date].out)) {
-                grouped[date].out = item.timestamp;
-            }
-        }
-        
-        grouped[date].petrol += item.petrol_km || 0;
-    });
-
-    renderAttendanceTable(grouped);
-}
-
-// ================= CALCULATE STATUS =================
-function calculateStatus(inTime, outTime) {
-    if (!inTime && !outTime) return { status: "छुट्टी", hours: 0, class: "status-off" };
-    if (inTime && !outTime) return { status: "अधूरा", hours: 0, class: "status-incomplete" };
-
-    const diff = (new Date(outTime) - new Date(inTime)) / (1000 * 60 * 60);
-
-    if (diff >= 10) return { status: "पूरा दिन", hours: diff.toFixed(1), class: "status-full" };
-    if (diff >= 8.5) return { status: "लेट", hours: diff.toFixed(1), class: "status-late" };
-
-    return { status: "आधा दिन", hours: diff.toFixed(1), class: "status-half" };
-}
-
-// ================= RENDER ATTENDANCE TABLE WITH TODAY HIGHLIGHT =================
-function renderAttendanceTable(grouped) {
-    const tbody = document.getElementById("attendanceTable");
-    tbody.innerHTML = "";
-
-    // Handle empty data case
-    if (Object.keys(grouped).length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-state">📭 कोई रिकॉर्ड नहीं मिला<br><small>अलग तारीख चुनकर देखें</small></td></tr>`;
-        return;
-    }
-
-    let sn = 1;
-    let summary = {
-        full: 0, late: 0, half: 0, off: 0, incomplete: 0, petrol: 0
-    };
-
-    const sortedDates = Object.keys(grouped).sort().reverse();
-    const today = getLocalDate(new Date());
-
-    sortedDates.forEach(date => {
-        const record = grouped[date];
-        const result = calculateStatus(record.in, record.out);
-
-        if (result.status === "पूरा दिन") summary.full++;
-        else if (result.status === "लेट") summary.late++;
-        else if (result.status === "आधा दिन") summary.half++;
-        else if (result.status === "छुट्टी") summary.off++;
-        else if (result.status === "अधूरा") summary.incomplete++;
-
-        summary.petrol += record.petrol || 0;
-
-        const row = document.createElement("tr");
-        
-        // Highlight today's row
-        if (date === today) {
-            row.className = "today-row";
-        }
-        
-        row.innerHTML = `
-            <td>${sn++}</td>
-            <td>${formatDisplayDate(date)}</td>
-            <td>${formatTime(record.in)}</td>
-            <td>${formatTime(record.out)}</td>
-            <td class="${result.class}">${result.status}</td>
-            <td>${result.hours > 0 ? result.hours + 'h' : '-'}</td>
-            <td>${record.petrol || 0}</td>
-        `;
-        tbody.appendChild(row);
-    });
-
-    renderSummary(summary);
-}
-
-// ================= RENDER SUMMARY =================
-function renderSummary(s) {
-    document.getElementById("summary-full").innerText = s.full;
-    document.getElementById("summary-late").innerText = s.late;
-    document.getElementById("summary-half").innerText = s.half;
-    document.getElementById("summary-off").innerText = s.off;
-    document.getElementById("summary-incomplete").innerText = s.incomplete;
-    document.getElementById("summary-petrol").innerText = s.petrol;
-}
-
-// ================= FORMAT TIME HELPER =================
-function formatTime(ts) {
-    if (!ts) return "-";
-    try {
-        const d = new Date(ts);
-        return d.toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' });
-    } catch {
-        return "-";
-    }
-}
-
-// ================= UI UPDATE HELPER =================
-function updateStatus(msg) {
-    document.getElementById("status").innerText = msg;
-}
-
-// Auto refresh button state every 30 seconds
-setInterval(() => {
-    if (employeeData) {
-        updateButtonState();
-    }
-}, 30000);
-</script>
-
+            document.getElementById('empNameDisplay').textContent = employeeData.employee_name || 'Employee';
+            document.getElementById('empCityDisplay').innerHTML = `<span>📍</span> ${employeeData.city || 'City'}`;
+            document.getElementById('empCodeDisplay').textContent = EMPLOYEE_CODE;
+            
+            setDefaultDates();
+            await checkLocationAndUpdateUI();
+            await loadAttendanceSummary();
+            await updateSmartButton();
+            
+            setInterval(checkLocationAndUpdateUI, 60000);
+        };
+    </script>
 </body>
 </html>
