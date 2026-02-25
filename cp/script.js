@@ -358,7 +358,18 @@ const tableConfig = {
         partner_services: {
             name: 'Partner Services',
             url: `${BASE_URL}/kwikkwash/partner-services/all?partner_code=`,
-            columns: ['id', 'partner_code', 'service_code', 'price', 'active'],
+            columns: [
+                'id',
+                'partner_code',
+                'service_code',
+                'units',
+                'short_details',
+                'long_details',
+                'coupon_code',
+                'coupon_count',
+                'price',
+                'active'
+            ],
             idField: 'id',
             idType: 'composite',
             getDropdowns: async () => {
@@ -371,17 +382,49 @@ const tableConfig = {
                     <label class="required">Partner</label>
                     <select id="partner_code" required>
                         <option value="">Select Partner</option>
-                        ${dropdowns.partners?.map(p => `<option value="${p.partner_code}">${p.partner_code} - ${p.franchise_name || p.owner_name} (${p.city})</option>`).join('')}
+                        ${dropdowns.partners?.map(p => `
+                            <option value="${p.partner_code}">
+                                ${p.partner_code} - ${p.franchise_name || p.owner_name} (${p.city})
+                            </option>
+                        `).join('')}
                     </select>
                 </div>
+
                 <div class="form-group">
-                    <label class="required">Service Code</label>
-                    <input type="text" id="service_code" placeholder="Enter service code (e.g., WASH001)" required>
+                    <label class="required">Service Name</label>
+                    <input type="text" id="service_code" required>
                 </div>
+
+                <div class="form-group">
+                    <label>Work units (10 mnts)</label>
+                    <input type="number" id="units">
+                </div>
+
+                <div class="form-group">
+                    <label>Service intro</label>
+                    <input type="text" id="short_details">
+                </div>
+
+                <div class="form-group">
+                    <label>Service full details</label>
+                    <textarea id="long_details" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Allowed (Coupon Code)</label>
+                    <input type="text" id="coupon_code">
+                </div>
+
+                <div class="form-group">
+                    <label>Discount amount</label>
+                    <input type="number" id="coupon_count">
+                </div>
+
                 <div class="form-group">
                     <label class="required">Price (₹)</label>
                     <input type="number" id="price" step="0.01" value="0" required>
                 </div>
+
                 <div class="form-group">
                     <label class="required">Status</label>
                     <select id="active" required>
@@ -590,9 +633,24 @@ function renderFilteredTable() {
     }
     
     let html = '<table><thead><tr>';
+    
+    // Generate table headers with custom labels
     config.columns.forEach(col => {
-        html += `<th>${col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</th>`;
+        let label = col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+        // Custom labels for partner_services table
+        if (currentTable === 'partner_services') {
+            if (col === 'service_code') label = 'Service Name';
+            if (col === 'units') label = 'Work units (10 mnts)';
+            if (col === 'short_details') label = 'Service intro';
+            if (col === 'long_details') label = 'Service full details';
+            if (col === 'coupon_code') label = 'Allowed';
+            if (col === 'coupon_count') label = 'Discount amount';
+        }
+
+        html += `<th>${label}</th>`;
     });
+    
     html += '<th>Actions</th></tr></thead><tbody>';
     
     filteredData.forEach(item => {
@@ -613,25 +671,18 @@ function renderFilteredTable() {
                 const skillsList = value.split(',').map(s => s.trim()).join(', ');
                 displayValue = skillsList;
             } else if (col === 'business_type') {
-                // SAFE VERSION: Check if value exists and is string
                 displayValue = (value && typeof value === 'string')
                     ? value.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
                     : '-';
             } else if (col === 'background') {
-                // SAFE VERSION: Check if value exists and is string
                 displayValue = (value && typeof value === 'string')
                     ? value.replace(/\b\w/g, l => l.toUpperCase())
                     : '-';
-            } 
-            // FIXED: Format attendance date
-            else if (col === 'attendance_date' && value) {
+            } else if (col === 'attendance_date' && value) {
                 displayValue = new Date(value).toLocaleDateString('en-IN');
-            }
-            // UPDATED: Format time fields using Date object for consistent formatting
-            else if ((col === 'in_time' || col === 'out_time') && value) {
+            } else if ((col === 'in_time' || col === 'out_time') && value) {
                 try {
                     const date = new Date(value);
-                    // Check if date is valid
                     if (!isNaN(date.getTime())) {
                         displayValue = date.toLocaleTimeString('en-IN', {
                             hour: '2-digit',
@@ -639,14 +690,23 @@ function renderFilteredTable() {
                             hour12: false
                         });
                     } else {
-                        // Fallback for invalid dates
                         displayValue = value.toString().slice(0, 5);
                     }
                 } catch (e) {
-                    // Fallback error handling
                     displayValue = value.toString().slice(0, 5);
                 }
-            } else {
+            } 
+            // Special formatting for new partner_services fields
+            else if (col === 'coupon_code') {
+                displayValue = value ? 'Yes' : 'No';
+            }
+            else if (col === 'long_details' && value) {
+                displayValue = value.length > 40 ? value.substring(0, 40) + '...' : value;
+            }
+            else if (col === 'units' && value) {
+                displayValue = value + ' units';
+            }
+            else {
                 displayValue = value !== null && value !== undefined ? value.toString() : '-';
             }
             
@@ -668,6 +728,7 @@ function renderFilteredTable() {
     html += '</tbody></table>';
     container.innerHTML = html;
 }
+
 // ==================== UPDATE SUMMARY ====================
 function updateSummary(data) {
     if (!data || data.length === 0) {
