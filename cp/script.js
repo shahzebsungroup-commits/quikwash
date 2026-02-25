@@ -4,6 +4,7 @@ let currentDB = 'user';
 let currentTable = 'services';
 let editId = null;
 let editItemData = null;
+let deleteItemData = null;  // 👈 NEW: Store item to delete
 let allTableData = [];
 let filteredData = [];
 
@@ -177,7 +178,7 @@ const tableConfig = {
                     <input type="number" step="0.000001" id="allowed_lng" placeholder="e.g., 77.2090" required>
                 </div>
                 <div class="form-group">
-                    <label class="required">Allowed Range (km)</label>
+                    <label class="required">Allowed Range (Mtr)</label>
                     <input type="number" id="allowed_range" step="0.1" placeholder="e.g., 5" required>
                 </div>
                 <div class="form-group">
@@ -239,7 +240,6 @@ const tableConfig = {
                 </div>
             `,
             addEndpoint: `${BASE_URL}/kwikkwash/attendance`,
-            // FIXED: Changed to composite key URL with employee_code and attendance_date
             deleteUrl: (item) => `${BASE_URL}/kwikkwash/attendance/${item.employee_code}/${item.attendance_date}`
         },
         jobs: {
@@ -371,13 +371,16 @@ const tableConfig = {
                 'active'
             ],
             idField: 'id',
-            idType: 'composite',
+            idType: 'single',
             getDropdowns: async () => {
                 const partnerResponse = await fetch(`${BASE_URL}/kwikkwash/partners?city=`);
                 const partners = await partnerResponse.json();
                 return { partners };
             },
             addForm: (dropdowns) => `
+                <!-- HIDDEN ID FIELD -->
+                <input type="hidden" id="id">
+                
                 <div class="form-group">
                     <label class="required">Partner</label>
                     <select id="partner_code" required>
@@ -411,7 +414,7 @@ const tableConfig = {
                 </div>
 
                 <div class="form-group">
-                    <label>Allowed (Coupon Code)</label>
+                    <label>Coupon</label>
                     <input type="text" id="coupon_code">
                 </div>
 
@@ -434,7 +437,7 @@ const tableConfig = {
                 </div>
             `,
             addEndpoint: `${BASE_URL}/kwikkwash/partner-services`,
-            deleteUrl: (partnerCode, serviceCode) => `${BASE_URL}/kwikkwash/partner-services/${partnerCode}/${serviceCode}`
+            deleteUrl: (id) => `${BASE_URL}/kwikkwash/partner-services/${id}`
         }
     }
 };
@@ -446,7 +449,6 @@ async function updateSkillsByPartner(partnerCode) {
 
     if (!container) return;
     
-    // Clear only in ADD mode (not edit)
     if (hiddenInput && !editId) {
         hiddenInput.value = '';
     }
@@ -467,7 +469,6 @@ async function updateSkillsByPartner(partnerCode) {
             return;
         }
 
-        // Get existing skills from hidden input (will be preserved in edit mode)
         const existingSkills = hiddenInput?.value
             ? hiddenInput.value.split(',').map(s => s.trim())
             : [];
@@ -539,6 +540,11 @@ document.addEventListener('DOMContentLoaded', () => {
         handleSearch();
         searchInput.focus();
     });
+    
+    // 👇 NEW: Delete modal close button
+    document.getElementById('closeDeleteModal').addEventListener('click', closeDeleteModal);
+    document.getElementById('cancelDelete').addEventListener('click', closeDeleteModal);
+    document.getElementById('confirmDelete').addEventListener('click', confirmDelete);
     
     updateTableSelector();
 });
@@ -634,17 +640,15 @@ function renderFilteredTable() {
     
     let html = '<table><thead><tr>';
     
-    // Generate table headers with custom labels
     config.columns.forEach(col => {
         let label = col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
-        // Custom labels for partner_services table
         if (currentTable === 'partner_services') {
             if (col === 'service_code') label = 'Service Name';
             if (col === 'units') label = 'Work units (10 mnts)';
             if (col === 'short_details') label = 'Service intro';
             if (col === 'long_details') label = 'Service full details';
-            if (col === 'coupon_code') label = 'Allowed';
+            if (col === 'coupon_code') label = 'Coupon';
             if (col === 'coupon_count') label = 'Discount amount';
         }
 
@@ -695,18 +699,13 @@ function renderFilteredTable() {
                 } catch (e) {
                     displayValue = value.toString().slice(0, 5);
                 }
-            } 
-            // Special formatting for new partner_services fields
-            else if (col === 'coupon_code') {
-                displayValue = value ? 'Yes' : 'No';
-            }
-            else if (col === 'long_details' && value) {
+            } else if (col === 'coupon_code') {
+                displayValue = value || '-';
+            } else if (col === 'long_details' && value) {
                 displayValue = value.length > 40 ? value.substring(0, 40) + '...' : value;
-            }
-            else if (col === 'units' && value) {
+            } else if (col === 'units' && value) {
                 displayValue = value + ' units';
-            }
-            else {
+            } else {
                 displayValue = value !== null && value !== undefined ? value.toString() : '-';
             }
             
@@ -721,7 +720,7 @@ function renderFilteredTable() {
         const itemStr = JSON.stringify(item).replace(/'/g, "&apos;");
         html += `<td class="action-cell">
             <button class="btn-icon" onclick='openEditModal(${itemStr})' title="Edit">✏️</button>
-            <button class="btn-icon delete" onclick='deleteItem(${itemStr})' title="Delete">🗑️</button>
+            <button class="btn-icon delete" onclick='openDeleteModal(${itemStr})' title="Delete">🗑️</button>
         </td></tr>`;
     });
     
@@ -784,6 +783,12 @@ async function openEditModal(item) {
     document.getElementById('modalForm').innerHTML = config.addForm(dropdowns);
     
     setTimeout(async () => {
+        // 👇 FIX 1: Set ID field value
+        const idField = document.getElementById('id');
+        if (idField) {
+            idField.value = item.id;
+        }
+        
         for (const key of Object.keys(item)) {
             const field = document.getElementById(key);
             if (field) {
@@ -823,7 +828,6 @@ async function saveItem() {
             
             if (input.id) {
                 if (input.type === 'number') {
-                    // FIX: Check for empty string, set to null instead of 0
                     data[input.id] = input.value === '' ? null : parseFloat(input.value);
                 } else {
                     data[input.id] = input.value;
@@ -837,11 +841,12 @@ async function saveItem() {
         return;
     }
     
-    // IMPORTANT: For employees table, ensure employee_code is set as the ID for updates
     if (editId && config.idField === 'employee_code') {
-        data.employee_code = editId;  // ENSURE: Set employee_code from editId
-    } else if (editId && config.idType === 'single') {
-        data[config.idField] = editId;
+        data.employee_code = editId;
+    } 
+    // 👇 FIX 2: FORCE ID for all single ID tables
+    else if (editId && config.idType === 'single') {
+        data.id = editId;   // FORCE ID (important)
     }
     
     try {
@@ -865,32 +870,54 @@ async function saveItem() {
     }
 }
 
-// ==================== DELETE ITEM ====================
-async function deleteItem(item) {
-    if (!confirm('Are you sure you want to delete this record? This action cannot be undone.')) return;
+// ==================== DELETE FUNCTIONS ====================
+
+// 👇 NEW: Open delete confirmation modal
+function openDeleteModal(item) {
+    deleteItemData = item;
+    
+    const config = tableConfig[currentDB][currentTable];
+    let itemName = '';
+    
+    // Get a meaningful name to display
+    if (item.franchise_name) itemName = item.franchise_name;
+    else if (item.employee_name) itemName = item.employee_name;
+    else if (item.service_name) itemName = item.service_name;
+    else if (item.service_code) itemName = item.service_code;
+    else if (item.partner_code) itemName = item.partner_code;
+    else if (item.employee_code) itemName = item.employee_code;
+    else itemName = `ID: ${item.id || 'Unknown'}`;
+    
+    document.getElementById('deleteItemName').textContent = itemName;
+    document.getElementById('deleteModal').style.display = 'block';
+}
+
+// 👇 NEW: Close delete modal
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+    deleteItemData = null;
+}
+
+// 👇 NEW: Confirm delete and make API call
+async function confirmDelete() {
+    if (!deleteItemData) return;
     
     const config = tableConfig[currentDB][currentTable];
     let url = '';
     
     try {
-        if (currentDB === 'partner' && currentTable === 'partner_services') {
-            if (!item.partner_code || !item.service_code) {
-                showToast('error', 'Missing required codes');
-                return;
-            }
-            url = config.deleteUrl(item.partner_code, item.service_code);
-        } 
-        // FIXED: Special handling for attendance table with composite key
-        else if (currentTable === 'attendance') {
-            if (!item.employee_code || !item.attendance_date) {
+        if (currentTable === 'attendance') {
+            if (!deleteItemData.employee_code || !deleteItemData.attendance_date) {
                 showToast('error', 'Missing employee code or attendance date');
+                closeDeleteModal();
                 return;
             }
-            url = config.deleteUrl(item);  // Pass the whole item to deleteUrl
+            url = config.deleteUrl(deleteItemData);
         } else {
-            const id = item[config.idField];
+            const id = deleteItemData[config.idField];
             if (!id) {
                 showToast('error', 'Missing ID field');
+                closeDeleteModal();
                 return;
             }
             url = config.deleteUrl(id);
@@ -901,14 +928,20 @@ async function deleteItem(item) {
         
         if (result.status === 'success') {
             showToast('success', 'Record deleted successfully');
+            closeDeleteModal();
             loadData();
         } else {
             showToast('error', result.message || 'Delete failed');
+            closeDeleteModal();
         }
     } catch (error) {
         showToast('error', `Error: ${error.message}`);
+        closeDeleteModal();
     }
 }
+
+// 👇 UPDATE: Remove old deleteItem function and use new modal flow
+// (deleteItem function removed - now using openDeleteModal)
 
 // ==================== TOAST ====================
 function showToast(type, message) {
@@ -934,8 +967,11 @@ function closeModal() {
     editId = null;
     editItemData = null;
 }
-
-window.onclick = (e) => {
-    const modal = document.getElementById('modal');
-    if (e.target === modal) closeModal();
-};
+// bahar click pe popup band karne k lie 
+//window.onclick = (e) => {
+  //  const modal = document.getElementById('modal');
+    //const deleteModal = document.getElementById('deleteModal');
+    
+   // if (e.target === modal) closeModal();
+    //if (e.target === deleteModal) closeDeleteModal();
+//};
