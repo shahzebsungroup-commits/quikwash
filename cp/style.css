@@ -865,3 +865,143 @@ select[multiple]:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+/* =========================================
+   Delete Confirmation Modal - Add at the end of file
+   ========================================= */
+
+/* Delete Modal Specific Styles */
+#deleteModal .modal-dialog {
+    max-width: 400px;
+}
+
+#deleteModal .modal-body {
+    text-align: center;
+    padding: 32px 24px;
+}
+
+#deleteModal .warning-icon {
+    font-size: 48px;
+    background: rgba(255, 107, 107, 0.1);
+    color: var(--danger);
+    width: 80px;
+    height: 80px;
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    border: 2px solid rgba(255, 107, 107, 0.2);
+}
+
+#deleteModal .delete-message {
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+#deleteModal .delete-item-name {
+    font-weight: 600;
+    color: var(--danger);
+    background: rgba(255, 107, 107, 0.1);
+    padding: 8px 16px;
+    border-radius: 8px;
+    display: inline-block;
+    margin: 8px 0;
+    font-size: 15px;
+    border: 1px solid rgba(255, 107, 107, 0.2);
+}
+
+#deleteModal .warning-text {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+/* Delete Button in Modal */
+.btn-delete {
+    background-color: var(--danger);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 24px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-delete:hover {
+    background-color: #ff5252;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.btn-delete:active {
+    transform: translateY(0);
+}
+
+.btn-delete:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.3);
+}
+
+/* Cancel button in delete modal */
+.btn-secondary {
+    background-color: var(--border);
+    color: var(--text-primary);
+    border: none;
+    padding: 10px 24px;
+    border-radius: 24px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background-color: #444;
+}
+
+/* Animation for delete modal */
+#deleteModal .modal-dialog {
+    animation: deleteModalSlideIn 0.3s ease;
+}
+
+@keyframes deleteModalSlideIn {
+    from {
+        transform: translateY(-20px) scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Responsive adjustments for delete modal */
+@media (max-width: 480px) {
+    #deleteModal .modal-dialog {
+        margin: 20px;
+        width: auto;
+    }
+    
+    #deleteModal .warning-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 36px;
+    }
+    
+    #deleteModal .modal-footer {
+        flex-direction: column;
+    }
+    
+    #deleteModal .modal-footer button {
+        width: 100%;
+    }
+}
