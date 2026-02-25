@@ -112,7 +112,7 @@
             </div>
         </main>
 
-        <!-- Modal -->
+        <!-- Add/Edit Modal -->
         <div id="modal" class="modal">
             <div class="modal-dialog">
                 <div class="modal-header">
@@ -125,6 +125,29 @@
                 <div class="modal-footer">
                     <button type="button" onclick="closeModal()" class="btn-secondary">Cancel</button>
                     <button type="button" onclick="saveItem()" class="btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div id="deleteModal" class="modal">
+            <div class="modal-dialog">
+                <div class="modal-header">
+                    <h3>Confirm Delete</h3>
+                    <button class="modal-close" id="closeDeleteModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="warning-icon">⚠️</div>
+                    <p class="delete-message">Are you sure you want to delete</p>
+                    <span class="delete-item-name" id="deleteItemName"></span>
+                    <p class="warning-text">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="cancelDelete">Cancel</button>
+                    <button type="button" class="btn-delete" id="confirmDelete">
+                        <span>🗑️</span>
+                        <span>Delete Permanently</span>
+                    </button>
                 </div>
             </div>
         </div>
