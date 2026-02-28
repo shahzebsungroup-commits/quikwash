@@ -330,8 +330,8 @@ h1 {
 }
 
 @media (max-width: 768px) {
-  .service-card {
-    aspect-ratio: 4 / 3;
+  .services-grid {
+    grid-template-columns: 1fr;  /* 2 ki jagah 1 */
   }
 }
 /* Compact Card */
@@ -1391,4 +1391,21 @@ h1 {
 /* Hide Next Button */
 #nextBtn {
     display: none !important;
+}
+#-- mobile view rectangular service cards force
+@media (max-width: 768px) {
+  .service-card {
+    aspect-ratio: unset;
+    height: auto;
+  }
+
+  .service-card-inner {
+    height: auto;
+  }
+
+  .service-card-front,
+  .service-card-back {
+    position: relative;
+    height: auto;
+  }
 }
