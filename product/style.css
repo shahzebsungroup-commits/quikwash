@@ -330,13 +330,12 @@ h1 {
 }
 
 @media (max-width: 768px) {
-    .services-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-/* Compact Card - Base (desktop) */
+/* Compact Card */
 .service-card {
     position: relative;
     aspect-ratio: 1 / 1;
@@ -347,7 +346,6 @@ h1 {
     transform-style: preserve-3d;
     perspective: 1000px;
     overflow: hidden;
-    padding: 10px;
     font-size: 13px;
 }
 
@@ -379,7 +377,7 @@ h1 {
 }
 
 .service-card.selected .service-card-inner {
-    transform: rotateY(0deg); /* Auto unflip when selected */
+    transform: rotateY(0deg);
 }
 
 .service-card-front, .service-card-back {
@@ -401,6 +399,10 @@ h1 {
     justify-content: space-between;
     height: 100%;
     overflow: hidden;
+}
+
+.service-card-front > div {
+    flex: 1;
 }
 
 .service-card-back {
@@ -426,14 +428,15 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-right: 10px;
 }
 
 .service-checkbox {
     width: 20px;
     height: 20px;
-    border: 2px solid var(--border-light);
+    border: 2px solid var(--primary);
     border-radius: 4px;
-    background: var(--bg-dark);
+    background: transparent;
     transition: var(--transition-fast);
     position: relative;
     cursor: pointer;
@@ -507,30 +510,43 @@ h1 {
     flex: 1;
 }
 
-/* Info Button */
+/* ===== INFO BUTTON - UPDATED STYLES ===== */
 .info-btn {
+    all: unset;
     position: absolute;
-    bottom: 8px;
-    right: 8px;
-    background: rgba(255, 255, 255, 0.08);
-    border: none;
-    font-size: 12px;
-    cursor: pointer;
-    color: var(--text-muted);
-    transition: var(--transition-fast);
+    bottom: 6px;
+    right: 6px;
     width: 24px;
     height: 24px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    z-index: 10;
+    font-size: 12px;
+    font-weight: bold;
+    color: #F6C84C;
+    background: rgba(20, 20, 20, 0.7);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(246, 200, 76, 0.35);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    line-height: 1;  
+    flex-shrink: 0;
+}
+
+.info-btn:focus {
+    outline: none;
+    box-shadow: none;
 }
 
 .info-btn:hover {
-    color: var(--primary);
-    background: var(--primary-soft);
+    background: #F6C84C;
+    color: #000;
     transform: scale(1.1);
+}
+
+.info-btn:active {
+    transform: scale(0.92);
 }
 
 /* ===== INFO MODAL ===== */
@@ -613,7 +629,7 @@ h1 {
 
 .info-modal-close:hover {
     color: var(--danger);
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     transform: rotate(90deg);
 }
 
@@ -1224,7 +1240,11 @@ h1 {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+
+    transform: translate(-50%, -50%) scale(1); /* merged */
+
+    will-change: transform; /*added */
+
     background: linear-gradient(145deg, var(--bg-card), #1a1a1a);
     border-radius: var(--radius-xl);
     padding: 2rem;
@@ -1395,166 +1415,57 @@ h1 {
     display: none !important;
 }
 
-/* ============================================= */
-/* MOBILE IMPROVEMENTS (≤ 768px)                  */
-/* ============================================= */
+/* ===== MOBILE RESPONSIVE FIXES ===== */
 @media (max-width: 768px) {
+    .services-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
 
-    /* Service Cards - Horizontal, bigger, friendlier */
     .service-card {
         aspect-ratio: auto;
         height: auto;
-        min-height: 128px;
-        padding: 16px;
-        border-radius: 20px;
-        transform-style: flat;
-        perspective: none;
+        display: block;
+        padding: 14px;
     }
 
     .service-card-inner {
-        transition: none;
+        height: auto;
         transform: none !important;
+    }
+
+    .service-card-front,
+    .service-card-back {
+        position: relative;
+        height: auto;
+        transform: none;
+        backface-visibility: visible;
+    }
+
+    .service-card.flipped .service-card-inner {
+        transform: none;
     }
 
     .service-card-front {
         flex-direction: row;
         align-items: center;
-        justify-content: space-between;
         gap: 14px;
-        padding: 0;
-    }
-
-    .service-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-        margin-bottom: 0;
+        position: relative;
+        padding: 12px 12px 36px;
+        height: auto;
     }
 
     .service-icon {
         width: 48px;
         height: 48px;
         font-size: 24px;
-        flex-shrink: 0;
     }
 
     .service-name {
-        font-size: 15.5px;
-        line-height: 1.3;
-        flex: 1;
-        margin-bottom: 2px;
+        font-size: 15px;
     }
 
     .service-price {
         font-size: 16px;
-        font-weight: 700;
-    }
-
-    .service-duration {
-        font-size: 0.8rem;
-        margin: 0;
-    }
-
-    .service-checkbox {
-        width: 28px;
-        height: 28px;
-        border-radius: 6px;
-    }
-
-    .service-card.selected .service-checkbox::after {
-        font-size: 16px;
-    }
-
-    .service-card-back {
-        display: none;
-    }
-
-    /* Panels spacing & polish */
-    .services-panel,
-    .booking-panel {
-        padding: 1.25rem;
-        border-radius: 24px;
-    }
-
-    /* Slots - more comfortable on small screens */
-    .slots-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 14px;
-    }
-
-    .slot-card {
-        aspect-ratio: 1.35 / 1;
-        padding: 14px 10px;
-        border-radius: 18px;
-    }
-
-    .slot-time {
-        font-size: 1.05rem;
-    }
-
-    .slot-range {
-        font-size: 0.75rem;
-    }
-
-    /* Form fields - big & touch friendly */
-    .form-input {
-        padding: 1.1rem 1.25rem;
-        font-size: 1.05rem;
-        border-radius: 16px;
-    }
-
-    .form-label {
-        font-size: 1.05rem;
-    }
-
-    /* Tabs */
-    .tab-btn {
-        padding: 1rem 0.75rem;
-        font-size: 1rem;
-    }
-
-    /* Modals & popups mobile friendly */
-    .info-modal-content,
-    .terms-content,
-    .slot-popup-content,
-    .success-popup {
-        padding: 1.75rem;
-        border-radius: 24px;
-        max-width: 92%;
-    }
-
-    .info-modal-body {
-        max-height: 55vh;
-    }
-
-    /* Extra polish */
-    .total-box {
-        border-radius: 22px;
-        padding: 1.5rem;
-    }
-
-    .edit-slot-bar {
-        border-radius: 16px;
-        padding: 1rem;
-    }
-
-    /* Remove tap highlight for cleaner feel */
-    * {
-        -webkit-tap-highlight-color: transparent;
-    }
-}
-
-/* Extra small screens */
-@media (max-width: 480px) {
-    #booking-form {
-        padding: 1.5rem 0.75rem;
-    }
-    
-    .service-card {
-        min-height: 118px;
-    }
-    
-    .slots-grid {
-        gap: 12px;
     }
 }
