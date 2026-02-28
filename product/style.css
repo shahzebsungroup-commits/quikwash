@@ -396,7 +396,8 @@ h1 {
     transform: rotateY(0deg);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;   /* CHANGE */
+    gap: 4px;                      /* ADD */
     height: 100%;
     overflow: hidden;
 }
@@ -1408,4 +1409,27 @@ h1 {
     position: relative;
     height: auto;
   }
+}
+@media (max-width: 768px) {
+
+  .service-name {
+    font-size: 14px;
+  }
+
+  .service-price {
+    font-size: 15px;
+  }
+
+  .service-duration {
+    font-size: 11px;
+  }
+
+  .service-card {
+    padding: 8px;
+  }
+
+  .service-header {
+    margin-bottom: 4px;
+  }
+
 }
