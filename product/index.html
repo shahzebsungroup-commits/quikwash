@@ -2,350 +2,168 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kwikkwash Proclean Services</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Kwikkwash Proclean - Premium Cleaning Services</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="theme-color" content="#F6C84C">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- html2canvas for screenshot -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Header Section -->
-    <header class="hero">
+    <!-- Landing Section -->
+    <section id="landing" class="hero">
         <video class="heroVideo" autoplay muted loop playsinline>
-            <source src="https://assets.mixkit.co/videos/preview/mixkit-cleaning-a-car-4882-large.mp4" type="video/mp4">
+            <source src="assets/hero-bg.mp4" type="video/mp4">
         </video>
-        <img class="heroImg" src="https://images.unsplash.com/photo-1565689221354-d87f85d4aee2" alt="Car Cleaning">
+        <img src="assets/hero-bg.jpg" alt="Kwikkwash" class="heroImg">
         
         <div class="heroOverlay">
-            <h1>Kwikkwash Proclean Services</h1>
+            <h1>Kwikkwash Proclean</h1>
             <p class="tagline">Professional cleaning services at your doorstep</p>
-            
+
             <div class="features">
-                <div><i class="fas fa-car"></i> Car Cleaning</div>
-                <div><i class="fas fa-couch"></i> Sofa Cleaning</div>
-                <div><i class="fas fa-shield-alt"></i> Premium Quality</div>
+                <div><span>🚗</span> Car Cleaning</div>
+                <div><span>🛋</span> Sofa Cleaning</div>
+                <div><span>✨</span> Premium Quality</div>
             </div>
-            
-            <button class="aiBtn" onclick="scrollToBooking()">
-                <span><i class="fas fa-calendar-alt"></i> Book Now</span>
+
+            <button class="aiBtn" onclick="openBooking()">
+                <span>Book Now</span>
             </button>
-            
+
             <p class="subtext">Get sparkling clean results with our expert team</p>
         </div>
-    </header>
+    </section>
 
-    <!-- Booking Form Section -->
-    <section class="booking-section" id="booking-form">
+    <!-- Booking Form (Below Landing) -->
+    <section id="booking-form">
         <div class="container">
-            <h2><i class="fas fa-concierge-bell"></i> Book Your Service</h2>
-            <p class="section-subtitle">Select services and choose available time slot</p>
-            
-            <!-- Main Services -->
-            <div class="services-section">
-                <div class="section-header">
-                    <h3><i class="fas fa-star"></i> Main Services</h3>
-                    <div class="selected-count" id="main-service-count">0 selected</div>
+            <!-- Left Panel - Services -->
+            <div class="services-panel">
+                <div class="city-section">
+                    <h2>
+                        <i class="fas fa-map-marker-alt"></i>
+                        Select Location
+                    </h2>
+                    
+                    <div class="city-selector">
+                        <select id="cityDropdown" class="city-select"></select>
+                        <input type="text" id="otherCityInput" placeholder="Enter your city" style="display:none;">
+                    </div>
                 </div>
+
+                <h2 class="section-header">
+                    <span class="header-icon"></span>
+                    Select Services
+                    <span id="service-count" class="slot-count">0 selected</span>
+                </h2>
                 
-                <div class="service-category">
-                    <div class="category-header" onclick="toggleCategory('car5', this)">
-                        <div class="category-title">
-                            <h4>Cars (5 seater)</h4>
-                            <div class="category-count">0 selected</div>
-                        </div>
-                        <i class="fas fa-chevron-down" id="car5-icon"></i>
-                    </div>
-                    <div class="category-content" id="car5-content">
-                        <!-- Car 5-seater services loaded by JS -->
-                    </div>
-                </div>
-
-                <div class="service-category">
-                    <div class="category-header" onclick="toggleCategory('car7', this)">
-                        <div class="category-title">
-                            <h4>Cars (7 seater)</h4>
-                            <div class="category-count">0 selected</div>
-                        </div>
-                        <i class="fas fa-chevron-down" id="car7-icon"></i>
-                    </div>
-                    <div class="category-content" id="car7-content">
-                        <!-- Car 7-seater services loaded by JS -->
-                    </div>
-                </div>
-
-                <div class="service-category">
-                    <div class="category-header" onclick="toggleCategory('sofa', this)">
-                        <div class="category-title">
-                            <h4>Sofa Cleaning</h4>
-                            <div class="category-count">0 selected</div>
-                        </div>
-                        <i class="fas fa-chevron-down" id="sofa-icon"></i>
-                    </div>
-                    <div class="category-content" id="sofa-content">
-                        <!-- Sofa services loaded by JS -->
-                    </div>
-                </div>
+                <div id="servicesList" class="services-grid"></div>
             </div>
 
-            <!-- Add-on Services -->
-            <div class="services-section addon-section" id="addon-section">
-                <div class="section-header">
-                    <h3><i class="fas fa-plus-circle"></i> Add-on Services</h3>
-                    <div class="selected-count" id="addon-service-count">0 selected</div>
-                </div>
-                
-                <div class="service-category">
-                    <div class="category-header" onclick="toggleCategory('addon', this)">
-                        <div class="category-title">
-                            <h4>Additional Services</h4>
-                            <div class="category-count">0 selected</div>
-                        </div>
-                        <i class="fas fa-chevron-down" id="addon-icon"></i>
+            <!-- Right Panel - Booking -->
+            <div class="booking-panel">
+                <!-- Total Section -->
+                <div class="total-box">
+                    <div class="total-row">
+                        <span><i class="fas fa-shopping-bag"></i> Subtotal</span>
+                        <span>₹ <span id="subtotal">0.00</span></span>
                     </div>
-                    <div class="category-content" id="addon-content">
-                        <!-- Add-on services loaded by JS -->
+                    <div class="total-row">
+                        <span><i class="fas fa-file-invoice"></i> GST (18%)</span>
+                        <span>₹ <span id="gst">0.00</span></span>
+                    </div>
+                    <div class="total-row final">
+                        <span><i class="fas fa-credit-card"></i> Total</span>
+                        <span>₹ <span id="total">0.00</span></span>
                     </div>
                 </div>
-            </div>
 
-            <!-- Date and Time Selection -->
-            <div class="time-section">
-                <h3><i class="far fa-calendar-alt"></i> Select Date & Time</h3>
-                <p class="section-subtitle">Available slots based on employee availability</p>
-                
-                <div class="date-picker">
-                    <div class="date-header">
-                        <button class="nav-btn" onclick="changeMonth(-1)">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <h4 id="current-month">February 2024</h4>
-                        <button class="nav-btn" onclick="changeMonth(1)">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                    <div class="calendar" id="calendar">
-                        <!-- Calendar will be loaded by JS -->
-                    </div>
+                <!-- Slots Section -->
+                <div id="slotsSection" class="slots-section">
+                    <h2>
+                        <i class="fas fa-clock"></i>
+                        Select Time Slot
+                    </h2>
+                    <div id="slotsContainer"></div>
                 </div>
-                
-                <div class="time-slots-section">
-                    <h4>Available Time Slots</h4>
-                    <div class="time-slots" id="time-slots">
-                        <div class="loading-slots">Select a date to see available slots</div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Cart Summary -->
-            <div class="cart-section">
-                <div class="section-header">
-                    <h3><i class="fas fa-shopping-cart"></i> Order Summary</h3>
-                </div>
-                
-                <div class="cart-items" id="cart-items">
-                    <div class="empty-cart">No services selected yet</div>
-                </div>
-                
-                <div class="cart-total">
-                    <div class="total-line">
-                        <span>Subtotal:</span>
-                        <span id="subtotal">₹0</span>
-                    </div>
-                    <div class="total-line">
-                        <span>GST (18%):</span>
-                        <span id="tax">₹0</span>
-                    </div>
-                    <div class="total-line grand-total">
-                        <span>Total Amount:</span>
-                        <span id="total">₹0</span>
-                    </div>
-                </div>
-                
-                <p class="terms-text">
-                    Using the services is conditional to accept all 
-                    <a href="#" onclick="openTermsPopup()" class="terms-link">terms and conditions</a> applied.
-                </p>
-                
-                <button class="checkout-btn" id="checkout-btn" onclick="openCheckoutPopup()">
-                    <i class="fas fa-lock"></i> Proceed to Checkout
+                <!-- User Form Container -->
+                <div id="userFormContainer" style="display:none;"></div>
+
+                <!-- Next Button (Hidden) -->
+                <button id="nextBtn" class="next-btn">
+                    <i class="fas fa-arrow-right"></i>
+                    Continue Booking
                 </button>
+
+                <!-- Terms Section -->
+                <div class="terms-section" onclick="openTermsPopup()">
+                    <i class="fas fa-file-contract"></i>
+                    By proceeding, you agree to our terms and service policies.
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <p>&copy; 2024 Kwikkwash Proclean Services. All rights reserved.</p>
-        </div>
-    </footer>
-
-    <!-- Checkout Popup -->
-    <div class="popup-overlay" id="checkout-popup">
-        <div class="popup-content">
-            <div class="popup-header">
-                <h2><i class="fas fa-check-circle"></i> Final Checkout</h2>
-                <button class="close-btn" onclick="closeCheckoutPopup()">&times;</button>
+    <!-- Terms Popup -->
+    <div id="terms-popup" class="terms-popup">
+        <div class="terms-content">
+            <div class="terms-header">
+                <h3><i class="fas fa-gavel"></i> Terms & Conditions</h3>
+                <button class="terms-close" onclick="closeTermsPopup()">✕</button>
             </div>
+            <div class="terms-body">
+                <p><strong>Last Updated: March 2026</strong></p>
+                <p>Welcome to KwikkWash. By using our services, you agree to the following terms:</p>
+                
+                <h4>1. Service Guidelines</h4>
+                <ul>
+                    <li>Services are provided on an "as is" basis</li>
+                    <li>Estimated times may vary based on vehicle condition</li>
+                    <li>Additional charges may apply for extra services</li>
+                </ul>
 
-            <div class="popup-body">
-                <!-- Order Summary in Popup -->
-                <div class="popup-summary">
-                    <h3>Order Summary</h3>
-                    <div id="popup-cart-items"></div>
-                    <div class="popup-total">
-                        <div class="total-line">
-                            <span>Subtotal:</span>
-                            <span id="popup-subtotal">₹0</span>
-                        </div>
-                        <div class="total-line">
-                            <span>GST (18%):</span>
-                            <span id="popup-tax">₹0</span>
-                        </div>
-                        <div class="total-line grand-total">
-                            <span>Total Amount:</span>
-                            <span id="popup-total">₹0</span>
-                        </div>
-                    </div>
-                </div>
+                <h4>2. Payment Terms</h4>
+                <ul>
+                    <li>Full payment is required before service delivery</li>
+                    <li>GST is applicable as per government rates</li>
+                    <li>Refunds are processed within 7-10 business days</li>
+                </ul>
 
-                <!-- Mobile Number -->
-                <div class="form-group">
-                    <label for="mobile"><i class="fas fa-mobile-alt"></i> Mobile Number</label>
-                    <input type="tel" id="mobile" maxlength="10" placeholder="Enter 10-digit mobile number">
-                    <div class="error-message" id="mobile-error"></div>
-                </div>
+                <h4>3. Cancellation Policy</h4>
+                <ul>
+                    <li>Free cancellation up to 2 hours before slot</li>
+                    <li>Late cancellation may incur 25% charges</li>
+                    <li>No-shows are non-refundable</li>
+                </ul>
 
-                <!-- Name and Address -->
-                <div class="form-group">
-                    <label for="name-address"><i class="fas fa-user"></i> Name and Address</label>
-                    <textarea id="name-address" rows="3" placeholder="Enter your name and full address"></textarea>
-                </div>
-
-                <!-- Location -->
-                <div class="form-group">
-                    <label><i class="fas fa-map-marker-alt"></i> Your Location</label>
-                    <button class="location-btn" onclick="getLocation()">
-                        <i class="fas fa-location-arrow"></i> Share Location
-                    </button>
-                    <div id="location-status">Location not shared yet</div>
-                    <input type="hidden" id="latitude">
-                    <input type="hidden" id="longitude">
-                    <div class="location-error" id="location-error"></div>
-                </div>
-
-                <!-- Captcha -->
-                <div class="form-group">
-                    <label><i class="fas fa-shield-alt"></i> Verification</label>
-                    <div class="captcha-container">
-                        <div class="captcha-code" id="captcha-code">A3B8C</div>
-                        <button class="refresh-btn" onclick="generateCaptcha()">
-                            <i class="fas fa-redo"></i>
-                        </button>
-                        <input type="text" id="captcha-input" placeholder="Enter the code above">
-                    </div>
-                    <div class="error-message" id="captcha-error"></div>
-                </div>
-
-                <!-- Confirm Button -->
-                <button class="confirm-btn" onclick="submitBooking()">
-                    <i class="fas fa-paper-plane"></i> Confirm Booking
-                </button>
+                <h4>4. Liability</h4>
+                <ul>
+                    <li>KwikkWash is not liable for pre-existing damages</li>
+                    <li>Customers must ensure vehicle is accessible</li>
+                    <li>Insurance claims subject to policy terms</li>
+                </ul>
             </div>
         </div>
     </div>
 
-    <!-- Terms and Conditions Popup -->
-    <div class="popup-overlay" id="terms-popup">
-        <div class="popup-content terms-popup">
-            <div class="popup-header">
-                <h2><i class="fas fa-file-contract"></i> Terms and Conditions</h2>
-                <button class="close-btn" onclick="closeTermsPopup()">&times;</button>
+    <!-- Custom Info Modal -->
+    <div id="infoModal" class="info-modal">
+        <div class="info-modal-content">
+            <div class="info-modal-header">
+                <h3 id="infoModalTitle"></h3>
+                <button class="info-modal-close" onclick="closeInfoModal()">✕</button>
             </div>
-            <div class="popup-body">
-                <div class="terms-content">
-                    <h3>General Terms and Conditions</h3>
-                    
-                    <div class="terms-section">
-                        <h4><i class="fas fa-clock"></i> Booking and Cancellation</h4>
-                        <ul>
-                            <li>Booking confirmation is subject to availability of our service professionals.</li>
-                            <li>Cancellation allowed up to 2 hours before the scheduled appointment time.</li>
-                            <li>Late cancellations may incur a cancellation fee of 50% of the service amount.</li>
-                            <li>Rescheduling is allowed once, subject to availability.</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="terms-section">
-                        <h4><i class="fas fa-car"></i> Service Specific Terms</h4>
-                        <ul>
-                            <li>Car cleaning services require access to water and electricity at your location.</li>
-                            <li>Sofa cleaning requires the furniture to be clear of personal items before our arrival.</li>
-                            <li>Stubborn stains may require additional treatment at extra cost (will be informed beforehand).</li>
-                            <li>We use eco-friendly cleaning products that are safe for your family and pets.</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="terms-section">
-                        <h4><i class="fas fa-money-bill-wave"></i> Pricing and Payment</h4>
-                        <ul>
-                            <li>All prices include applicable GST (Goods and Services Tax).</li>
-                            <li>Payment is due upon completion of service.</li>
-                            <li>We accept cash, UPI, and credit/debit cards.</li>
-                            <li>Add-on services can only be booked with main services.</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="terms-section">
-                        <h4><i class="fas fa-shield-alt"></i> Liability and Warranty</h4>
-                        <ul>
-                            <li>We are not liable for pre-existing damages to your vehicle or furniture.</li>
-                            <li>Any damage caused during our service will be compensated as per assessment.</li>
-                            <li>Service warranty is valid for 7 days from service date.</li>
-                            <li>Claims must be reported within 24 hours of service completion.</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="terms-section">
-                        <h4><i class="fas fa-map-marker-alt"></i> Service Areas</h4>
-                        <ul>
-                            <li>We currently serve selected areas as per our serviceability map.</li>
-                            <li>Location serviceability will be confirmed at time of booking.</li>
-                            <li>Travel charges may apply for locations outside our primary service zones.</li>
-                            <li>Remote areas may require additional coordination time.</li>
-                        </ul>
-                    </div>
-                    
-                    <button class="confirm-btn" onclick="closeTermsPopup()">
-                        <i class="fas fa-check"></i> I Understand and Accept
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Confirmation Message -->
-    <div class="confirmation-overlay" id="confirmation-overlay">
-        <div class="confirmation-box">
-            <div class="confirmation-icon">
-                <i class="fas fa-check-circle"></i>
-            </div>
-            <h2 id="confirmation-title">Booking Confirmed!</h2>
-            <p class="confirmation-message" id="confirmation-message">
-                Thank you for choosing Kwikkwash Proclean Services! Your booking has been successfully confirmed.
-            </p>
-            <div class="confirmation-details">
-                <p><i class="fas fa-receipt"></i> <strong>Booking ID:</strong> <span id="booking-id">KW-001</span></p>
-                <p><i class="far fa-calendar-alt"></i> <strong>Date & Time:</strong> <span id="booking-datetime">--</span></p>
-                <p><i class="fas fa-rupee-sign"></i> <strong>Total Amount:</strong> <span id="final-amount">₹0</span></p>
-                <p id="location-note" style="display: none;"></p>
-            </div>
-            <p class="confirmation-note" id="confirmation-note">
-                Our team will contact you shortly to confirm the appointment details.
-            </p>
-            <button class="done-btn" onclick="closeConfirmation()">
-                <i class="fas fa-thumbs-up"></i> Done
-            </button>
+            <div class="info-modal-body" id="infoModalBody"></div>
         </div>
     </div>
 
