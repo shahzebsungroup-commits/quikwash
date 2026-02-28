@@ -330,9 +330,9 @@ h1 {
 }
 
 @media (max-width: 768px) {
-    .services-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+  .services-grid {
+    grid-template-columns: 1fr;  /* 2 ki jagah 1 */
+  }
 }
 
 /* Compact Card */
