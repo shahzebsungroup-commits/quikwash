@@ -331,7 +331,12 @@ h1 {
 
 @media (max-width: 768px) {
   .services-grid {
-    grid-template-columns: 1fr;  /* 2 ki jagah 1 */
+    grid-template-columns: 1fr;
+  }
+
+  .service-card {
+    aspect-ratio: auto;
+    padding: 12px;
   }
 }
 
