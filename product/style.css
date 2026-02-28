@@ -330,16 +330,10 @@ h1 {
 }
 
 @media (max-width: 768px) {
-  .services-grid {
-    grid-template-columns: 1fr;
-  }
-
   .service-card {
-    aspect-ratio: auto;
-    padding: 12px;
+    aspect-ratio: 4 / 3;
   }
 }
-
 /* Compact Card */
 .service-card {
     position: relative;
