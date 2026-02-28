@@ -95,11 +95,19 @@ function showSlotFullPopup() {
 // ---------- CAPTURE POPUP SCREENSHOT ----------
 function capturePopup() {
     const popup = document.getElementById("successPopup");
+    if (!popup) return;
 
-    html2canvas(popup).then(canvas => {
+    html2canvas(popup, {
+        scale: 3, // 🔥 HIGH QUALITY (main fix)
+        useCORS: true,
+        backgroundColor: "#141414", // remove transparency blur
+        logging: false,
+        scrollX: 0,
+        scrollY: -window.scrollY
+    }).then(canvas => {
         const link = document.createElement("a");
         link.download = "booking-confirmation.png";
-        link.href = canvas.toDataURL("image/png");
+        link.href = canvas.toDataURL("image/png", 1.0); // max quality
         link.click();
     });
 }
@@ -343,8 +351,10 @@ function renderServices(services) {
             
             ${service.long_details ? `
                 <button class="info-btn" 
-                    data-title="${service.service_code}"
-                    data-content="${escapedLongDetails}">ℹ️</button>
+                 data-title="${service.service_code}"
+                 data-content="${escapedLongDetails}">
+                    <i class="fa-solid fa-circle-info"></i>
+                 </button>
             ` : ''}
         `;
 
@@ -1008,7 +1018,7 @@ function showSuccessPopup(bookingId, isOtherCity) {
 
             <div style="display: flex; gap: 10px; justify-content: center;">
                 <button onclick="capturePopup()" class="popup-btn">
-                    📸 Save as Image
+                    Capture
                 </button>
                 <button onclick="closeSuccessPopup()" class="popup-btn">
                     OK
