@@ -98,16 +98,16 @@ function capturePopup() {
     if (!popup) return;
 
     html2canvas(popup, {
-        scale: 3, // 🔥 HIGH QUALITY (main fix)
+        scale: 3,
         useCORS: true,
-        backgroundColor: "#141414", // remove transparency blur
+        backgroundColor: "#141414",
         logging: false,
         scrollX: 0,
         scrollY: -window.scrollY
     }).then(canvas => {
         const link = document.createElement("a");
         link.download = "booking-confirmation.png";
-        link.href = canvas.toDataURL("image/png", 1.0); // max quality
+        link.href = canvas.toDataURL("image/png", 1.0);
         link.click();
     });
 }
@@ -860,7 +860,7 @@ async function downloadPopup() {
     }
 }
 
-// ---------- SUBMIT BOOKING ----------
+// ---------- SUBMIT BOOKING (UPDATED WITH AMOUNTS) ----------
 async function submitBooking() {
     console.log("🔥 submitBooking triggered");
     
@@ -904,6 +904,11 @@ async function submitBooking() {
 
     const serviceCodes = selectedServices.map(s => s.code).join(",");
     const totalUnits = selectedServices.reduce((sum, s) => sum + (s.units || 0), 0);
+    
+    // Calculate amounts
+    const subtotal = selectedServices.reduce((sum, s) => sum + s.price, 0);
+    const gst = subtotal * 0.18;
+    const total = subtotal + gst;
 
     const payload = {
         booking_id: "BKG" + Date.now(),
@@ -924,7 +929,11 @@ async function submitBooking() {
         lat: userLocation?.lat || null,
         lng: userLocation?.lng || null,
         applied_coupon: "",
-        coupon_used: 0
+        coupon_used: 0,
+        // New amount fields added below
+        amount: subtotal.toFixed(2),
+        gst_amount: gst.toFixed(2),
+        total_amount: total.toFixed(2)
     };
 
     try {
