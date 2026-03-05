@@ -1,5 +1,5 @@
 // Simple service worker
-const CACHE_NAME = 'kwikkwash-v4';
+const CACHE_NAME = 'kwikkwash-v5';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -21,6 +21,7 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
 
 
 
