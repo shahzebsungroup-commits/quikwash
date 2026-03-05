@@ -2,11 +2,11 @@
 const CONFIG = {
     API_BASE: "https://app.vbo.co.in",
     EMPLOYEE_CODE: "001",
-    GST_RATE: 18, // 18%
+    GST_RATE: 18,
     UPI_ID: "kwikkwash@okhdfcbank",
-    COMPLETED_DAYS_LIMIT: 7, // Last 7 days
+    COMPLETED_DAYS_LIMIT: 7,
     CLIENT: "KWIKKWASH",
-    DEFAULT_RATE: 500, // Default rate per unit if total_amount not available
+    DEFAULT_RATE: 500,
     SEARCH_MIN_CHARS: 3
 };
 
@@ -18,27 +18,116 @@ let selectedPaymentMode = null;
 let currentRejectBooking = null;
 let confirmResolve = null;
 
-// Store all bookings for search
+// Store all bookings
 let allPendingBookings = [];
 let allCompletedBookings = [];
 let allCancelledBookings = [];
+
+// ========== TOAST NOTIFICATION SYSTEM ==========
+function showToast(message, type = 'info', duration = 3000) {
+    // Remove existing toast if any
+    const existingToast = document.getElementById('customToast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // Create toast container
+    const toast = document.createElement('div');
+    toast.id = 'customToast';
+    
+    // Set styles based on type
+    const colors = {
+        success: { bg: '#2ecc71', icon: '✅' },
+        error: { bg: '#e74c3c', icon: '❌' },
+        warning: { bg: '#f39c12', icon: '⚠️' },
+        info: { bg: '#3498db', icon: 'ℹ️' }
+    };
+    
+    const color = colors[type] || colors.info;
+    
+    // Style the toast
+    Object.assign(toast.style, {
+        position: 'fixed',
+        top: '20px',
+        right: '20px',
+        backgroundColor: color.bg,
+        color: 'white',
+        padding: '15px 25px',
+        borderRadius: '10px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        zIndex: '9999',
+        fontSize: '14px',
+        fontWeight: '500',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        minWidth: '250px',
+        maxWidth: '350px',
+        animation: 'slideIn 0.3s ease-out',
+        cursor: 'pointer'
+    });
+    
+    // Add content
+    toast.innerHTML = `
+        <span style="font-size: 20px;">${color.icon}</span>
+        <span style="flex: 1;">${message}</span>
+        <span style="font-size: 12px; opacity: 0.7;">${Math.round(duration/1000)}s</span>
+    `;
+    
+    // Add animation styles if not present
+    if (!document.getElementById('toastStyles')) {
+        const style = document.createElement('style');
+        style.id = 'toastStyles';
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes fadeOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Add to document
+    document.body.appendChild(toast);
+    
+    // Auto remove after duration
+    setTimeout(() => {
+        if (toast && toast.parentNode) {
+            toast.style.animation = 'fadeOut 0.5s ease-out';
+            setTimeout(() => {
+                if (toast && toast.parentNode) {
+                    toast.remove();
+                }
+            }, 500);
+        }
+    }, duration);
+    
+    // Allow click to dismiss
+    toast.addEventListener('click', () => {
+        toast.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => {
+            if (toast && toast.parentNode) {
+                toast.remove();
+            }
+        }, 300);
+    });
+}
 
 // ========== INITIALIZATION ==========
 document.addEventListener('DOMContentLoaded', async () => {
     await loadEmployeeData();
     await loadAllTasks();
     
-    // Add QR code library
     await loadQRCodeLibrary();
-    
-    // Setup search
     setupSearch();
     
-    // Refresh every 30 seconds
     setInterval(loadAllTasks, 30000);
 });
 
-// Load QRCode library dynamically
 function loadQRCodeLibrary() {
     return new Promise((resolve) => {
         if (window.QRCode) {
@@ -57,7 +146,6 @@ function loadQRCodeLibrary() {
     });
 }
 
-// Setup search functionality
 function setupSearch() {
     const searchInput = document.getElementById('globalSearch');
     if (searchInput) {
@@ -66,7 +154,6 @@ function setupSearch() {
             if (searchTerm.length >= CONFIG.SEARCH_MIN_CHARS) {
                 performSearch(searchTerm);
             } else {
-                // Reset to original views
                 displayPendingTasks(allPendingBookings);
                 displayCompletedTasks(allCompletedBookings);
                 displayCancelledTasks(allCancelledBookings);
@@ -76,7 +163,6 @@ function setupSearch() {
 }
 
 function performSearch(term) {
-    // Search in pending bookings
     const filteredPending = allPendingBookings.filter(booking => 
         (booking.booking_id?.toLowerCase().includes(term)) ||
         (booking.customer_name?.toLowerCase().includes(term)) ||
@@ -85,7 +171,6 @@ function performSearch(term) {
         (booking.address?.toLowerCase().includes(term))
     );
     
-    // Search in completed bookings
     const filteredCompleted = allCompletedBookings.filter(booking => 
         (booking.booking_id?.toLowerCase().includes(term)) ||
         (booking.customer_name?.toLowerCase().includes(term)) ||
@@ -94,7 +179,6 @@ function performSearch(term) {
         (booking.address?.toLowerCase().includes(term))
     );
     
-    // Search in cancelled bookings
     const filteredCancelled = allCancelledBookings.filter(booking => 
         (booking.booking_id?.toLowerCase().includes(term)) ||
         (booking.customer_name?.toLowerCase().includes(term)) ||
@@ -117,7 +201,7 @@ async function loadEmployeeData() {
         const data = await response.json();
         
         if (data && data.error) {
-            showError("Employee not found!");
+            showToast("Employee not found!", 'error');
             return;
         }
         
@@ -132,6 +216,7 @@ async function loadEmployeeData() {
     } catch (error) {
         console.error('Error loading employee:', error);
         document.getElementById('employeeInfo').textContent = `👤 Employee (${CONFIG.EMPLOYEE_CODE})`;
+        showToast('Failed to load employee data', 'error');
     }
 }
 
@@ -141,7 +226,7 @@ async function loadAllTasks() {
         loadRunningTask(),
         loadPendingTasks(),
         loadCompletedTasks(),
-        loadCancelledTasks() // New function for cancelled tasks
+        loadCancelledTasks()
     ]);
 }
 
@@ -152,7 +237,6 @@ async function loadRunningTask() {
         );
         const data = await response.json();
         
-        // Handle different response formats
         let bookings = [];
         if (Array.isArray(data)) {
             bookings = data;
@@ -162,7 +246,6 @@ async function loadRunningTask() {
             bookings = data.bookings;
         }
         
-        // Filter running tasks - status not done/cancelled
         const runningBookings = bookings.filter(b => 
             b && b.status && 
             b.status !== 'done' && 
@@ -179,6 +262,12 @@ async function loadRunningTask() {
             return;
         }
         
+        runningBookings.sort((a, b) => {
+            const slotA = a.slot || 'ZZZ';
+            const slotB = b.slot || 'ZZZ';
+            return slotA.localeCompare(slotB);
+        });
+        
         const html = runningBookings.map(booking => createTaskCard(booking, 'running')).join('');
         document.getElementById('runningTasks').innerHTML = html;
         
@@ -186,13 +275,14 @@ async function loadRunningTask() {
         console.error('Error loading running task:', error);
         document.getElementById('runningTasks').innerHTML = 
             '<div class="empty-state">Error loading tasks</div>';
+        showToast('Failed to load running tasks', 'error');
     }
 }
 
 async function loadPendingTasks() {
     try {
         if (!currentCity) {
-            document.getElementById('pendingTasks').innerHTML = 
+            document.getElementById('pendingTasksContainer').innerHTML = 
                 '<div class="empty-state">City not assigned</div>';
             return;
         }
@@ -202,7 +292,6 @@ async function loadPendingTasks() {
         );
         const data = await response.json();
         
-        // Handle different response formats
         let bookings = [];
         if (Array.isArray(data)) {
             bookings = data;
@@ -217,27 +306,99 @@ async function loadPendingTasks() {
             (!b.assigned_employee_code || b.assigned_employee_code === '' || b.assigned_employee_code === null)
         );
         
-        // Sort: oldest first (by booking_date)
-        allPendingBookings.sort((a, b) => {
-            const dateA = new Date(a.booking_date || 0);
-            const dateB = new Date(b.booking_date || 0);
-            return dateA - dateB; // Ascending = oldest first
-        });
-        
         document.getElementById('pendingCount').textContent = allPendingBookings.length;
-        
         displayPendingTasks(allPendingBookings);
         
     } catch (error) {
         console.error('Error loading pending tasks:', error);
-        document.getElementById('pendingTasks').innerHTML = 
+        document.getElementById('pendingTasksContainer').innerHTML = 
             '<div class="empty-state">Error loading tasks</div>';
+        showToast('Failed to load pending tasks', 'error');
     }
+}
+
+function displayPendingTasks(bookings) {
+    if (bookings.length === 0) {
+        document.getElementById('pendingTasksContainer').innerHTML = 
+            '<div class="empty-state">No pending tasks</div>';
+        return;
+    }
+    
+    // Get current time to determine next slot
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTimeStr = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
+    
+    // Define slots with their time ranges
+    const slotDefinitions = [
+        { name: '09-11', start: '09:00', end: '11:00', order: 1 },
+        { name: '11-01', start: '11:00', end: '13:00', order: 2 },
+        { name: '01-03', start: '13:00', end: '15:00', order: 3 },
+        { name: '03-05', start: '15:00', end: '17:00', order: 4 }
+    ];
+    
+    // Find next slot based on current time
+    let nextSlotName = null;
+    for (let slot of slotDefinitions) {
+        if (currentTimeStr < slot.end) {
+            nextSlotName = slot.name;
+            break;
+        }
+    }
+    
+    // Group by slot only
+    const slots = {};
+    
+    bookings.forEach(booking => {
+        const slot = booking.slot || 'No Slot';
+        if (!slots[slot]) {
+            slots[slot] = [];
+        }
+        slots[slot].push(booking);
+    });
+    
+    // Sort slots by predefined order
+    const sortedSlots = Object.keys(slots).sort((a, b) => {
+        const order = { '09-11': 1, '11-01': 2, '01-03': 3, '03-05': 4 };
+        return (order[a] || 99) - (order[b] || 99);
+    });
+    
+    let html = '';
+    
+    sortedSlots.forEach(slot => {
+        // Sort bookings within slot by booking_date (oldest first)
+        slots[slot].sort((a, b) => {
+            const dateA = new Date(a.booking_date || 0);
+            const dateB = new Date(b.booking_date || 0);
+            return dateA - dateB;
+        });
+        
+        // Check if this is the next slot to highlight
+        const isNextSlot = (slot === nextSlotName);
+        
+        html += `<div class="slot-group">`;
+        html += `<div class="slot-header">`;
+        html += `<span>⏰ Slot: ${slot}</span>`;
+        html += `<span class="slot-time">${slots[slot].length} tasks</span>`;
+        html += `</div>`;
+        
+        html += `<div class="task-grid">`;
+        
+        slots[slot].forEach(booking => {
+            const extraClass = isNextSlot ? 'next-slot' : '';
+            html += createTaskCard(booking, 'pending', extraClass);
+        });
+        
+        html += `</div>`;
+        html += `</div>`;
+    });
+    
+    document.getElementById('pendingTasksContainer').innerHTML = html;
 }
 
 async function loadCompletedTasks() {
     try {
-        // Calculate date 7 days ago
         const date = new Date();
         date.setDate(date.getDate() - CONFIG.COMPLETED_DAYS_LIMIT);
         const startDate = date.toISOString().split('T')[0];
@@ -248,7 +409,6 @@ async function loadCompletedTasks() {
         );
         const data = await response.json();
         
-        // Handle different response formats
         let bookings = [];
         if (Array.isArray(data)) {
             bookings = data;
@@ -263,27 +423,42 @@ async function loadCompletedTasks() {
             b.assigned_employee_code === CONFIG.EMPLOYEE_CODE
         );
         
-        // Sort: newest first (by completion date/booking_date)
         allCompletedBookings.sort((a, b) => {
             const dateA = new Date(a.booking_date || 0);
             const dateB = new Date(b.booking_date || 0);
-            return dateB - dateA; // Descending = newest first
+            return dateB - dateA;
         });
         
         document.getElementById('completedCount').textContent = allCompletedBookings.length;
-        
         displayCompletedTasks(allCompletedBookings);
         
     } catch (error) {
         console.error('Error loading completed tasks:', error);
         document.getElementById('completedTasks').innerHTML = 
             '<div class="empty-state">Error loading tasks</div>';
+        showToast('Failed to load completed tasks', 'error');
     }
+}
+
+function displayCompletedTasks(bookings) {
+    if (bookings.length === 0) {
+        document.getElementById('completedTasks').innerHTML = 
+            '<div class="empty-state">No completed tasks in last 7 days</div>';
+        return;
+    }
+    
+    bookings.sort((a, b) => {
+        const slotA = a.slot || 'ZZZ';
+        const slotB = b.slot || 'ZZZ';
+        return slotA.localeCompare(slotB);
+    });
+    
+    const html = bookings.map(booking => createTaskCard(booking, 'completed')).join('');
+    document.getElementById('completedTasks').innerHTML = html;
 }
 
 async function loadCancelledTasks() {
     try {
-        // Calculate date 7 days ago
         const date = new Date();
         date.setDate(date.getDate() - CONFIG.COMPLETED_DAYS_LIMIT);
         const startDate = date.toISOString().split('T')[0];
@@ -294,7 +469,6 @@ async function loadCancelledTasks() {
         );
         const data = await response.json();
         
-        // Handle different response formats
         let bookings = [];
         if (Array.isArray(data)) {
             bookings = data;
@@ -309,46 +483,19 @@ async function loadCancelledTasks() {
             b.assigned_employee_code === CONFIG.EMPLOYEE_CODE
         );
         
-        // Sort: newest first (by cancellation date/booking_date)
         allCancelledBookings.sort((a, b) => {
             const dateA = new Date(a.booking_date || 0);
             const dateB = new Date(b.booking_date || 0);
-            return dateB - dateA; // Descending = newest first
+            return dateB - dateA;
         });
         
+        document.getElementById('cancelledCount').textContent = allCancelledBookings.length;
         displayCancelledTasks(allCancelledBookings);
         
     } catch (error) {
         console.error('Error loading cancelled tasks:', error);
+        showToast('Failed to load cancelled tasks', 'error');
     }
-}
-
-// ========== DISPLAY FUNCTIONS ==========
-function displayPendingTasks(bookings) {
-    if (bookings.length === 0) {
-        document.getElementById('pendingTasks').innerHTML = 
-            '<div class="empty-state">No pending tasks</div>';
-        return;
-    }
-    
-    // Check if employee has running task
-    checkRunningTask().then(hasRunningTask => {
-        const html = bookings.map(booking => 
-            createTaskCard(booking, 'pending', hasRunningTask)
-        ).join('');
-        document.getElementById('pendingTasks').innerHTML = html;
-    });
-}
-
-function displayCompletedTasks(bookings) {
-    if (bookings.length === 0) {
-        document.getElementById('completedTasks').innerHTML = 
-            '<div class="empty-state">No completed tasks in last 7 days</div>';
-        return;
-    }
-    
-    const html = bookings.map(booking => createTaskCard(booking, 'completed')).join('');
-    document.getElementById('completedTasks').innerHTML = html;
 }
 
 function displayCancelledTasks(bookings) {
@@ -361,11 +508,16 @@ function displayCancelledTasks(bookings) {
         return;
     }
     
+    bookings.sort((a, b) => {
+        const slotA = a.slot || 'ZZZ';
+        const slotB = b.slot || 'ZZZ';
+        return slotA.localeCompare(slotB);
+    });
+    
     const html = bookings.map(booking => createTaskCard(booking, 'cancelled')).join('');
     cancelledSection.innerHTML = html;
 }
 
-// Helper to check if employee has running task
 async function checkRunningTask() {
     try {
         const response = await fetch(
@@ -390,21 +542,20 @@ async function checkRunningTask() {
     }
 }
 
-// Create task card with all required elements
-function createTaskCard(booking, type, hasRunningTask = false) {
+function createTaskCard(booking, type, extraClass = '') {
     const bookingId = booking?.booking_id || booking?.id || 'N/A';
     const customerName = booking?.customer_name || booking?.name || 'Customer';
     const phone = booking?.phone || '';
     const serviceCode = booking?.service_code || booking?.service || 'Service';
-    const bookingDate = booking?.booking_date || booking?.date || '';
+    const bookingDate = booking?.booking_date || '';
+    const createdDate = booking?.created_at ? new Date(booking.created_at).toLocaleString() : 'N/A';
+    const slot = booking?.slot || 'No Slot';
     const address = booking?.address || 'Address not available';
     const amount = booking?.total_amount || booking?.service_units || 0;
     const lat = booking?.lat || null;
     const lng = booking?.lng || null;
-    const status = booking?.status || type;
     
-    // Format phone for WhatsApp
-    const whatsappUrl = phone ? `https://wa.me/${phone.replace(/\D/g, '')}` : '#';
+    const whatsappUrl = phone ? `https://wa.me/${phone.replace(/\D/g, '')}?text=Hi%20${encodeURIComponent(customerName)}%2C%20this%20is%20${encodeURIComponent(currentEmployee?.employee_name || 'KwikkWash')}%20regarding%20your%20booking%20${bookingId}` : '#';
     const callUrl = phone ? `tel:${phone}` : '#';
     
     let actions = '';
@@ -419,7 +570,7 @@ function createTaskCard(booking, type, hasRunningTask = false) {
                     ❌ Reject
                 </button>
                 ${lat && lng ? `
-                    <button class="btn btn-warning" onclick="openDirections(${lat}, ${lng})">
+                    <button class="btn btn-warning" onclick="openDirections(${lat}, ${lng})" title="Navigate">
                         🗺️
                     </button>
                 ` : ''}
@@ -430,11 +581,21 @@ function createTaskCard(booking, type, hasRunningTask = false) {
             <div class="task-actions">
                 <button class="btn btn-primary" 
                         onclick="pickTask('${bookingId}')"
-                        ${hasRunningTask ? 'disabled' : ''}>
+                        id="pickBtn-${bookingId}">
                     📌 Pick
                 </button>
                 ${lat && lng ? `
-                    <button class="btn btn-warning" onclick="openDirections(${lat}, ${lng})">
+                    <button class="btn btn-warning" onclick="openDirections(${lat}, ${lng})" title="Navigate">
+                        🗺️
+                    </button>
+                ` : ''}
+            </div>
+        `;
+    } else {
+        actions = `
+            <div class="task-actions">
+                ${lat && lng ? `
+                    <button class="btn btn-warning" onclick="openDirections(${lat}, ${lng})" title="Navigate">
                         🗺️
                     </button>
                 ` : ''}
@@ -442,15 +603,24 @@ function createTaskCard(booking, type, hasRunningTask = false) {
         `;
     }
     
+    if (type === 'pending') {
+        checkRunningTask().then(hasRunningTask => {
+            const btn = document.getElementById(`pickBtn-${bookingId}`);
+            if (btn) {
+                btn.disabled = hasRunningTask;
+            }
+        });
+    }
+    
     return `
-        <div class="task-card ${type}">
+        <div class="task-card ${type} ${extraClass}" data-booking-id="${bookingId}">
             <div class="task-header">
                 <span class="booking-id">📋 ${bookingId}</span>
-                <span class="time-badge">${bookingDate}</span>
+                <span class="slot-badge">${slot}</span>
             </div>
             <div class="customer-info">
                 <div class="customer-name">
-                    ${customerName}
+                    👤 ${customerName}
                     <span class="contact-actions">
                         ${phone ? `
                             <a href="${callUrl}" class="contact-btn" title="Call">📞</a>
@@ -458,10 +628,21 @@ function createTaskCard(booking, type, hasRunningTask = false) {
                         ` : ''}
                     </span>
                 </div>
-                <div class="service-name">${serviceCode} | ₹${amount}</div>
-                <div class="task-address">
+                <div class="service-name">🔧 ${serviceCode} | ₹${amount}</div>
+                
+                <div class="task-meta">
+                    <span class="meta-item" title="Booking Date">
+                        📅 ${bookingDate || 'N/A'}
+                    </span>
+                    <span class="meta-item" title="Created At">
+                        🕐 ${createdDate}
+                    </span>
+                </div>
+                
+                <div class="task-address" title="Address">
                     📍 ${address}
                 </div>
+                
                 ${booking.employee_remark ? `
                     <div class="task-remark">
                         📝 Remark: ${booking.employee_remark}
@@ -480,13 +661,11 @@ async function pickTask(bookingId) {
     }
     
     try {
-        // First get current booking data
         const bookingResponse = await fetch(
             `${CONFIG.API_BASE}/kwikkwash/bookings/${bookingId}`
         );
         const bookingData = await bookingResponse.json();
         
-        // Update booking with employee code and status - preserve all fields
         const response = await fetch(`${CONFIG.API_BASE}/kwikkwash/bookings`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -494,7 +673,6 @@ async function pickTask(bookingId) {
                 booking_id: bookingId,
                 assigned_employee_code: CONFIG.EMPLOYEE_CODE,
                 status: 'assigned',
-                // Preserve existing data
                 customer_name: bookingData?.customer_name || '',
                 phone: bookingData?.phone || '',
                 service_code: bookingData?.service_code || '',
@@ -504,14 +682,14 @@ async function pickTask(bookingId) {
                 total_amount: bookingData?.total_amount || 0,
                 address: bookingData?.address || '',
                 lat: bookingData?.lat || null,
-                lng: bookingData?.lng || null
+                lng: bookingData?.lng || null,
+                slot: bookingData?.slot || ''
             })
         });
         
         const result = await response.json();
         
         if (result?.status === 'success') {
-            // Create job for employee
             await fetch(`${CONFIG.API_BASE}/kwikkwash/employee-jobs`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -524,15 +702,15 @@ async function pickTask(bookingId) {
                 })
             });
             
-            showMessage('Task picked successfully!', 'success');
+            showToast('Task picked successfully!', 'success');
             await loadAllTasks();
         } else {
-            showMessage('Failed to pick task', 'error');
+            showToast('Failed to pick task', 'error');
         }
         
     } catch (error) {
         console.error('Error picking task:', error);
-        showMessage('Error picking task', 'error');
+        showToast('Error picking task', 'error');
     }
 }
 
@@ -559,25 +737,22 @@ async function openCompleteModal(bookingId) {
         
     } catch (error) {
         console.error('Error loading booking:', error);
-        showMessage('Failed to load booking details', 'error');
+        showToast('Failed to load booking details', 'error');
     }
 }
 
 function selectPaymentMode(mode) {
     selectedPaymentMode = mode;
     
-    // Update UI
     document.querySelectorAll('.payment-option').forEach(opt => {
         opt.classList.remove('selected');
     });
     event.currentTarget.classList.add('selected');
     
-    // Show relevant section
     if (mode === 'online') {
         document.getElementById('onlinePaymentSection').style.display = 'block';
         document.getElementById('cashPaymentSection').style.display = 'none';
         
-        // Show amount directly from booking's total_amount
         const amount = currentCompleteBooking?.total_amount || 
                       currentCompleteBooking?.service_units * CONFIG.DEFAULT_RATE || 
                       0;
@@ -599,10 +774,8 @@ function selectPaymentMode(mode) {
 
 async function generateBarcode() {
     try {
-        // Clear previous QR code
         document.getElementById('barcode').innerHTML = '';
         
-        // Directly get amount from booking's total_amount
         const totalAmount = currentCompleteBooking?.total_amount || 
                            currentCompleteBooking?.service_units * CONFIG.DEFAULT_RATE || 
                            0;
@@ -613,10 +786,8 @@ async function generateBarcode() {
         
         document.getElementById('onlineAmount').textContent = `₹${totalAmount}`;
         
-        // Generate UPI QR Code
         const upiString = `upi://pay?pa=${CONFIG.UPI_ID}&pn=KwikkWash&am=${totalAmount}&cu=INR&tn=${currentCompleteBooking?.booking_id || 'TASK'}`;
         
-        // Create QR code with fallback
         if (window.QRCode && typeof QRCode === 'function') {
             try {
                 new QRCode(document.getElementById('barcode'), {
@@ -643,7 +814,6 @@ async function generateBarcode() {
         
         document.getElementById('onlineAmount').textContent = `₹${totalAmount}`;
         
-        // Simple fallback display
         document.getElementById('barcode').innerHTML = 
             `<div style="padding: 15px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 10px; text-align: center;">
                 <p style="color: #856404; margin-bottom: 10px; font-size: 14px;">📱 Payment QR Code</p>
@@ -661,17 +831,17 @@ async function generateBarcode() {
 
 async function confirmPayment() {
     if (!selectedPaymentMode) {
-        showMessage('Please select payment mode', 'warning');
+        showToast('Please select payment mode', 'warning');
         return;
     }
     
     if (selectedPaymentMode === 'online' && !document.getElementById('paymentConfirmed').checked) {
-        showMessage('Please confirm payment received', 'warning');
+        showToast('Please confirm payment received', 'warning');
         return;
     }
     
     if (selectedPaymentMode === 'cash' && !document.getElementById('cashReceived').checked) {
-        showMessage('Please confirm cash received', 'warning');
+        showToast('Please confirm cash received', 'warning');
         return;
     }
     
@@ -680,7 +850,6 @@ async function confirmPayment() {
     }
     
     try {
-        // Update booking with payment info - preserve all fields
         const updateResponse = await fetch(`${CONFIG.API_BASE}/kwikkwash/bookings`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -689,7 +858,6 @@ async function confirmPayment() {
                 status: 'done',
                 payment_status: 'done',
                 payment_mode: selectedPaymentMode,
-                // Preserve all other fields
                 customer_name: currentCompleteBooking?.customer_name,
                 phone: currentCompleteBooking?.phone,
                 service_code: currentCompleteBooking?.service_code,
@@ -700,6 +868,7 @@ async function confirmPayment() {
                 address: currentCompleteBooking?.address,
                 lat: currentCompleteBooking?.lat,
                 lng: currentCompleteBooking?.lng,
+                slot: currentCompleteBooking?.slot,
                 assigned_employee_code: currentCompleteBooking?.assigned_employee_code
             })
         });
@@ -707,7 +876,6 @@ async function confirmPayment() {
         const updateResult = await updateResponse.json();
         
         if (updateResult?.status === 'success') {
-            // Update job status
             const jobsResponse = await fetch(
                 `${CONFIG.API_BASE}/kwikkwash/employee-jobs?employee_code=${CONFIG.EMPLOYEE_CODE}`
             );
@@ -731,15 +899,15 @@ async function confirmPayment() {
             }
             
             closePaymentModal();
-            showMessage('Task completed successfully!', 'success');
+            showToast('Task completed successfully!', 'success');
             await loadAllTasks();
         } else {
-            showMessage('Failed to update booking', 'error');
+            showToast('Failed to update booking', 'error');
         }
         
     } catch (error) {
         console.error('Error completing task:', error);
-        showMessage('Error completing task', 'error');
+        showToast('Error completing task', 'error');
     }
 }
 
@@ -769,7 +937,7 @@ async function confirmReject() {
     const reason = document.getElementById('rejectReason').value.trim();
     
     if (!reason) {
-        showMessage('Please enter rejection reason', 'warning');
+        showToast('Please enter rejection reason', 'warning');
         return;
     }
     
@@ -778,7 +946,6 @@ async function confirmReject() {
     }
     
     try {
-        // FIRST: Get current booking data to preserve all fields
         const bookingResponse = await fetch(
             `${CONFIG.API_BASE}/kwikkwash/bookings/${currentRejectBooking}`
         );
@@ -789,12 +956,8 @@ async function confirmReject() {
         
         const bookingData = await bookingResponse.json();
         
-        // Prepare update payload with ALL existing fields preserved
         const updatePayload = {
-            // Core identifiers
             booking_id: currentRejectBooking,
-            
-            // Preserve ALL existing fields with fallbacks
             customer_name: bookingData?.customer_name || '',
             phone: bookingData?.phone || '',
             service_code: bookingData?.service_code || '',
@@ -805,25 +968,21 @@ async function confirmReject() {
             address: bookingData?.address || '',
             lat: bookingData?.lat || null,
             lng: bookingData?.lng || null,
+            slot: bookingData?.slot || '',
             assigned_employee_code: bookingData?.assigned_employee_code || CONFIG.EMPLOYEE_CODE,
             payment_status: bookingData?.payment_status || '',
             payment_mode: bookingData?.payment_mode || '',
-            slot: bookingData?.slot || '',
             customer_remark: bookingData?.customer_remark || '',
-            
-            // Only update these two fields
             status: 'cancelled',
             employee_remark: reason
         };
         
-        // Remove any undefined values
         Object.keys(updatePayload).forEach(key => {
             if (updatePayload[key] === undefined) {
                 delete updatePayload[key];
             }
         });
         
-        // THEN: Update with all fields preserved
         const response = await fetch(`${CONFIG.API_BASE}/kwikkwash/bookings`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -838,15 +997,15 @@ async function confirmReject() {
         
         if (result?.status === 'success') {
             closeRejectModal();
-            showMessage('Task rejected successfully', 'success');
+            showToast('Task rejected successfully', 'success');
             await loadAllTasks();
         } else {
-            showMessage(result?.message || 'Failed to reject task', 'error');
+            showToast(result?.message || 'Failed to reject task', 'error');
         }
         
     } catch (error) {
         console.error('Error rejecting task:', error);
-        showMessage('Error rejecting task: ' + error.message, 'error');
+        showToast('Error rejecting task: ' + error.message, 'error');
     }
 }
 
@@ -874,14 +1033,4 @@ function executeConfirmedAction() {
         confirmResolve(true);
         confirmResolve = null;
     }
-}
-
-// ========== UTILITY FUNCTIONS ==========
-function showMessage(message, type = 'info') {
-    alert(`${type.toUpperCase()}: ${message}`);
-}
-
-function showError(message) {
-    console.error(message);
-    alert(`ERROR: ${message}`);
 }
