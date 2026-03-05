@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KwikkWash - Employee Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: none;
+            width: 280px;
+            font-size: 14px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            placeholder-color: rgba(255,255,255,0.7);
+        }
+
+        .search-box::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .search-box:focus {
+            outline: 2px solid white;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .employee-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        /* Sections */
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f2f5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title .badge {
+            background: #667eea;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        /* Task Cards */
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 15px;
+        }
+
+        .task-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 4px solid;
+            transition: transform 0.2s;
+        }
+
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .task-card.pending {
+            border-left-color: #f39c12;
+        }
+
+        .task-card.running {
+            border-left-color: #3498db;
+        }
+
+        .task-card.completed {
+            border-left-color: #2ecc71;
+            opacity: 0.8;
+        }
+
+        .task-card.cancelled {
+            border-left-color: #e74c3c;
+            opacity: 0.7;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .booking-id {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .time-badge {
+            background: #e1e4e8;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .customer-info {
+            margin-bottom: 12px;
+        }
+
+        .customer-name {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .contact-actions {
+            display: inline-flex;
+            gap: 5px;
+            margin-left: 5px;
+        }
+
+        .contact-btn {
+            text-decoration: none;
+            font-size: 16px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: #e1e4e8;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .contact-btn:hover {
+            background: #d1d5da;
+            transform: scale(1.1);
+        }
+
+        .service-name {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .task-address {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+            padding: 8px;
+            background: #f0f2f5;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+            word-break: break-word;
+        }
+
+        .task-remark {
+            font-size: 12px;
+            color: #e74c3c;
+            margin-top: 8px;
+            padding: 6px;
+            background: #fee9e7;
+            border-radius: 6px;
+            font-style: italic;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #27ae60;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 400px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .payment-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .payment-option {
+            text-align: center;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .payment-option:hover {
+            border-color: #3498db;
+            background: #f0f8ff;
+        }
+
+        .payment-option.selected {
+            border-color: #2ecc71;
+            background: #f0fff4;
+        }
+
+        .payment-option span {
+            display: block;
+            font-weight: 500;
+        }
+
+        .barcode-container {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .barcode-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .amount-display {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2ecc71;
+            margin: 10px 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 16px;
+        }
+
+        .search-highlight {
+            background-color: #fff3cd;
+            transition: background-color 0.3s;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .header-right {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+            
+            .task-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header with Search -->
+        <div class="header">
+            <h1>
+                🧼 KwikkWash
+                <span class="employee-badge" id="employeeInfo">Loading...</span>
+            </h1>
+            <div class="header-right">
+                <input type="text" 
+                       class="search-box" 
+                       id="globalSearch" 
+                       placeholder="🔍 Search by name, phone, booking ID, service..." 
+                       autocomplete="off">
+                <span class="employee-badge" id="cityInfo"></span>
+            </div>
+        </div>
+
+        <!-- My Running Task Section -->
+        <div class="section">
+            <div class="section-title">
+                🏃 My Running Task
+                <span class="badge" id="runningCount">0</span>
+            </div>
+            <div id="runningTasks" class="task-grid">
+                <div class="loading">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Pending Tasks in Your Area -->
+        <div class="section">
+            <div class="section-title">
+                ⏳ Pending Tasks in Your Area
+                <span class="badge" id="pendingCount">0</span>
+            </div>
+            <div id="pendingTasks" class="task-grid">
+                <div class="loading">Loading...</div>
+            </div>
+        </div>
+
+        <!-- My Completed Tasks (Last 7 Days) -->
+        <div class="section">
+            <div class="section-title">
+                ✅ My Completed Tasks (Last 7 Days)
+                <span class="badge" id="completedCount">0</span>
+            </div>
+            <div id="completedTasks" class="task-grid">
+                <div class="loading">Loading...</div>
+            </div>
+        </div>
+
+        <!-- My Cancelled Tasks (Last 7 Days) - New Section -->
+        <div class="section">
+            <div class="section-title">
+                ❌ My Cancelled Tasks (Last 7 Days)
+                <span class="badge" id="cancelledCount">0</span>
+            </div>
+            <div id="cancelledTasks" class="task-grid">
+                <div class="loading">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <div class="modal-title">💰 Complete Task - Payment</div>
+            <div class="modal-body">
+                <div class="booking-details" id="modalBookingDetails">
+                    <p><strong>Booking:</strong> <span id="modalBookingId"></span></p>
+                    <p><strong>Customer:</strong> <span id="modalCustomerName"></span></p>
+                    <p><strong>Service:</strong> <span id="modalServiceName"></span></p>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Payment Mode:</label>
+                    <div class="payment-options">
+                        <div class="payment-option" data-mode="cash" onclick="selectPaymentMode('cash')">
+                            <span>💵 Cash</span>
+                        </div>
+                        <div class="payment-option" data-mode="online" onclick="selectPaymentMode('online')">
+                            <span>📱 Online</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="onlinePaymentSection" style="display: none;">
+                    <div class="barcode-container">
+                        <div id="barcode"></div>
+                        <div class="amount-display" id="onlineAmount"></div>
+                        <p style="color: #666; font-size: 12px; margin-top: 10px;">UPI ID: kwikkwash@okhdfcbank</p>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="paymentConfirmed"> 
+                            I confirm customer has made the payment
+                        </label>
+                    </div>
+                </div>
+
+                <div id="cashPaymentSection" style="display: none;">
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="cashReceived"> 
+                            I confirm received ₹<span id="cashAmount"></span> in cash
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closePaymentModal()">Cancel</button>
+                <button class="btn btn-success" onclick="confirmPayment()" id="confirmPaymentBtn" disabled>Confirm Complete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Modal -->
+    <div class="modal" id="rejectModal">
+        <div class="modal-content">
+            <div class="modal-title">❌ Reject Task</div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Reason for rejection:</label>
+                    <textarea id="rejectReason" placeholder="Enter reason..." rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeRejectModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmReject()">Confirm Reject</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-title" id="confirmTitle">Confirm Action</div>
+            <div class="modal-body" id="confirmMessage"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeConfirmModal()">No</button>
+                <button class="btn btn-primary" onclick="executeConfirmedAction()">Yes</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="employee-dashboard.js"></script>
+</body>
+</html>
