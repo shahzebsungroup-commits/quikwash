@@ -18,7 +18,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -59,7 +59,6 @@
             font-size: 14px;
             background: rgba(255,255,255,0.2);
             color: white;
-            placeholder-color: rgba(255,255,255,0.7);
         }
 
         .search-box::placeholder {
@@ -80,40 +79,64 @@
             white-space: nowrap;
         }
 
-        /* Sections */
-        .section {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
+        /* Slot Group Styling */
+        .slot-group {
             margin-bottom: 25px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 4px solid #667eea;
         }
 
-        .section-title {
+        .slot-header {
             font-size: 18px;
             font-weight: 600;
             color: #333;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #f0f2f5;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e1e4e8;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .section-title .badge {
+        .slot-time {
             background: #667eea;
             color: white;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 14px;
         }
 
-        /* Task Cards */
+        .time-group {
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 10px;
+            padding: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .time-header {
+            font-size: 15px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 12px;
+            padding-bottom: 5px;
+            border-bottom: 1px dashed #ddd;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .time-icon {
+            color: #f39c12;
+        }
+
+        /* Task Cards Grid */
         .task-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 15px;
+            gap: 12px;
         }
 
         .task-card {
@@ -122,6 +145,7 @@
             padding: 15px;
             border-left: 4px solid;
             transition: transform 0.2s;
+            position: relative;
         }
 
         .task-card:hover {
@@ -151,21 +175,38 @@
             display: flex;
             justify-content: space-between;
             align-items: start;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         .booking-id {
             font-weight: 600;
             color: #333;
             font-size: 14px;
+            background: #e1e4e8;
+            padding: 3px 8px;
+            border-radius: 12px;
+        }
+
+        .slot-badge {
+            background: #667eea;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
         }
 
         .time-badge {
             background: #e1e4e8;
-            padding: 4px 8px;
+            padding: 3px 8px;
             border-radius: 12px;
-            font-size: 12px;
+            font-size: 11px;
             color: #666;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
         }
 
         .customer-info {
@@ -178,7 +219,7 @@
             margin-bottom: 8px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
@@ -190,7 +231,7 @@
 
         .contact-btn {
             text-decoration: none;
-            font-size: 16px;
+            font-size: 14px;
             padding: 4px 8px;
             border-radius: 6px;
             background: #e1e4e8;
@@ -212,15 +253,36 @@
             font-weight: 500;
         }
 
+        .task-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 8px 0;
+            font-size: 11px;
+            color: #888;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            background: #f0f2f5;
+            padding: 2px 6px;
+            border-radius: 12px;
+        }
+
         .task-address {
             font-size: 12px;
-            color: #666;
+            color: #555;
             margin-top: 8px;
             padding: 8px;
             background: #f0f2f5;
             border-radius: 6px;
             border-left: 3px solid #667eea;
             word-break: break-word;
+            display: flex;
+            align-items: start;
+            gap: 5px;
         }
 
         .task-remark {
@@ -231,26 +293,31 @@
             background: #fee9e7;
             border-radius: 6px;
             font-style: italic;
+            display: flex;
+            align-items: start;
+            gap: 5px;
         }
 
         .task-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
             margin-top: 12px;
+            border-top: 1px solid #e1e4e8;
+            padding-top: 12px;
         }
 
         .btn {
-            padding: 8px 15px;
+            padding: 6px 12px;
             border: none;
-            border-radius: 8px;
-            font-size: 13px;
+            border-radius: 6px;
+            font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
         }
 
         .btn-primary {
@@ -439,11 +506,6 @@
             font-size: 16px;
         }
 
-        .search-highlight {
-            background-color: #fff3cd;
-            transition: background-color 0.3s;
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
             .header {
@@ -464,6 +526,25 @@
                 grid-template-columns: 1fr;
             }
         }
+        /* Next Slot Highlight Animation */
+@keyframes soft-blink {
+    0% { background-color: #fff3cd; border-left-color: #f39c12; }
+    50% { background-color: #fff9e6; border-left-color: #f1c40f; }
+    100% { background-color: #fff3cd; border-left-color: #f39c12; }
+}
+
+.task-card.next-slot {
+    animation: soft-blink 2s infinite;
+    border-left-width: 6px;
+    box-shadow: 0 2px 8px rgba(243, 156, 18, 0.2);
+}
+
+/* Mobile optimized */
+@media (max-width: 480px) {
+    .task-card.next-slot {
+        animation: soft-blink 1.5s infinite;
+    }
+}
     </style>
 </head>
 <body>
@@ -495,15 +576,13 @@
             </div>
         </div>
 
-        <!-- Pending Tasks in Your Area -->
+        <!-- Pending Tasks in Your Area (Slot & Time Wise) -->
         <div class="section">
             <div class="section-title">
                 ⏳ Pending Tasks in Your Area
                 <span class="badge" id="pendingCount">0</span>
             </div>
-            <div id="pendingTasks" class="task-grid">
-                <div class="loading">Loading...</div>
-            </div>
+            <div id="pendingTasksContainer"></div>
         </div>
 
         <!-- My Completed Tasks (Last 7 Days) -->
@@ -517,7 +596,7 @@
             </div>
         </div>
 
-        <!-- My Cancelled Tasks (Last 7 Days) - New Section -->
+        <!-- My Cancelled Tasks (Last 7 Days) -->
         <div class="section">
             <div class="section-title">
                 ❌ My Cancelled Tasks (Last 7 Days)
