@@ -1,12 +1,3 @@
-// Quick test - remove after debugging
-console.log("=== DEBUG START ===");
-console.log("Window loaded:", document.readyState);
-console.log("heroVideo element:", document.getElementById("heroVideo"));
-console.log("heroImg element:", document.getElementById("heroImg"));
-console.log("testimonialSlider element:", document.getElementById("testimonialSlider"));
-console.log("=== DEBUG END ===");
-
-
 // ================================
 // CONFIG
 // ================================
@@ -36,16 +27,21 @@ function stars(count) {
 }
 
 // ================================
-// ✅ SMART LOCATION DETECTION (NO POPUP)
+// INSTALL DETECTION
+// ================================
+window.addEventListener("appinstalled", () => {
+  localStorage.setItem("appInstalled", "true");
+});
+
+// ================================
+// SMART LOCATION DETECTION (NO POPUP)
 // ================================
 async function getLocationSmart() {
   try {
-    // 1️⃣ Check permission silently (NO POPUP)
     if (navigator.permissions && navigator.permissions.query) {
       const perm = await navigator.permissions.query({ name: "geolocation" });
       
       if (perm.state === "granted") {
-        // ✅ Already allowed → exact GPS (silent)
         return new Promise(resolve => {
           navigator.geolocation.getCurrentPosition(
             (pos) => {
@@ -58,7 +54,6 @@ async function getLocationSmart() {
               });
             },
             () => {
-              // GPS failed → fallback to IP
               resolve(getIPLocation());
             },
             { 
@@ -71,16 +66,14 @@ async function getLocationSmart() {
       }
     }
     
-    // 2️⃣ Not granted / permission API not available → IP fallback
     return await getIPLocation();
     
   } catch (err) {
-    console.log("Location detection error:", err);
-    return await getIPLocation(); // Fallback to IP
+    return await getIPLocation();
   }
 }
 
-// IP-based location (NO POPUP)
+// IP-based location
 async function getIPLocation() {
   try {
     const ipRes = await fetch("https://ipapi.co/json/");
@@ -90,14 +83,13 @@ async function getIPLocation() {
       city: ipData.city || null,
       state: ipData.region || null,
       country: ipData.country_name || null,
-      lat: ipData.latitude || null,    // ✅ IP-based approx lat
-      lon: ipData.longitude || null,   // ✅ IP-based approx lon
-      accuracy: null,                   // ✅ IMPORTANT: null for IP accuracy
+      lat: ipData.latitude || null,
+      lon: ipData.longitude || null,
+      accuracy: null,
       source: "IP",
       location_accuracy: "ip"
     };
   } catch (err) {
-    console.log("IP location error:", err);
     return {
       city: null,
       state: null,
@@ -139,16 +131,12 @@ function stopSlider() {
 function loadTestimonials() {
   const slider = document.getElementById("testimonialSlider");
   
-  // FIX: Check if slider exists
   if (!slider) {
-    console.log("Testimonial slider element not found");
     return;
   }
   
-  // Show loading message
   slider.innerHTML = '<div class="testimonialCard active"><p>Loading testimonials...</p></div>';
   
-  // Fetch from GAS URL
   fetch(GAS_URL)
     .then(res => {
       if (!res.ok) {
@@ -157,17 +145,12 @@ function loadTestimonials() {
       return res.json();
     })
     .then(data => {
-      console.log("GAS Data received:", data); // Debug log
-      
-      // Check if testimonials array exists
       if (!data || !data.testimonials || !Array.isArray(data.testimonials)) {
         throw new Error("Invalid data format from GAS");
       }
       
-      // Clear loading message
       slider.innerHTML = "";
       
-      // Create testimonial cards
       data.testimonials.forEach((t, i) => {
         const card = document.createElement("div");
         card.className = "testimonialCard";
@@ -188,7 +171,6 @@ function loadTestimonials() {
         slider.appendChild(card);
       });
       
-      // Initialize slider
       cards = document.querySelectorAll(".testimonialCard");
       if (cards.length > 1) {
         cards.forEach(card => {
@@ -198,10 +180,7 @@ function loadTestimonials() {
         startSlider();
       }
     })
-    .catch(err => {
-      console.error("GAS Error:", err);
-      
-      // Show fallback testimonials
+    .catch(() => {
       const fallbackTestimonials = [
         {
           name: "Raj Sharma",
@@ -250,51 +229,41 @@ function loadTestimonials() {
 }
 
 // ================================
-// HERO TRANSITION - FIXED VERSION
+// HERO TRANSITION
 // ================================
 function setupHeroTransition() {
   const video = document.querySelector(".heroVideo");
   const img = document.querySelector(".heroImg");
   
-  // FIX: Check if elements exist
   if (!video || !img) {
-    console.log("Hero video or image element not found");
     return;
   }
   
   setTimeout(() => {
-    // FIX: Use classList instead of style
     video.classList.add("hide");
     img.classList.add("show");
   }, 3000);
 }
 
 // ================================
-// ✅ ANALYTICS WITH SMART LOCATION (NO POPUP)
+// ANALYTICS WITH SMART LOCATION
 // ================================
 async function sendAnalytics() {
   try {
-    // Check if analytics already sent in this session
     if (sessionStorage.getItem("analyticsSent")) {
-      console.log("📊 Analytics already sent in this session");
       return;
     }
     
-    // Check if app is running as installed PWA
     const isPWA = 
       window.matchMedia('(display-mode: standalone)').matches || 
       window.navigator.standalone === true;
     
-    // ✅ Get smart location (NO POPUP)
     const location = await getLocationSmart();
     
     const analyticsData = {
-      // User & Session
       type: isPWA ? "PWA" : "BROWSER",
       timestamp: new Date().toISOString(),
       session_id: sessionStorage.getItem("sessionId") || generateSessionId(),
-      
-      // Location Data (clearly marked GPS vs IP)
       location: {
         source: location.source,
         location_accuracy: location.location_accuracy,
@@ -303,56 +272,36 @@ async function sendAnalytics() {
         city: location.city,
         state: location.state,
         country: location.country,
-        accuracy_meters: location.accuracy  // ✅ null for IP, number for GPS
+        accuracy_meters: location.accuracy
       },
-      
-      // Device & Browser
       url: window.location.href,
       screen: `${window.screen.width}x${window.screen.height}`,
       language: navigator.language,
       platform: navigator.platform,
       referrer: document.referrer || "direct",
-      user_agent: navigator.userAgent.substring(0, 200), // Truncate for privacy
-      
-      // App Info
+      user_agent: navigator.userAgent.substring(0, 200),
       app_version: "1.0.0",
       service_worker: 'serviceWorker' in navigator
     };
     
-    console.log("📊 Analytics Data:", analyticsData);
-    
-    // Mark as sent to prevent duplicates
     sessionStorage.setItem("analyticsSent", "1");
     
-    // Generate session ID if not exists
     if (!sessionStorage.getItem("sessionId")) {
       sessionStorage.setItem("sessionId", analyticsData.session_id);
     }
     
-    // Send analytics data (optional - comment out if no endpoint yet)
     if (ANALYTICS_URL && ANALYTICS_URL.includes('YOUR_ANALYTICS_GAS_URL')) {
-      console.log("📊 Analytics: Data prepared (GAS URL not configured)", analyticsData);
-      // Remove this line when you set up your analytics endpoint
       return;
     }
     
-    // Uncomment when you have your analytics GAS URL ready
-    
     fetch(ANALYTICS_URL, {
       method: "POST",
-      mode: "no-cors", // Important for GAS
+      mode: "no-cors",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(analyticsData)
-    }).then(() => {
-      console.log("📊 Analytics sent successfully");
-    }).catch(err => {
-      console.error("📊 Analytics error:", err);
-    });
+    }).catch(() => {});
     
-    
-  } catch (err) {
-    console.error("📊 Analytics setup error:", err);
-  }
+  } catch (err) {}
 }
 
 // Generate unique session ID
@@ -361,75 +310,57 @@ function generateSessionId() {
 }
 
 // ================================
-// ✅ INSTALL BUTTON TEXT AUTO-CHANGE (WITH PWA SAFETY CHECK)
+// INSTALL BUTTON SETUP
 // ================================
 function setupInstallButton() {
   const installBtn = document.getElementById("installBtn");
   
-  // FIX: Check if button exists
   if (!installBtn) {
-    console.log("Install button not found");
     return;
   }
   
-  // ✅ 2️⃣ JS me safety check (extra protection)
-  if (window.matchMedia('(display-mode: standalone)').matches) {
-    installBtn.style.display = "none";
-    console.log("PWA detected via CSS/JS - Install button hidden");
-    return;
-  }
-  
-  // ✅ Check if app is running as installed PWA (alternative method)
-  const isPWA = 
-    window.matchMedia('(display-mode: standalone)').matches || 
+  const isPWA =
+    window.matchMedia('(display-mode: standalone)').matches ||
     window.navigator.standalone === true;
   
-  console.log("Is PWA?", isPWA);
+  // 1️⃣ Real bug - simple installed check
+  const installed = localStorage.getItem("appInstalled") === "true";
   
   if (isPWA) {
-    // Already installed - change to "Open App"
-    installBtn.innerHTML = "<span>✅ Open App</span>";
-    installBtn.setAttribute("data-state", "open");
-    installBtn.classList.remove("pulse");
-    
-    // Open app functionality
+    installBtn.style.display = "none";
+  }
+  else if (installed) {
+    installBtn.style.display = "inline-block";
+    installBtn.innerHTML = "<span>🚀 Open App</span>";
     installBtn.onclick = () => {
-      // Already in app, just ensure we're at home
       window.location.href = "/";
     };
-    
-    // Hide install button
-    installBtn.style.display = 'none';
-    console.log("PWA installed - button hidden");
-  } else {
-    // Not installed - show "Install App"
+  }
+  else {
+    installBtn.style.display = "inline-block";
     installBtn.innerHTML = "<span>⬇️ Install App</span>";
-    installBtn.setAttribute("data-state", "install");
     
-    // ✅ FIX: Use { once: true } to prevent duplicate listeners
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
       
-      console.log("PWA install prompt available (once only)");
-      
-      // Make button pulse when install is available
       installBtn.classList.add("pulse");
       
-      // ✅ FIXED: Use onclick instead of addEventListener
       installBtn.onclick = async () => {
         if (!deferredPrompt) {
           alert("📱 To install Kwikkwash App:\n\n1. Tap the share button (⎙) in your browser\n2. Select 'Add to Home Screen'\n3. Follow the prompts\n\nFor iOS: Use Safari browser");
           return;
         }
         
-        // Show install prompt
         deferredPrompt.prompt();
         
-        // Wait for user choice
         const choiceResult = await deferredPrompt.userChoice;
         
         if (choiceResult.outcome === 'accepted') {
+          // 2️⃣ Small improvement - set localStorage immediately
+          localStorage.setItem("appInstalled", "true");
+          installBtn.style.display = "none";
+          
           console.log("User accepted PWA installation");
           installBtn.classList.remove("pulse");
           installBtn.innerHTML = "<span>✅ Installed!</span>";
@@ -446,12 +377,10 @@ function setupInstallButton() {
         
         deferredPrompt = null;
       };
-    }, { once: true }); // ✅ IMPORTANT FIX: Listener runs only once
+    });
     
-    // If no prompt within 3 seconds, setup fallback
     setTimeout(() => {
       if (!deferredPrompt) {
-        // ✅ FIXED: Use onclick instead of addEventListener
         installBtn.onclick = () => {
           alert("📱 To install Kwikkwash App:\n\n1. Tap the share button (⎙) in your browser\n2. Select 'Add to Home Screen'\n3. Follow the prompts\n\nFor iOS: Use Safari browser");
         };
@@ -461,23 +390,18 @@ function setupInstallButton() {
 }
 
 // ================================
-// ✅ SERVICE WORKER REGISTRATION (Silent background update)
+// SERVICE WORKER REGISTRATION
 // ================================
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('service-worker.js')
         .then(registration => {
-          console.log('Service Worker registered with scope:', registration.scope);
-          
-          // Check for updates periodically (every hour)
           setInterval(() => {
             registration.update();
           }, 60 * 60 * 1000);
         })
-        .catch(err => {
-          console.log('Service Worker registration failed:', err);
-        });
+        .catch(() => {});
     });
   }
 }
@@ -488,45 +412,33 @@ function registerServiceWorker() {
 function setupCTAButton() {
   const ctaBtn = document.getElementById("ctaBtn");
   
-  // FIX: Check if button exists
   if (!ctaBtn) {
-    console.log("CTA button not found");
     return;
   }
   
-  // CTA बटन का टेक्स्ट "Step In" करें
   const buttonText = ctaBtn.querySelector("span");
   if (buttonText) {
     buttonText.textContent = "Step In";
   }
   
   ctaBtn.addEventListener("click", () => {
-    // Same page पर URL लोड करें
     window.location.href = "https://quikwash.in/product/";
   });
 }
 
 // ================================
-// INITIALIZE EVERYTHING (WITH PROPER AWAIT)
+// INITIALIZE EVERYTHING
 // ================================
 async function init() {
-  console.log("Initializing Kwikkwash...");
-  
   try {
-    // ✅ Properly await analytics (because it's async)
     await sendAnalytics();
-  } catch (err) {
-    console.error("Analytics failed, continuing:", err);
-  }
+  } catch (err) {}
   
-  // Setup other features (non-async)
   setupInstallButton();
   setupHeroTransition();
   loadTestimonials();
   registerServiceWorker();
   setupCTAButton();
-  
-  console.log("Initialization complete");
 }
 
 // ================================
@@ -534,23 +446,8 @@ async function init() {
 // ================================
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    init().catch(err => {
-      console.error("Initialization failed:", err);
-    });
+    init().catch(() => {});
   });
 } else {
-  // DOM already loaded
-  init().catch(err => {
-    console.error("Initialization failed:", err);
-  });
+  init().catch(() => {});
 }
-
-// Debug: Log all elements on page
-window.addEventListener('load', () => {
-  console.log("Page loaded, checking elements...");
-  console.log("heroVideo:", document.querySelector(".heroVideo"));
-  console.log("heroImg:", document.querySelector(".heroImg"));
-  console.log("testimonialSlider:", document.getElementById("testimonialSlider"));
-  console.log("installBtn:", document.getElementById("installBtn"));
-  console.log("ctaBtn:", document.getElementById("ctaBtn"));
-});
