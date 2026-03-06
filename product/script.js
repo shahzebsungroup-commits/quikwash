@@ -1148,7 +1148,7 @@ async function submitBooking() {
         phone: phone,
         city: city,
         service_code: serviceCodes,
-        booking_date: new Date().toISOString().split("T")[0],
+        booking_date: new Date().toLocaleDateString("en-CA"),
         assigned_employee_code: "",
         status: "pending",
         slot: window.__selectedSlot?.slot_name || "No Slot",
