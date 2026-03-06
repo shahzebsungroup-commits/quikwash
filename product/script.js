@@ -1148,7 +1148,13 @@ async function submitBooking() {
         phone: phone,
         city: city,
         service_code: serviceCodes,
-        booking_date: new Date().toLocaleDateString("en-CA"),
+booking_date: (() => {
+    const d = new Date();
+    if (window.__selectedSlot?.day === "tomorrow") {
+        d.setDate(d.getDate() + 1);
+    }
+    return d.toLocaleDateString("en-CA");
+})(),
         assigned_employee_code: "",
         status: "pending",
         slot: window.__selectedSlot?.slot_name || "No Slot",
