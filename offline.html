@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline - Kwikkwash</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #000000, #1a1a1a);
+      color: #F6C84C;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .car-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+      animation: bounce 2s infinite ease-in-out;
+    }
+    
+    h1 {
+      font-size: 32px;
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+    
+    p {
+      color: #999;
+      font-size: 16px;
+      line-height: 1.6;
+      max-width: 300px;
+      margin-bottom: 30px;
+    }
+    
+    .retry-btn {
+      background: #F6C84C;
+      color: #000000;
+      border: none;
+      padding: 14px 35px;
+      border-radius: 50px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(246, 200, 76, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .retry-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(246, 200, 76, 0.4);
+    }
+    
+    .retry-btn:active {
+      transform: translateY(0);
+    }
+    
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+    
+    .brand {
+      margin-top: 40px;
+      font-size: 14px;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+  <div class="car-icon">🚗</div>
+  <h1>You're Offline</h1>
+  <p>But don't worry! Kwikkwash still remembers you.<br>Check your internet connection and try again.</p>
+  <button class="retry-btn" onclick="window.location.reload()">
+    ⟲ Retry
+  </button>
+  <div class="brand">Kwikkwash • Premium Doorstep Car Wash</div>
+  
+  <script>
+    // Auto-retry when connection comes back
+    window.addEventListener('online', () => {
+      window.location.reload();
+    });
+  </script>
+</body>
+</html>

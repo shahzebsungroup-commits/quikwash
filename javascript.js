@@ -8,6 +8,7 @@ let cards = [];
 let index = 0;
 let sliderInterval;
 let deferredPrompt;
+let instructionTimer;
 
 // ================================
 // HELPER FUNCTIONS
@@ -310,7 +311,7 @@ function generateSessionId() {
 }
 
 // ================================
-// INSTALL BUTTON SETUP
+// SMART INSTALL BUTTON SETUP WITH INSTRUCTION TEXT
 // ================================
 function setupInstallButton() {
   const installBtn = document.getElementById("installBtn");
@@ -319,74 +320,88 @@ function setupInstallButton() {
     return;
   }
   
-  const isPWA =
+  // 1️⃣ Default hidden
+  installBtn.style.display = "none";
+  
+  // 2️⃣ Check if already installed (localStorage + display mode)
+  const isInstalled =
+    localStorage.getItem("appInstalled") === "true" ||
     window.matchMedia('(display-mode: standalone)').matches ||
     window.navigator.standalone === true;
-  
-  // 1️⃣ Real bug - simple installed check
-  const installed = localStorage.getItem("appInstalled") === "true";
-  
-  if (isPWA) {
-    installBtn.style.display = "none";
-  }
-  else if (installed) {
-    installBtn.style.display = "inline-block";
+
+  if (isInstalled) {
     installBtn.innerHTML = "<span>🚀 Open App</span>";
-    installBtn.onclick = () => {
-      window.location.href = "/";
-    };
+    installBtn.style.display = "inline-block";
+    installBtn.onclick = () => window.location.href = "./";
+    return;
   }
-  else {
+  
+  // 3️⃣ Listen for beforeinstallprompt
+  window.addEventListener('beforeinstallprompt', (e) => {
+    if (deferredPrompt) return; // Prevent multiple events
+    
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // Clear the instruction timer since we got the event
+    if (instructionTimer) {
+      clearTimeout(instructionTimer);
+      instructionTimer = null;
+    }
+    
+    // Show button only when truly installable
     installBtn.style.display = "inline-block";
     installBtn.innerHTML = "<span>⬇️ Install App</span>";
+    installBtn.classList.add("pulse");
     
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      
-      installBtn.classList.add("pulse");
-      
-      installBtn.onclick = async () => {
-        if (!deferredPrompt) {
-          alert("📱 To install Kwikkwash App:\n\n1. Tap the share button (⎙) in your browser\n2. Select 'Add to Home Screen'\n3. Follow the prompts\n\nFor iOS: Use Safari browser");
-          return;
-        }
-        
-        deferredPrompt.prompt();
-        
-        const choiceResult = await deferredPrompt.userChoice;
-        
-        if (choiceResult.outcome === 'accepted') {
-          // 2️⃣ Small improvement - set localStorage immediately
-          localStorage.setItem("appInstalled", "true");
-          installBtn.style.display = "none";
-          
-          console.log("User accepted PWA installation");
-          installBtn.classList.remove("pulse");
-          installBtn.innerHTML = "<span>✅ Installed!</span>";
-          installBtn.setAttribute("data-state", "installed");
-          setTimeout(() => {
-            installBtn.innerHTML = "<span>✅ Open App</span>";
-            installBtn.setAttribute("data-state", "open");
-            installBtn.onclick = () => window.location.href = "/";
-          }, 2000);
-        } else {
-          console.log("User dismissed PWA installation");
-          installBtn.classList.remove("pulse");
-        }
-        
-        deferredPrompt = null;
-      };
-    });
+    // Hide instruction text if exists
+    const instructionEl = document.getElementById("installInstruction");
+    if (instructionEl) instructionEl.style.display = "none";
     
-    setTimeout(() => {
-      if (!deferredPrompt) {
-        installBtn.onclick = () => {
-          alert("📱 To install Kwikkwash App:\n\n1. Tap the share button (⎙) in your browser\n2. Select 'Add to Home Screen'\n3. Follow the prompts\n\nFor iOS: Use Safari browser");
-        };
+    // 4️⃣ Install click handler
+    installBtn.onclick = async () => {
+      if (!deferredPrompt) return;
+      
+      deferredPrompt.prompt();
+      const choiceResult = await deferredPrompt.userChoice;
+      
+      if (choiceResult.outcome === 'accepted') {
+        localStorage.setItem("appInstalled", "true");
+        installBtn.innerHTML = "<span>🚀 Open App</span>";
+        installBtn.classList.remove("pulse");
+        installBtn.onclick = () => window.location.href = "./";
+        console.log("User accepted PWA installation");
+        deferredPrompt = null; // Clear prompt memory after acceptance
+        
+        // Hide instruction text if exists
+        const instructionEl = document.getElementById("installInstruction");
+        if (instructionEl) instructionEl.style.display = "none";
+      } else {
+        console.log("User dismissed PWA installation");
+        installBtn.classList.remove("pulse");
+        deferredPrompt = null; // Also clear on dismissal
       }
-    }, 3000);
-  }
+    };
+  });
+  
+  // 5️⃣ If no beforeinstallprompt after 3 seconds, show instruction text
+  instructionTimer = setTimeout(() => {
+    if (!deferredPrompt && !isInstalled) {
+      // Hide the button completely
+      installBtn.style.display = "none";
+      
+      // Create or show instruction text
+      let instruction = document.getElementById("installInstruction");
+      if (!instruction) {
+        instruction = document.createElement("div");
+        instruction.id = "installInstruction";
+        instruction.className = "install-instruction";
+        instruction.innerHTML = `📱 Tap <span style="font-weight:bold">⁝</span> (3 dots) → "Add to Home screen" → Name "Kwikkwash" → Add`;
+        installBtn.parentNode.insertBefore(instruction, installBtn.nextSibling);
+      }
+      instruction.style.display = "block";
+    }
+  }, 3000);
 }
 
 // ================================
@@ -395,13 +410,16 @@ function setupInstallButton() {
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js')
+      navigator.serviceWorker.register('service-worker.js?v=7')
         .then(registration => {
+          console.log('Service Worker registered');
           setInterval(() => {
             registration.update();
           }, 60 * 60 * 1000);
         })
-        .catch(() => {});
+        .catch(error => {
+          console.log('Service Worker registration failed:', error);
+        });
     });
   }
 }
