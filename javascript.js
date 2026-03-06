@@ -28,10 +28,22 @@ function stars(count) {
 }
 
 // ================================
-// INSTALL DETECTION
+// INSTALL DETECTION (FIXED)
 // ================================
 window.addEventListener("appinstalled", () => {
   localStorage.setItem("appInstalled", "true");
+  
+  // Update button immediately
+  const btn = document.getElementById("installBtn");
+  if (btn) {
+    btn.style.display = "inline-block";
+    btn.innerHTML = "<span>🚀 Open App</span>";
+    btn.onclick = () => window.location.href = "./";
+    
+    // Hide instruction if exists
+    const instructionEl = document.getElementById("installInstruction");
+    if (instructionEl) instructionEl.style.display = "none";
+  }
 });
 
 // ================================
@@ -243,7 +255,7 @@ function setupHeroTransition() {
   setTimeout(() => {
     video.classList.add("hide");
     img.classList.add("show");
-  }, 5000);
+  }, 4000);
 }
 
 // ================================
@@ -311,7 +323,7 @@ function generateSessionId() {
 }
 
 // ================================
-// SMART INSTALL BUTTON SETUP WITH INSTRUCTION TEXT
+// SMART INSTALL BUTTON SETUP (FIXED)
 // ================================
 function setupInstallButton() {
   const installBtn = document.getElementById("installBtn");
@@ -333,8 +345,11 @@ function setupInstallButton() {
   // 1️⃣ Default hidden
   installBtn.style.display = "none";
   
-  // 2️⃣ Check if already installed (localStorage)
-  const isInstalled = localStorage.getItem("appInstalled") === "true";
+  // 2️⃣ Check if already installed (display mode is the most reliable)
+  const isInstalled =
+    localStorage.getItem("appInstalled") === "true" ||
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
 
   if (isInstalled) {
     installBtn.innerHTML = "<span>🚀 Open App</span>";
@@ -393,7 +408,13 @@ function setupInstallButton() {
   
   // 5️⃣ If no beforeinstallprompt after 3 seconds, show instruction text
   instructionTimer = setTimeout(() => {
-    if (!deferredPrompt && !isInstalled) {
+    // Double-check installation status before showing instruction
+    const stillInstalled =
+      localStorage.getItem("appInstalled") === "true" ||
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true;
+      
+    if (!deferredPrompt && !stillInstalled) {
       // Hide the button completely
       installBtn.style.display = "none";
       
