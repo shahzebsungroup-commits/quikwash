@@ -9,6 +9,7 @@ let index = 0;
 let sliderInterval;
 let deferredPrompt;
 let instructionTimer;
+let isInstallableChecked = false;
 
 // ================================
 // HELPER FUNCTIONS
@@ -27,8 +28,19 @@ function stars(count) {
   return s;
 }
 
+// Check if running in standalone PWA mode
+function isPwaMode() {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         window.navigator.standalone === true;
+}
+
+// Check if running on desktop
+function isDesktop() {
+  return !/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
 // ================================
-// INSTALL DETECTION (FIXED)
+// INSTALL DETECTION
 // ================================
 window.addEventListener("appinstalled", () => {
   localStorage.setItem("appInstalled", "true");
@@ -37,7 +49,7 @@ window.addEventListener("appinstalled", () => {
   const btn = document.getElementById("installBtn");
   if (btn) {
     btn.style.display = "inline-block";
-    btn.innerHTML = "<span>🚀 Open App</span>";
+    btn.innerHTML = "<span>Open App</span>";
     btn.onclick = () => window.location.href = "./";
     
     // Hide instruction if exists
@@ -267,9 +279,7 @@ async function sendAnalytics() {
       return;
     }
     
-    const isPWA = 
-      window.matchMedia('(display-mode: standalone)').matches || 
-      window.navigator.standalone === true;
+    const isPWA = isPwaMode();
     
     const location = await getLocationSmart();
     
@@ -323,7 +333,7 @@ function generateSessionId() {
 }
 
 // ================================
-// SMART INSTALL BUTTON SETUP (FIXED)
+// SMART INSTALL BUTTON SETUP (UPDATED)
 // ================================
 function setupInstallButton() {
   const installBtn = document.getElementById("installBtn");
@@ -332,27 +342,24 @@ function setupInstallButton() {
     return;
   }
   
-  // 🔥 PWA MODE CHECK - AGAR APP OPEN HAI TO KUCH MAT DIKHAO
-  const isPWA =
-    window.matchMedia('(display-mode: standalone)').matches ||
-    window.navigator.standalone === true;
-
-  if (isPWA) {
+  // Check if PWA mode (app already open)
+  const pwaMode = isPwaMode();
+  const desktopMode = isDesktop();
+  
+  // 1️⃣ If PWA is open - hide button completely
+  if (pwaMode) {
     installBtn.style.display = "none";
-    return; // 🛑 Exit early, kuch nahi dikhega
+    return;
   }
   
-  // 1️⃣ Default hidden
+  // Default hidden
   installBtn.style.display = "none";
   
-  // 2️⃣ Check if already installed (display mode is the most reliable)
-  const isInstalled =
-    localStorage.getItem("appInstalled") === "true" ||
-    window.matchMedia('(display-mode: standalone)').matches ||
-    window.navigator.standalone === true;
-
+  // 2️⃣ Check if already installed (but opened in browser)
+  const isInstalled = localStorage.getItem("appInstalled") === "true";
+  
   if (isInstalled) {
-    installBtn.innerHTML = "<span>🚀 Open App</span>";
+    installBtn.innerHTML = "<span>Open App</span>";
     installBtn.style.display = "inline-block";
     installBtn.onclick = () => window.location.href = "./";
     return;
@@ -360,27 +367,25 @@ function setupInstallButton() {
   
   // 3️⃣ Listen for beforeinstallprompt
   window.addEventListener('beforeinstallprompt', (e) => {
-    if (deferredPrompt) return; // Prevent multiple events
-    
     e.preventDefault();
     deferredPrompt = e;
+    isInstallableChecked = true;
     
-    // Clear the instruction timer since we got the event
+    // Clear instruction timer
     if (instructionTimer) {
       clearTimeout(instructionTimer);
       instructionTimer = null;
     }
     
-    // Show button only when truly installable
-    installBtn.style.display = "inline-block";
-    installBtn.innerHTML = "<span>⬇️ Install App</span>";
-    installBtn.classList.add("pulse");
-    
-    // Hide instruction text if exists
+    // Hide instruction if exists
     const instructionEl = document.getElementById("installInstruction");
     if (instructionEl) instructionEl.style.display = "none";
     
-    // 4️⃣ Install click handler
+    // Show install button
+    installBtn.style.display = "inline-block";
+    installBtn.innerHTML = "<span>Install App (Recommended)</span>";
+    
+    // Install click handler
     installBtn.onclick = async () => {
       if (!deferredPrompt) return;
       
@@ -389,47 +394,66 @@ function setupInstallButton() {
       
       if (choiceResult.outcome === 'accepted') {
         localStorage.setItem("appInstalled", "true");
-        installBtn.innerHTML = "<span>🚀 Open App</span>";
-        installBtn.classList.remove("pulse");
+        installBtn.innerHTML = "<span>Open App</span>";
         installBtn.onclick = () => window.location.href = "./";
-        console.log("User accepted PWA installation");
-        deferredPrompt = null; // Clear prompt memory after acceptance
+        deferredPrompt = null;
         
-        // Hide instruction text if exists
+        // Hide instruction if exists
         const instructionEl = document.getElementById("installInstruction");
         if (instructionEl) instructionEl.style.display = "none";
       } else {
-        console.log("User dismissed PWA installation");
-        installBtn.classList.remove("pulse");
-        deferredPrompt = null; // Also clear on dismissal
+        deferredPrompt = null;
+        // Keep button visible with same text
       }
     };
   });
   
-  // 5️⃣ If no beforeinstallprompt after 3 seconds, show instruction text
-  instructionTimer = setTimeout(() => {
-    // Double-check installation status before showing instruction
-    const stillInstalled =
-      localStorage.getItem("appInstalled") === "true" ||
-      window.matchMedia('(display-mode: standalone)').matches ||
-      window.navigator.standalone === true;
-      
-    if (!deferredPrompt && !stillInstalled) {
-      // Hide the button completely
+  // 4️⃣ Wait 4 seconds, then check if we got the install prompt
+  setTimeout(() => {
+    // Double-check if PWA mode was activated during wait
+    if (isPwaMode()) {
       installBtn.style.display = "none";
-      
+      const instructionEl = document.getElementById("installInstruction");
+      if (instructionEl) instructionEl.style.display = "none";
+      return;
+    }
+    
+    // Check if already installed
+    if (localStorage.getItem("appInstalled") === "true") {
+      installBtn.innerHTML = "<span>Open App</span>";
+      installBtn.style.display = "inline-block";
+      return;
+    }
+    
+    // If we got the install prompt, button is already visible
+    if (deferredPrompt) {
+      return;
+    }
+    
+    // On desktop: only show download button if not installable
+    if (desktopMode) {
+      installBtn.style.display = "inline-block";
+      installBtn.innerHTML = "<span>Download App</span>";
+      installBtn.onclick = () => {
+        window.open('https://quikwash.in', '_blank');
+      };
+      return;
+    }
+    
+    // On mobile without install prompt: show instruction as last resort
+    if (!deferredPrompt && !isInstallableChecked) {
       // Create or show instruction text
       let instruction = document.getElementById("installInstruction");
       if (!instruction) {
         instruction = document.createElement("div");
         instruction.id = "installInstruction";
         instruction.className = "install-instruction";
-        instruction.innerHTML = `📱 Tap <span style="font-weight:bold">⁝</span> (3 dots) → "Add to Home screen" → Name "Kwikkwash" → Add`;
+        instruction.innerHTML = `📱 Tap <span>⁝</span> (3 dots) → "Add to Home screen" → Add`;
         installBtn.parentNode.insertBefore(instruction, installBtn.nextSibling);
       }
       instruction.style.display = "block";
     }
-  }, 3000);
+  }, 4000);
 }
 
 // ================================
