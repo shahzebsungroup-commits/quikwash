@@ -8,6 +8,10 @@ let availableCities = [];
 let typingTimer;
 let currentCity = null;
 let userLocation = null;
+let selectedMapLat = null;
+let selectedMapLng = null;
+let map = null;
+let marker = null;
 
 // ---------- TIMESTAMP FUNCTION ----------
 function getFormattedTimestamp() {
@@ -203,6 +207,10 @@ async function detectCity(location) {
 // ---------- LOAD DEFAULT SERVICES ----------
 async function loadServicesFromDefault() {
     try {
+        // Set dropdown to Rampur
+        const dropdown = document.getElementById("cityDropdown");
+        dropdown.value = "Rampur";
+        
         currentCity = "Rampur";
         
         const container = document.getElementById("servicesList");
@@ -374,9 +382,9 @@ function renderServices(services) {
                     checkbox.checked = !checkbox.checked;
                     card.classList.toggle('selected', checkbox.checked);
                     
-                    // Add vibration on select
+                    // Strong vibration pattern on select
                     if (checkbox.checked && window.navigator && window.navigator.vibrate) {
-                        window.navigator.vibrate(50);
+                        window.navigator.vibrate([120, 40, 120]);
                     }
                     
                     checkbox.dispatchEvent(new Event('change', { bubbles: true }));
@@ -399,7 +407,7 @@ function renderServices(services) {
                 checkbox.checked = !checkbox.checked;
                 this.classList.toggle('selected', checkbox.checked);
 
-                if (navigator.vibrate) navigator.vibrate(50);
+                if (navigator.vibrate) navigator.vibrate([120, 40, 120]);
 
                 checkbox.dispatchEvent(new Event('change', { bubbles: true }));
             }
@@ -568,16 +576,31 @@ function renderSlots(slotData) {
 
     const todaySlots = sortSlots(slotData.today || []);
     const tomorrowSlots = sortSlots(slotData.tomorrow || []);
+    
+    // Filter available slots for count
+    const availableTodayCount = todaySlots.filter(slot => {
+        const isFull = (slot.fill_percent ?? 0) >= 100 || 
+                      slot.status?.toLowerCase() === 'full' || 
+                      slot.manual_hold === 1;
+        return !isFull;
+    }).length;
+    
+    const availableTomorrowCount = tomorrowSlots.filter(slot => {
+        const isFull = (slot.fill_percent ?? 0) >= 100 || 
+                      slot.status?.toLowerCase() === 'full' || 
+                      slot.manual_hold === 1;
+        return !isFull;
+    }).length;
 
     let html = `
         <div class="slot-tabs">
             <button class="tab-btn active" data-tab="today">
                 Today
-                <span class="slot-count">${todaySlots.length}</span>
+                <span class="slot-count">${availableTodayCount}</span>
             </button>
             <button class="tab-btn" data-tab="tomorrow">
                 Tomorrow
-                <span class="slot-count">${tomorrowSlots.length}</span>
+                <span class="slot-count">${availableTomorrowCount}</span>
             </button>
         </div>
         
@@ -624,18 +647,20 @@ function renderSlotCards(slots, dayType) {
                       slot.status?.toLowerCase() === 'full' || 
                       slot.manual_hold === 1;
         const fillPercentage = slot.fill_percent || 0;
-        const timeRange = `${formatTime(slot.start_time)} - ${formatTime(slot.end_time)}`;
         
         return `
             <div class="slot-card ${isFull ? 'unavailable' : 'available'}" 
                 data-slot-id="${slot.id}"
-                data-slot-name="${timeRange}"
+                data-slot-start="${formatTime(slot.start_time)}"
+                data-slot-end="${formatTime(slot.end_time)}"
                 data-day="${dayType}"
                 data-disabled="${isFull ? 'true' : 'false'}"
                 onclick="selectSlot(this)">
                 
                 <div class="slot-check">✓</div>
+                <div class="slot-label">Arrival Window</div>
                 <div class="slot-time">${formatTime(slot.start_time)}</div>
+                <div class="slot-to-text">to</div>
                 <div class="slot-range">${formatTime(slot.end_time)}</div>
                 
                 <div class="slot-fill">
@@ -666,18 +691,21 @@ function selectSlot(element) {
     
     element.classList.add('selected');
     
+    // Strong vibration pattern on select
     if (window.navigator && window.navigator.vibrate) {
-        window.navigator.vibrate(50);
+        window.navigator.vibrate([120, 40, 120]);
     }
     
     window.__selectedSlot = {
         id: element.dataset.slotId,
-        slot_name: element.dataset.slotName,
+        start_time: element.dataset.slotStart,
+        end_time: element.dataset.slotEnd,
+        slot_name: `${element.dataset.slotStart} - ${element.dataset.slotEnd}`,
         day: element.dataset.day
     };
     
     // Show toast message
-    showToast(`Our team will reach you between ${element.dataset.slotName}`);
+    showToast(`Our team will arrive between ${element.dataset.slotStart} - ${element.dataset.slotEnd}`);
     
     // Auto-form when slot selected and services exist
     if (selectedServices.length > 0) {
@@ -756,6 +784,9 @@ function showUserFormOnPage() {
                 </label>
                 <textarea id="userAddress" rows="3" 
                           class="form-input" placeholder="Enter your complete address">${city}, </textarea>
+                <button id="mapSelectBtn" type="button" class="map-select-btn">
+                    <i class="fas fa-map-marker-alt"></i> 📍 Set on Map (Optional)
+                </button>
             </div>
 
             <div class="form-group">
@@ -781,7 +812,7 @@ function showUserFormOnPage() {
             </div>
 
             <button class="next-btn" id="confirmBookingBtn" style="width: 100%;">
-                <i class="fas fa-check-circle"></i> Secure Your Booking
+                <i class="fas fa-check-circle"></i> Review Booking
             </button>
         </div>
     `;
@@ -796,7 +827,10 @@ function showUserFormOnPage() {
     }, 300);
     
     generateCaptcha();
-    document.getElementById("confirmBookingBtn").onclick = submitBooking;
+    
+    // Attach map button handler
+    document.getElementById("mapSelectBtn").onclick = openMapPopup;
+    document.getElementById("confirmBookingBtn").onclick = showBookingConfirmPopup;
 }
 
 // ---------- EDIT SLOT ----------
@@ -826,6 +860,203 @@ function hideUserForm() {
     document.getElementById("userFormContainer").innerHTML = '';
     const slotsSection = document.getElementById("slotsSection");
     if (slotsSection) slotsSection.style.display = 'block';
+}
+
+// ---------- REVERSE GEOCODING ----------
+async function getAddressFromLatLng(lat, lng) {
+    try {
+        const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`
+        );
+        const data = await res.json();
+        return data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    } catch (error) {
+        console.error("Reverse geocoding error:", error);
+        return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    }
+}
+
+// ---------- MAP FUNCTIONS ----------
+function openMapPopup() {
+    const popup = document.getElementById('mapPopup');
+    popup.classList.add('show');
+    
+    // Initialize map if not already done
+    if (!map) {
+        initMap();
+    } else {
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 100);
+    }
+    
+    // Attach confirm button event
+    setTimeout(() => {
+        const confirmBtn = document.getElementById("confirmMapLocation");
+        if (confirmBtn) {
+            confirmBtn.onclick = confirmMapLocation;
+        }
+    }, 100);
+}
+
+function closeMapPopup() {
+    document.getElementById('mapPopup').classList.remove('show');
+}
+
+function initMap() {
+    // Default to India center or user location if available
+    const defaultLat = userLocation?.lat || 28.6139;
+    const defaultLng = userLocation?.lng || 77.2090;
+    
+    map = L.map('mapContainer').setView([defaultLat, defaultLng], 15);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // Add draggable marker
+    marker = L.marker([defaultLat, defaultLng], {
+        draggable: true,
+        autoPan: true
+    }).addTo(map);
+    
+    // Update coordinates when marker is dragged
+    marker.on('dragend', function(e) {
+        const position = marker.getLatLng();
+        selectedMapLat = position.lat;
+        selectedMapLng = position.lng;
+    });
+    
+    // Set initial selected coordinates
+    selectedMapLat = defaultLat;
+    selectedMapLng = defaultLng;
+}
+
+// ---------- CONFIRM MAP LOCATION (UPDATED) ----------
+async function confirmMapLocation() {
+    if (selectedMapLat && selectedMapLng) {
+        // Update userLocation with map selected coordinates
+        userLocation = {
+            lat: selectedMapLat,
+            lng: selectedMapLng
+        };
+        
+        // Get street address from coordinates
+        const address = await getAddressFromLatLng(selectedMapLat, selectedMapLng);
+        
+        // Update address field with fetched address (replace, not append)
+        const addressField = document.getElementById('userAddress');
+        if (addressField) {
+            addressField.value = address;
+        }
+        
+        showToast('📍 Location selected from map');
+        closeMapPopup();
+    }
+}
+
+// ---------- SHOW BOOKING CONFIRMATION POPUP ----------
+function showBookingConfirmPopup() {
+    // Strong vibration when popup opens
+    if (navigator.vibrate) {
+        navigator.vibrate([200, 80, 200]);
+    }
+    
+    // Get all details
+    const phone = document.getElementById("userPhone").value.trim();
+    const address = document.getElementById("userAddress").value.trim();
+    const captchaInput = document.getElementById("captchaInput").value.trim();
+    
+    // Validate basic info first
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+        showToast("Please enter a valid 10-digit mobile number");
+        return;
+    }
+
+    if (!address || address.length < 10) {
+        showToast("Please enter your complete address");
+        return;
+    }
+
+    if (!captchaInput || captchaInput !== window.__captcha) {
+        showToast("Invalid verification code");
+        generateCaptcha();
+        return;
+    }
+    
+    // Calculate total units for service time estimate
+    const totalUnits = selectedServices.reduce((sum, s) => sum + (s.units || 0), 0);
+    const estimatedHours = totalUnits ? (totalUnits * 10 / 60).toFixed(1) : "1.5";
+    
+    // Get slot info
+    const slotText = window.__selectedSlot ? 
+        `${window.__selectedSlot.start_time} - ${window.__selectedSlot.end_time}` : 
+        "Flexible Timing";
+    
+    // Get total amount
+    const total = document.getElementById("total").innerText;
+    
+    // Get service names
+    const serviceNames = selectedServices.map(s => s.code.replace(/_/g, ' ')).join(', ');
+    
+    // Create popup
+    const popup = document.getElementById('bookingConfirmPopup');
+    popup.innerHTML = `
+        <div class="confirm-box">
+            <div class="confirm-header">
+                <h3><i class="fas fa-clipboard-check"></i> Confirm Booking</h3>
+            </div>
+            <div class="confirm-body">
+                <div class="confirm-detail-row">
+                    <span class="confirm-label"><i class="fas fa-tools"></i> Services:</span>
+                    <span class="confirm-value">${serviceNames}</span>
+                </div>
+                <div class="confirm-detail-row">
+                    <span class="confirm-label"><i class="fas fa-clock"></i> Arrival Window:</span>
+                    <span class="confirm-value">${slotText}</span>
+                </div>
+                <div class="confirm-detail-row">
+                    <span class="confirm-label"><i class="fas fa-hourglass-half"></i> Est. Service Time:</span>
+                    <span class="confirm-value">~${estimatedHours} hours</span>
+                </div>
+                <div class="confirm-detail-row">
+                    <span class="confirm-label"><i class="fas fa-rupee-sign"></i> Total Amount:</span>
+                    <span class="confirm-value confirm-highlight">₹${total}</span>
+                </div>
+                
+                <div class="confirm-note">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Team will arrive anytime within the selected arrival window. Actual service time may vary based on vehicle condition.</span>
+                </div>
+            </div>
+            <div class="confirm-buttons">
+                <button class="confirm-btn cancel" onclick="closeConfirmPopup()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="confirm-btn confirm" onclick="proceedToBooking()">
+                    <i class="fas fa-check"></i> Confirm & Pay
+                </button>
+            </div>
+        </div>
+    `;
+    
+    popup.classList.add('show');
+}
+
+function closeConfirmPopup() {
+    document.getElementById('bookingConfirmPopup').classList.remove('show');
+}
+
+function proceedToBooking() {
+    closeConfirmPopup();
+    
+    // Strong vibration before submitting
+    if (navigator.vibrate) {
+        navigator.vibrate([200, 80, 200]);
+    }
+    
+    // Call the actual submit function
+    submitBooking();
 }
 
 // ---------- GENERATE CAPTCHA ----------
@@ -860,7 +1091,7 @@ async function downloadPopup() {
     }
 }
 
-// ---------- SUBMIT BOOKING (UPDATED WITH AMOUNTS) ----------
+// ---------- SUBMIT BOOKING (UPDATED WITH AMOUNTS AND MAP COORDS) ----------
 async function submitBooking() {
     console.log("🔥 submitBooking triggered");
     
@@ -872,6 +1103,7 @@ async function submitBooking() {
     const btn = document.getElementById("confirmBookingBtn");
     if (btn.disabled) return;
 
+    // Validation already done in popup, but double-check
     if (!/^[6-9]\d{9}$/.test(phone)) {
         showToast("Please enter a valid 10-digit mobile number");
         return;
@@ -926,11 +1158,11 @@ async function submitBooking() {
         customer_remark: `${getFormattedTimestamp()} | ${instructions || "No instructions"}`,
         employee_remark: "",
         address: address,
-        lat: userLocation?.lat || null,
-        lng: userLocation?.lng || null,
+        // Use map selected coordinates if available, otherwise use geolocation
+        lat: selectedMapLat || userLocation?.lat || null,
+        lng: selectedMapLng || userLocation?.lng || null,
         applied_coupon: "",
         coupon_used: 0,
-        // New amount fields added below
         amount: subtotal.toFixed(2),
         gst_amount: gst.toFixed(2),
         total_amount: total.toFixed(2)
@@ -958,9 +1190,12 @@ async function submitBooking() {
         const isOtherCity = dropdown.value === "Other";
         showSuccessPopup(payload.booking_id, isOtherCity);
 
+        // Reset selections
         window.__selectedSlot = null;
         window.__slotData = null;
         selectedServices = [];
+        selectedMapLat = null;
+        selectedMapLng = null;
 
         document.querySelectorAll('.service-checkbox-input').forEach(cb => {
             cb.checked = false;
@@ -975,7 +1210,7 @@ async function submitBooking() {
     } catch (error) {
         console.error("Booking error:", error);
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle"></i> Secure Your Booking';
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> Review Booking';
         generateCaptcha();
     }
 }
@@ -1018,9 +1253,9 @@ function showSuccessPopup(bookingId, isOtherCity) {
 
             <div style="background:#2a2a2a;padding:1rem;border-radius:10px;margin:1rem 0;border-left:4px solid #F6C84C;">
                 <p><strong>Booking ID:</strong> ${bookingId}</p>
-                <p><strong>Scheduled Slot:</strong> ${slotText}</p>
+                <p><strong>Arrival Window:</strong> ${slotText}</p>
                 <p style="font-size:13px;color:#aaa;">
-                    Our team will reach you within the selected time window.
+                    Our team will arrive anytime within this window. Actual service time depends on the scope of work.
                 </p>
                 <p style="margin-top:8px;"><strong>Payable Amount:</strong> ₹${total}</p>
             </div>
@@ -1070,6 +1305,20 @@ document.addEventListener('click', function(e) {
             closeTermsPopup();
         }
     }
+    
+    const mapPopup = document.getElementById('mapPopup');
+    if (mapPopup && mapPopup.classList.contains('show')) {
+        if (e.target === mapPopup) {
+            closeMapPopup();
+        }
+    }
+    
+    const confirmPopup = document.getElementById('bookingConfirmPopup');
+    if (confirmPopup && confirmPopup.classList.contains('show')) {
+        if (e.target === confirmPopup) {
+            closeConfirmPopup();
+        }
+    }
 });
 
 // ---------- INIT FUNCTION ----------
@@ -1096,6 +1345,7 @@ async function init() {
         otherInput.required = true;
         otherInput.placeholder = "Enter your city name";
         
+        // Do NOT auto-select Rampur, let user enter city
         document.getElementById("servicesList").innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-city"></i>
@@ -1165,6 +1415,7 @@ async function init() {
                 otherInput.value = "";
                 await loadServicesForCity(matchedCity);
             } else {
+                // Only load default if user explicitly types and no match
                 loadServicesFromDefault();
             }
         }, 1500);
@@ -1207,3 +1458,9 @@ window.editSlot = editSlot;
 window.showInfoModal = showInfoModal;
 window.closeInfoModal = closeInfoModal;
 window.showSlotFullPopup = showSlotFullPopup;
+window.openMapPopup = openMapPopup;
+window.closeMapPopup = closeMapPopup;
+window.confirmMapLocation = confirmMapLocation;
+window.showBookingConfirmPopup = showBookingConfirmPopup;
+window.closeConfirmPopup = closeConfirmPopup;
+window.proceedToBooking = proceedToBooking;

@@ -1469,3 +1469,538 @@ h1 {
         font-size: 16px;
     }
 }
+/* ===== SLOT CARD TEXT LAYOUT ===== */
+.slot-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.slot-to-text {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin: 2px 0;
+    font-style: italic;
+}
+
+.slot-time {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.slot-range {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* Update slot card for better layout */
+.slot-card {
+    aspect-ratio: 1 / 1;
+    background: var(--bg-input);
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 0.5rem 0.25rem;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+}
+
+/* ===== MAP POPUP STYLES ===== */
+.map-popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 10002;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.map-popup.show {
+    display: flex;
+}
+
+.map-popup-content {
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid var(--border-gold);
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+    animation: scaleIn 0.3s ease;
+    overflow: hidden;
+}
+
+.map-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 2px solid var(--border-gold);
+}
+
+.map-popup-header h3 {
+    color: var(--primary);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.map-popup-close {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: var(--transition-fast);
+}
+
+.map-popup-close:hover {
+    color: var(--danger);
+    background: rgba(255, 255, 255, 0.1);
+    transform: rotate(90deg);
+}
+
+#mapContainer {
+    height: 350px;
+    width: 100%;
+    background: var(--bg-dark);
+    z-index: 1;
+}
+
+.map-popup-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.map-popup-footer p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.map-popup-footer p i {
+    color: var(--primary);
+}
+
+.map-confirm-btn {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: var(--bg-dark);
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.map-confirm-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-gold);
+}
+
+.map-confirm-btn:active {
+    transform: scale(0.98);
+}
+
+/* ===== BOOKING CONFIRMATION POPUP ===== */
+.confirm-popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 10003;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.confirm-popup.show {
+    display: flex;
+}
+
+.confirm-box {
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 400px;
+    border: 2px solid var(--border-gold);
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+    animation: scaleIn 0.3s ease;
+    overflow: hidden;
+}
+
+.confirm-header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.confirm-header h3 {
+    color: var(--bg-dark);
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.confirm-body {
+    padding: 1.5rem;
+}
+
+.confirm-detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.confirm-detail-row:last-child {
+    border-bottom: none;
+}
+
+.confirm-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.confirm-label i {
+    color: var(--primary);
+    width: 20px;
+}
+
+.confirm-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: right;
+}
+
+.confirm-highlight {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.confirm-note {
+    background: rgba(246, 200, 76, 0.1);
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+    margin: 1rem 0;
+    border-left: 4px solid var(--primary);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.confirm-note i {
+    color: var(--primary);
+    font-size: 1.2rem;
+}
+
+.confirm-buttons {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-light);
+}
+
+.confirm-btn {
+    flex: 1;
+    padding: 0.875rem;
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-base);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.confirm-btn.cancel {
+    background: var(--bg-input);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-light);
+}
+
+.confirm-btn.cancel:hover {
+    background: var(--bg-hover);
+}
+
+.confirm-btn.confirm {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: var(--bg-dark);
+    font-weight: 700;
+}
+
+.confirm-btn.confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-gold);
+}
+
+.confirm-btn.confirm:active {
+    transform: scale(0.98);
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+    .map-popup-content {
+        height: 80vh;
+    }
+    
+    #mapContainer {
+        height: 300px;
+    }
+    
+    .confirm-buttons {
+        flex-direction: column;
+    }
+}
+/* Map select button */
+.map-select-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 0.875rem;
+    background: var(--bg-input);
+    border: 2px solid var(--border-gold);
+    border-radius: var(--radius-lg);
+    color: var(--primary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.map-select-btn:hover {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.map-select-btn:active {
+    transform: scale(0.98);
+}
+/* ===== SLOT CARD TEXT STYLES ===== */
+.slot-label {
+    font-size: 11px;
+    color: #aaa;
+    margin-bottom: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.slot-to-text {
+    font-size: 11px;
+    color: #aaa;
+    margin: 2px 0;
+    font-style: italic;
+}
+
+/* ===== MAP SELECT BUTTON ===== */
+.map-select-btn {
+    margin-top: 8px;
+    background: #1c1c1c;
+    border: 1px solid rgba(246, 200, 76, 0.3);
+    color: #F6C84C;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+}
+
+.map-select-btn:hover {
+    background: #F6C84C;
+    color: #000;
+    border-color: #F6C84C;
+}
+
+.map-select-btn:active {
+    transform: scale(0.98);
+}
+
+.map-select-btn i {
+    font-size: 14px;
+}
+
+/* ===== MAP POPUP STYLES ===== */
+.map-popup {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    backdrop-filter: blur(5px);
+}
+
+.map-popup.show {
+    display: flex;
+}
+
+.map-popup-content {
+    width: 90%;
+    max-width: 500px;
+    background: #141414;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid rgba(246, 200, 76, 0.3);
+    box-shadow: 0 0 30px rgba(246, 200, 76, 0.2);
+}
+
+.map-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #1a1a1a;
+    border-bottom: 1px solid rgba(246, 200, 76, 0.2);
+}
+
+.map-popup-header h3 {
+    color: #F6C84C;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.map-popup-close {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    font-size: 20px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.map-popup-close:hover {
+    color: #ff4444;
+    background: rgba(255, 255, 255, 0.1);
+    transform: rotate(90deg);
+}
+
+#mapContainer {
+    height: 350px;
+    width: 100%;
+    background: #0a0a0a;
+}
+
+.map-popup-footer {
+    padding: 16px;
+    background: #1a1a1a;
+    border-top: 1px solid rgba(246, 200, 76, 0.2);
+}
+
+.map-popup-footer p {
+    color: #aaa;
+    font-size: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.map-popup-footer p i {
+    color: #F6C84C;
+}
+
+.map-confirm-btn {
+    width: 100%;
+    padding: 12px;
+    background: #F6C84C;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #000;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.map-confirm-btn:hover {
+    background: #ffd95c;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(246, 200, 76, 0.3);
+}
+
+.map-confirm-btn:active {
+    transform: scale(0.98);
+}
+
+/* Mobile adjustments for map */
+@media (max-width: 480px) {
+    .map-popup-content {
+        width: 95%;
+    }
+    
+    #mapContainer {
+        height: 300px;
+    }
+}

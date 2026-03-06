@@ -11,6 +11,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
+    <!-- Leaflet for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
     <!-- html2canvas for screenshot -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     
@@ -91,7 +95,7 @@
                 <div id="slotsSection" class="slots-section">
                     <h2>
                         <i class="fas fa-clock"></i>
-                        Select Time Slot
+                        Arrival Window
                     </h2>
                     <div id="slotsContainer"></div>
                 </div>
@@ -166,6 +170,24 @@
             <div class="info-modal-body" id="infoModalBody"></div>
         </div>
     </div>
+
+    <!-- Map Popup -->
+    <div id="mapPopup" class="map-popup">
+        <div class="map-popup-content">
+            <div class="map-popup-header">
+                <h3><i class="fas fa-map-pin"></i> Select Location on Map</h3>
+                <button class="map-popup-close" onclick="closeMapPopup()">✕</button>
+            </div>
+            <div id="mapContainer"></div>
+            <div class="map-popup-footer">
+                <p><i class="fas fa-info-circle"></i> Drag the pin to your exact location</p>
+                <button id="confirmMapLocation" class="map-confirm-btn">Confirm Location</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Confirmation Popup -->
+    <div id="bookingConfirmPopup" class="confirm-popup"></div>
 
     <script src="script.js"></script>
 </body>
