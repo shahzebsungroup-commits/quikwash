@@ -243,7 +243,7 @@ function setupHeroTransition() {
   setTimeout(() => {
     video.classList.add("hide");
     img.classList.add("show");
-  }, 3000);
+  }, 5000);
 }
 
 // ================================
@@ -320,14 +320,21 @@ function setupInstallButton() {
     return;
   }
   
+  // 🔥 PWA MODE CHECK - AGAR APP OPEN HAI TO KUCH MAT DIKHAO
+  const isPWA =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+
+  if (isPWA) {
+    installBtn.style.display = "none";
+    return; // 🛑 Exit early, kuch nahi dikhega
+  }
+  
   // 1️⃣ Default hidden
   installBtn.style.display = "none";
   
-  // 2️⃣ Check if already installed (localStorage + display mode)
-  const isInstalled =
-    localStorage.getItem("appInstalled") === "true" ||
-    window.matchMedia('(display-mode: standalone)').matches ||
-    window.navigator.standalone === true;
+  // 2️⃣ Check if already installed (localStorage)
+  const isInstalled = localStorage.getItem("appInstalled") === "true";
 
   if (isInstalled) {
     installBtn.innerHTML = "<span>🚀 Open App</span>";
