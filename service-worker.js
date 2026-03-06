@@ -1,52 +1,51 @@
-// Simple service worker
-const CACHE_NAME = 'kwikkwash-v10';
+// Simple service worker with offline support
+const CACHE_NAME = 'kwikkwash-v11';
+const OFFLINE_URL = 'offline.html';
+
+const FILES_TO_CACHE = [
+  './',
+  './index.html',
+  './looks.css',
+  './javascript.js',
+  './offline.html',
+  'https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/washingvd.mp4',
+  'https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/washing.jpeg'
+];
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
-
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll([
-        './',
-        './index.html',
-        './looks.css',
-        './javascript.js',
-        './offline.html'
-      ]);
-    })
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(FILES_TO_CACHE))
+      .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
+    caches.keys().then((keyList) => {
+      return Promise.all(keyList.map((key) => {
+        if (key !== CACHE_NAME) {
+          return caches.delete(key);
+        }
+      }));
     })
   );
-
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match('./offline.html'))
+      fetch(event.request)
+        .catch(() => {
+          return caches.match(OFFLINE_URL);
+        })
     );
-    return;
+  } else {
+    event.respondWith(
+      caches.match(event.request)
+        .then((response) => {
+          return response || fetch(event.request);
+        })
+    );
   }
-
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
-
 });
-
-

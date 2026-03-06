@@ -12,223 +12,6 @@ body {
 }
 
 /* ================= HERO ================= */
-.page {
-  height: 100vh;
-  position: relative;
-}
-
-.bgImg, .bgVideo {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: brightness(0.45);
-  transition: opacity 1.5s ease;
-}
-
-.bgVideo { 
-  opacity: 1;
-  z-index: 1;
-}
-
-.bgImg {
-  opacity: 0;
-  z-index: 0;
-  transition: opacity 1.2s ease;
-}
-
-/* jab image show karni ho */
-.bgImg.show {
-  opacity: 1;
-}
-
-/* jab video hide karni ho */
-.bgVideo.hide {
-  opacity: 0;
-}
-
-
-.overlay {
-  position: relative;
-  z-index: 2;
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 40px 20px;
-}
-
-.overlayTestimonials {
-  margin-top: auto;
-  padding-bottom: 40px;
-}
-
-
-h1 {
-  color: #F6C84C;
-  font-size: 46px;
-}
-
-.tagline {
-  opacity: .9;
-  margin-bottom: 22px;
-}
-
-.features {
-  display: flex;
-  gap: 14px;
-  margin-bottom: 30px;
-}
-
-.features div {
-  background: rgba(0,0,0,.55);
-  padding: 8px 12px;
-  border-radius: 20px;
-  font-size: 14px;
-}
-
-
-
-.subtext {
-  margin-top: 16px;
-  font-size: 13px;
-  opacity: .8;
-}
-
-/* ================= TESTIMONIALS ================= */
-
-.testimonials {
-  padding: 80px 20px;
-  text-align: center;
-}
-
-.testimonials h2 {
-  color: #F6C84C;
-}
-
-.testSub {
-  opacity: .8;
-  margin: 10px 0 30px;
-}
-
-/* SLIDER CONTAINER */
-.testimonialSlider {
-  position: relative;
-  max-width: 420px;
-  margin: auto;
-  min-height: 240px;
-  perspective: 1200px;
-}
-
-/* GEN-Z CARD ANIMATION */
-.testimonialCard {
-  position: absolute;
-  inset: 0;
-  background: rgba(255,255,255,0.08);
-  padding: 22px;
-  border-radius: 18px;
-  text-align: left;
-
-  opacity: 0;
-  transform: translateX(120%) rotate(6deg) scale(0.9);
-  transition:
-    transform 1.9s cubic-bezier(.12,1.2,.56,1),
-    opacity 5.6s ease;
-}
-
-/* ENTER */
-.testimonialCard.active {
-  opacity: 1;
-  transform: translateX(0) rotate(0deg) scale(1);
-  z-index: 2;
-}
-
-/* EXIT */
-.testimonialCard.exit {
-  opacity: 0;
-  transform: translateX(-120%) rotate(-8deg) scale(0.85);
-  z-index: 1;
-}
-
-/* CARD CONTENT */
-.top {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.avatar {
-  background: #F6C84C;
-  color: #000;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-}
-
-.stars {
-  color: #F6C84C;
-  margin-bottom: 8px;
-}
-
-/* ================= MOBILE ================= */
-@media (max-width: 768px) {
-  h1 {
-    font-size: 36px;
-  }
-
-  .features {
-    flex-direction: column;
-  }
-
-  .testimonialSlider {
-    min-height: 260px;
-  }
-}
-/* Hover highlight (professional splash) */
-.testimonialCard:hover {
-  animation: highlightPulse 1.6s ease-in-out infinite;
-  box-shadow:
-    0 0 0 0 rgba(246, 200, 76, 0.4);
-}
-
-@keyframes highlightPulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(246, 200, 76, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 14px rgba(246, 200, 76, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(246, 200, 76, 0);
-  }
-}
-/* ================= TESTIMONIAL BACKGROUND VIDEO ================= */
-
-
-/* testimonials inside hero */
-
-.overlayTestimonials {
-  margin-top: 60px;
-  width: 100%;
-  max-width: 520px;
-}
-
-.overlayTestimonials h2 {
-  font-size: 26px;
-}
-
-@media (max-width: 768px) {
-  .overlayTestimonials {
-    margin-top: 40px;
-  }
-}
-/* ========== HERO ========== */
 .hero {
   position: relative;
   height: 100vh;
@@ -245,15 +28,29 @@ h1 {
   transition: opacity 1.2s ease;
 }
 
-.heroVideo { opacity: 1; }
-.heroImg { opacity: 0; }
+.heroVideo { 
+  opacity: 1;
+  z-index: 1;
+}
 
-.heroImg.show { opacity: 1; }
-.heroVideo.hide { opacity: 0; }
+.heroImg { 
+  opacity: 0;
+  z-index: 0;
+}
+
+.heroImg.show { 
+  opacity: 1;
+  z-index: 2;
+}
+
+.heroVideo.hide { 
+  opacity: 0;
+  z-index: 0;
+}
 
 .heroOverlay {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -263,7 +60,167 @@ h1 {
   padding: 20px;
 }
 
-/* ========== TESTIMONIALS SECTION ========== */
+h1 {
+  color: #F6C84C;
+  font-size: 46px;
+  margin-bottom: 10px;
+}
+
+.tagline {
+  opacity: .9;
+  margin-bottom: 22px;
+  font-size: 18px;
+}
+
+.features {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.features div {
+  background: rgba(0,0,0,.55);
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.subtext {
+  margin-top: 16px;
+  font-size: 13px;
+  opacity: .8;
+}
+
+/* ================= AI CTA BUTTON ================= */
+.aiBtn {
+  position: relative;
+  padding: 16px 32px;
+  border-radius: 34px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  background: #F6C84C;
+  color: #000;
+  border: none;
+  overflow: visible;
+  animation: blinkFill 5s ease-in-out infinite;
+  margin: 5px 0;
+  min-width: 220px;
+  transition: transform 0.2s ease;
+}
+
+.aiBtn:hover {
+  transform: scale(1.02);
+}
+
+.aiBtn:active {
+  transform: scale(0.98);
+}
+
+.aiBtn span {
+  position: relative;
+  z-index: 3;
+}
+
+.aiBtn::before {
+  content: "";
+  position: absolute;
+  top: -1.5px;
+  left: -1.5px;
+  right: -1.5px;
+  bottom: -1.5px;
+  border-radius: 38px;
+  background: linear-gradient(
+    120deg,
+    #ff0000,
+    #ff7f00,
+    #ffff00,
+    #00ff00,
+    #00ffff,
+    #0000ff,
+    #8b00ff
+  );
+  background-size: 300% 300%;
+  animation: aiBorderMove 8s linear infinite;
+  filter: drop-shadow(0 2px 6px rgba(255, 80, 80, 0.25))
+          drop-shadow(0 6px 14px rgba(0, 200, 255, 0.22))
+          drop-shadow(0 12px 28px rgba(138, 43, 226, 0.30));
+  z-index: -1;
+}
+
+@keyframes blinkFill {
+  0%, 45% {
+    background: #000;
+    color: #F6C84C;
+  }
+  55% {
+    background: #F6C84C;
+    color: #000;
+  }
+  100% {
+    background: #000;
+    color: #F6C84C;
+  }
+}
+
+@keyframes aiBorderMove {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+/* ================= INSTALL BUTTON ================= */
+.install-btn {
+  margin-top: 15px;
+  animation: none; /* Remove pulse if any */
+  background: #F6C84C;
+}
+
+.install-btn span {
+  color: #000;
+}
+
+/* ================= INSTRUCTION TEXT ================= */
+.instruction-text {
+  margin-top: 20px;
+  padding: 12px 20px;
+  background: rgba(246, 200, 76, 0.1);
+  border: 1px solid rgba(246, 200, 76, 0.3);
+  border-radius: 12px;
+  color: #F6C84C;
+  font-size: 14px;
+  max-width: 280px;
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.5s ease;
+}
+
+.instruction-text p {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.instruction-text small {
+  color: rgba(255,255,255,0.7);
+  font-size: 12px;
+  display: block;
+  line-height: 1.5;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ================= TESTIMONIALS SECTION ================= */
 .testimonialsSection {
   position: relative;
   min-height: 100vh;
@@ -286,7 +243,6 @@ h1 {
   text-align: center;
 }
 
-/* dark overlay */
 .testimonialsSection::before {
   content: "";
   position: absolute;
@@ -294,206 +250,327 @@ h1 {
   background: rgba(0,0,0,0.55);
   z-index: 1;
 }
-/* ================= AI CTA BUTTON (FINAL) ================= */
 
-.aiBtn {
-  position: relative;
-  padding: 16px 32px;
-  border-radius: 34px;
-  cursor: pointer;
+.testOverlay h2 {
+  color: #F6C84C;
+  font-size: 32px;
+  margin-bottom: 10px;
+}
 
+.testSub {
+  opacity: .8;
+  margin: 10px 0 30px;
   font-size: 16px;
-  font-weight: 700;
+}
 
+.testimonialSlider {
+  position: relative;
+  max-width: 420px;
+  margin: 0 auto;
+  min-height: 280px;
+  perspective: 1200px;
+}
+
+.testimonialCard {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.08);
+  padding: 24px;
+  border-radius: 18px;
+  text-align: left;
+  opacity: 0;
+  transform: translateX(120%) rotate(6deg) scale(0.9);
+  transition: transform 1.9s cubic-bezier(.12,1.2,.56,1), opacity 5.6s ease;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.testimonialCard.active {
+  opacity: 1;
+  transform: translateX(0) rotate(0deg) scale(1);
+  z-index: 2;
+}
+
+.testimonialCard.exit {
+  opacity: 0;
+  transform: translateX(-120%) rotate(-8deg) scale(0.85);
+  z-index: 1;
+}
+
+.testimonialCard:hover {
+  animation: highlightPulse 1.6s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgba(246, 200, 76, 0.4);
+}
+
+@keyframes highlightPulse {
+  0% { box-shadow: 0 0 0 0 rgba(246, 200, 76, 0.4); }
+  70% { box-shadow: 0 0 0 14px rgba(246, 200, 76, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(246, 200, 76, 0); }
+}
+
+.top {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.avatar {
   background: #F6C84C;
   color: #000;
-
-  border: none;              /* 🔥 IMPORTANT */
-  overflow: visible;         /* 🔥 IMPORTANT */
-
-  animation: blinkFill 5s ease-in-out infinite;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 18px;
+  box-shadow: 0 4px 10px rgba(246, 200, 76, 0.3);
 }
 
-
-/* text above everything */
-.aiBtn span {
-  position: relative;
-  z-index: 3;
+.top div {
+  flex: 1;
 }
 
-/* AI animated border */
-.aiBtn::before {
-  content: "";
-  position: absolute;
-
-  /* 🔥 OUTER BORDER POSITION */
-  top: -1.5px;
-  left: -1.5px;
-  right: -1.5px;
-  bottom: -1.5px;
-
-  border-radius: 38px;   /* button se thoda zyada */
-
-  background: linear-gradient(
-    120deg,
-    #ff0000,
-    #ff7f00,
-    #ffff00,
-    #00ff00,
-    #00ffff,
-    #0000ff,
-    #8b00ff
-  );
-
-  background-size: 300% 300%;
-  animation: aiBorderMove 8s linear infinite;
-
-  /* 🌈 SOFT RAINBOW GLOW */
-  filter:
-  drop-shadow(0 2px 6px rgba(255, 80, 80, 0.25))     /* red reflection */
-  drop-shadow(0 6px 14px rgba(0, 200, 255, 0.22))    /* cyan reflection */
-  drop-shadow(0 12px 28px rgba(138, 43, 226, 0.30)); /* violet depth */
-
-  z-index: -1;   /* 🔥 behind button */
+.top strong {
+  color: #fff;
+  font-size: 16px;
 }
 
-
-/* hover effect */
-
-
-/* fill blink */
-@keyframes blinkFill {
-  0%, 45% {
-    background: #000;
-    color: #F6C84C;
-  }
-  55% {
-    background: #F6C84C;
-    color: #000;
-  }
-  100% {
-    background: #000;
-    color: #F6C84C;
-  }
+.top div br + span {
+  color: #F6C84C;
+  font-size: 13px;
+  opacity: 0.9;
 }
 
-/* border motion */
-@keyframes aiBorderMove {
-  0%   { background-position:   0% 50%; }
-  100% { background-position: 300% 50%; }
+.stars {
+  color: #F6C84C;
+  margin-bottom: 12px;
+  font-size: 18px;
+  letter-spacing: 2px;
 }
 
-/* mobile */
+.testimonialCard p {
+  color: rgba(255,255,255,0.9);
+  font-size: 15px;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* ================= MOBILE RESPONSIVE ================= */
 @media (max-width: 768px) {
+  h1 {
+    font-size: 36px;
+  }
+
+  .tagline {
+    font-size: 16px;
+  }
+
+  .features {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .features div {
+    width: 100%;
+    text-align: center;
+  }
+
+  .testimonialSlider {
+    min-height: 300px;
+    max-width: 320px;
+  }
+  
   .aiBtn {
     padding: 14px 26px;
     font-size: 15px;
+    min-width: 200px;
+  }
+
+  .testOverlay {
+    padding: 60px 15px;
+  }
+
+  .testOverlay h2 {
+    font-size: 28px;
+  }
+
+  .testimonialCard {
+    padding: 20px;
+  }
+
+  .avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 16px;
   }
 }
 
-/* Add this at the end of your existing looks.css file */
+/* ================= TABLET RESPONSIVE ================= */
+@media (min-width: 769px) and (max-width: 1024px) {
+  h1 {
+    font-size: 42px;
+  }
 
-/* Install Button Styles */
-.install-btn {
-  margin-top: 15px;
-  display: none; /* Hidden by default, JS will show if needed */
+  .features {
+    gap: 10px;
+  }
+
+  .testimonialSlider {
+    max-width: 380px;
+  }
 }
 
-.install-btn::before {
-  background: linear-gradient(120deg, #00ff00, #00ffff, #0000ff);
+/* ================= DESKTOP SPECIFIC ================= */
+@media (min-width: 1025px) {
+  .instruction-text {
+    display: none !important; /* Never show instructions on desktop */
+  }
+
+  .heroOverlay {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .features {
+    justify-content: center;
+  }
 }
 
-/* Simple pulse animation for install button */
-@keyframes installPulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+/* ================= SMALL MOBILE DEVICES ================= */
+@media (max-width: 380px) {
+  h1 {
+    font-size: 32px;
+  }
+
+  .aiBtn {
+    padding: 12px 20px;
+    font-size: 14px;
+    min-width: 180px;
+  }
+
+  .testimonialSlider {
+    min-height: 320px;
+  }
+
+  .instruction-text {
+    padding: 10px 15px;
+    font-size: 13px;
+  }
 }
 
-.install-btn.pulse {
-  animation: installPulse 2s infinite;
+/* ================= LANDSCAPE MODE ================= */
+@media (max-height: 600px) and (orientation: landscape) {
+  .heroOverlay {
+    padding: 10px;
+  }
+
+  .features {
+    margin-bottom: 15px;
+  }
+
+  .features div {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  h1 {
+    font-size: 32px;
+    margin-bottom: 5px;
+  }
+
+  .tagline {
+    margin-bottom: 10px;
+  }
+
+  .aiBtn {
+    padding: 10px 20px;
+    margin: 5px 0;
+  }
 }
 
-.install-instruction {
-  background: rgba(241, 241, 241, 0.15);
-  color: #fff3d1;
-  font-size: 14px;
-  font-style: italic;
-  font-family: 'Georgia', 'Times New Roman', serif; /* Italic support */
-  padding: 10px 15px;
-  border-radius: 8px;
-  margin-top: 10px;
-  border-left: 3px solid #F6C84C;
-  text-align: left;
-  max-width: 300px;
-  margin-left: auto;
-  margin-right: auto;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  line-height: 1.5;
-  letter-spacing: 0.3px;
+/* ================= HIGH RESOLUTION DISPLAYS ================= */
+@media (min-width: 1440px) {
+  h1 {
+    font-size: 56px;
+  }
+
+  .tagline {
+    font-size: 20px;
+  }
+
+  .features div {
+    font-size: 16px;
+    padding: 10px 16px;
+  }
+
+  .testimonialSlider {
+    max-width: 500px;
+    min-height: 300px;
+  }
 }
 
-.install-instruction span {
-  background: rgba(255, 255, 255, 0.315);
-  color: #f5f3ef;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 16px;
+/* ================= PRINT STYLES ================= */
+@media print {
+  .heroVideo,
+  .testVideo,
+  .aiBtn::before,
+  .install-btn {
+    display: none;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  h1 {
+    color: black;
+  }
+}
+
+/* ================= LOADING STATE ================= */
+.testimonialCard:first-child:only-child {
+  position: relative;
+  opacity: 1;
+  transform: none;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.testimonialCard:first-child:only-child p {
+  color: #F6C84C;
   font-style: normal;
-  font-weight: 600;
-  margin: 0 2px;
-}
-/* Install Button Styles - Updated */
-.install-btn {
-  margin-top: 15px;
-  display: none; /* Hidden by default, JS will show if needed */
-  background: #F6C84C;
-  color: #000;
-  border: none;
-  font-weight: 600;
 }
 
-.install-btn::before {
-  background: linear-gradient(120deg, #F6C84C, #FFD700, #F6C84C);
+/* ================= TOUCH DEVICE OPTIMIZATIONS ================= */
+@media (hover: none) {
+  .aiBtn:hover {
+    transform: none;
+  }
+
+  .testimonialCard:hover {
+    animation: none;
+  }
 }
 
-/* Simple pulse animation for install button */
-@keyframes installPulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
+/* ================= SAFARI SPECIFIC FIXES ================= */
+@supports (-webkit-touch-callout: none) {
+  .heroVideo,
+  .testVideo {
+    /* Fix for Safari video playback issues */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
 
-.install-btn.pulse {
-  animation: installPulse 2s infinite;
-}
-
-.install-instruction {
-  background: rgba(241, 241, 241, 0.15);
-  color: #fff3d1;
-  font-size: 14px;
-  padding: 10px 15px;
-  border-radius: 8px;
-  margin-top: 10px;
-  border-left: 3px solid #F6C84C;
-  text-align: left;
-  max-width: 300px;
-  margin-left: auto;
-  margin-right: auto;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  line-height: 1.5;
-  letter-spacing: 0.3px;
-}
-
-.install-instruction span {
-  background: rgba(255, 255, 255, 0.315);
-  color: #f5f3ef;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 600;
-  margin: 0 2px;
+  .heroOverlay {
+    /* Fix for Safari backdrop-filter */
+    -webkit-backdrop-filter: blur(0);
+  }
 }

@@ -1,14 +1,14 @@
 {
-  "name": "Kwikkwash",
+  "name": "Kwikkwash - Doorstep Car Wash",
   "short_name": "Kwikkwash",
-  "description": "Doorstep Car Wash Service",
-  "id": "/",
-  "start_url": "/",
-  "scope": "/",
+  "description": "Premium Doorstep Car Wash Service",
+  "start_url": "./",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#F6C84C",
+  "orientation": "portrait",
+  "scope": "./",
+  "categories": ["lifestyle", "business"],
   "icons": [
     {
       "src": "https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/icon-192.png",
@@ -21,6 +21,15 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/washing.jpeg",
+      "sizes": "1170x2532",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Kwikkwash Home Screen"
     }
   ]
 }

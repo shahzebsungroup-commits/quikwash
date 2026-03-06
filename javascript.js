@@ -1,16 +1,14 @@
 // ================================
 // CONFIG
 // ================================
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxCV4GTuu4Te3PQ4dlxhyG9pIUic2b2_fxO4e7wDZ2kiZQRkGJ6-9Zl47pKWcYoOzqr/exec"; // Testimonials GAS URL
-const ANALYTICS_URL = "https://script.google.com/macros/s/AKfycbyMFPQ3pMHty3O0U2gpKZHgBT1vNPfIC0xJBYb18ZlVKf7h7UsPaavAX-sRyG_CxiWJ/exec"; // Analytics GAS URL
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxCV4GTuu4Te3PQ4dlxhyG9pIUic2b2_fxO4e7wDZ2kiZQRkGJ6-9Zl47pKWcYoOzqr/exec";
+const ANALYTICS_URL = "https://script.google.com/macros/s/AKfycbyMFPQ3pMHty3O0U2gpKZHgBT1vNPfIC0xJBYb18ZlVKf7h7UsPaavAX-sRyG_CxiWJ/exec";
 
 let cards = [];
 let index = 0;
 let sliderInterval;
 let deferredPrompt;
-let instructionTimer;
-let isInstallableChecked = false;
-let installInProgress = false;
+let installCheckDone = false;
 
 // ================================
 // HELPER FUNCTIONS
@@ -29,84 +27,110 @@ function stars(count) {
   return s;
 }
 
-// Check if running in standalone PWA mode
-function isPwaMode() {
+// ================================
+// PWA DETECTION
+// ================================
+function isRunningAsPWA() {
   return window.matchMedia('(display-mode: standalone)').matches || 
-         window.navigator.standalone === true;
+         window.navigator.standalone === true ||
+         window.matchMedia('(display-mode: fullscreen)').matches ||
+         window.matchMedia('(display-mode: minimal-ui)').matches;
 }
 
-// Check if running on desktop
 function isDesktop() {
-  return !/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
-
-// Disable copy/long-paste menu on buttons
-function disableCopyMenu() {
-  const buttons = document.querySelectorAll('button');
-  buttons.forEach(btn => {
-    btn.addEventListener('contextmenu', (e) => e.preventDefault());
-    btn.addEventListener('copy', (e) => e.preventDefault());
-    btn.addEventListener('selectstart', (e) => e.preventDefault());
-    btn.style.userSelect = 'none';
-    btn.style.webkitUserSelect = 'none';
-    btn.style.webkitTouchCallout = 'none';
-  });
+  return window.innerWidth > 1024 || 
+         /Mac|Windows|Linux/.test(navigator.platform) && 
+         !/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
 // ================================
-// OPEN PWA FUNCTION (FIXED)
+// INSTALLATION CHECK WITH 4 SECOND WAIT
 // ================================
-function openPwaApp() {
-  // Try to open in PWA mode
-  if (window.matchMedia('(display-mode: browser)').matches) {
-    // Currently in browser, try to launch PWA
-    
-    // Method 1: Check if already installed and try to focus
-    if (localStorage.getItem("appInstalled") === "true") {
-      // Try to open with start_url from manifest
-      fetch('manifest.json')
-        .then(response => response.json())
-        .then(manifest => {
-          const startUrl = manifest.start_url || '/';
-          window.location.href = startUrl;
-        })
-        .catch(() => {
-          window.location.href = '/';
-        });
-    } else {
-      // If not installed, just reload
-      window.location.href = '/';
-    }
-  } else {
-    // Already in PWA, just reload
-    window.location.reload();
-  }
-}
-
-// ================================
-// INSTALL DETECTION (FIXED)
-// ================================
-window.addEventListener("appinstalled", () => {
-  localStorage.setItem("appInstalled", "true");
-  installInProgress = false;
+function checkPWAStatus() {
+  const installBtn = document.getElementById("installBtn");
+  const instructionText = document.getElementById("instructionText");
   
-  // Update button immediately
-  const btn = document.getElementById("installBtn");
-  if (btn) {
-    btn.style.display = "inline-block";
-    btn.innerHTML = "<span>Open App</span>";
-    btn.onclick = openPwaApp;  // Use the new function
-    btn.disabled = false;
-    btn.classList.remove("installing");
-    
-    // Hide instruction if exists
-    const instructionEl = document.getElementById("installInstruction");
-    if (instructionEl) instructionEl.style.display = "none";
+  if (!installBtn || !instructionText) return;
+  
+  // Case 1: Already running as PWA - hide everything
+  if (isRunningAsPWA()) {
+    installBtn.style.display = "none";
+    instructionText.style.display = "none";
+    return;
   }
-});
+  
+  // Case 2: Desktop - only show install/open, no instructions
+  if (isDesktop()) {
+    if (localStorage.getItem("appInstalled") === "true") {
+      installBtn.style.display = "inline-block";
+      installBtn.innerHTML = "<span>Open App</span>";
+      installBtn.onclick = () => window.location.href = "/";
+    } else {
+      // Check if installable
+      if (deferredPrompt) {
+        installBtn.style.display = "inline-block";
+        installBtn.innerHTML = "<span>Install App (Recommended)</span>";
+        setupInstallHandler();
+      } else {
+        // On desktop, if not installable, hide button (no instructions)
+        installBtn.style.display = "none";
+        instructionText.style.display = "none";
+      }
+    }
+    return;
+  }
+  
+  // Case 3: Mobile - full logic
+  if (localStorage.getItem("appInstalled") === "true") {
+    installBtn.style.display = "inline-block";
+    installBtn.innerHTML = "<span>Open App</span>";
+    installBtn.onclick = () => window.location.href = "/";
+    instructionText.style.display = "none";
+  } else {
+    // Check if installable
+    if (deferredPrompt) {
+      installBtn.style.display = "inline-block";
+      installBtn.innerHTML = "<span>Install App (Recommended)</span>";
+      setupInstallHandler();
+      instructionText.style.display = "none";
+    } else {
+      // Not installable - show instruction as last resort
+      installBtn.style.display = "none";
+      instructionText.style.display = "block";
+    }
+  }
+}
+
+function setupInstallHandler() {
+  const installBtn = document.getElementById("installBtn");
+  if (!installBtn) return;
+  
+  installBtn.onclick = async () => {
+    if (!deferredPrompt) {
+      // Fallback to instructions if install prompt not available
+      const instructionText = document.getElementById("instructionText");
+      if (instructionText) {
+        instructionText.style.display = "block";
+      }
+      return;
+    }
+    
+    deferredPrompt.prompt();
+    const choiceResult = await deferredPrompt.userChoice;
+    
+    if (choiceResult.outcome === 'accepted') {
+      localStorage.setItem("appInstalled", "true");
+      installBtn.innerHTML = "<span>Open App</span>";
+      installBtn.onclick = () => window.location.href = "/";
+      document.getElementById("instructionText").style.display = "none";
+    }
+    
+    deferredPrompt = null;
+  };
+}
 
 // ================================
-// SMART LOCATION DETECTION (NO POPUP)
+// SMART LOCATION DETECTION
 // ================================
 async function getLocationSmart() {
   try {
@@ -145,7 +169,6 @@ async function getLocationSmart() {
   }
 }
 
-// IP-based location
 async function getIPLocation() {
   try {
     const ipRes = await fetch("https://ipapi.co/json/");
@@ -314,11 +337,11 @@ function setupHeroTransition() {
   setTimeout(() => {
     video.classList.add("hide");
     img.classList.add("show");
-  }, 4000);
+  }, 3000);
 }
 
 // ================================
-// ANALYTICS WITH SMART LOCATION
+// ANALYTICS
 // ================================
 async function sendAnalytics() {
   try {
@@ -326,7 +349,7 @@ async function sendAnalytics() {
       return;
     }
     
-    const isPWA = isPwaMode();
+    const isPWA = isRunningAsPWA();
     
     const location = await getLocationSmart();
     
@@ -374,156 +397,8 @@ async function sendAnalytics() {
   } catch (err) {}
 }
 
-// Generate unique session ID
 function generateSessionId() {
   return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
-
-// ================================
-// SMART INSTALL BUTTON SETUP (PROFESSIONAL)
-// ================================
-function setupInstallButton() {
-  const installBtn = document.getElementById("installBtn");
-  
-  if (!installBtn) {
-    return;
-  }
-  
-  // Disable copy/paste menu on button
-  installBtn.addEventListener('contextmenu', (e) => e.preventDefault());
-  installBtn.addEventListener('copy', (e) => e.preventDefault());
-  installBtn.addEventListener('selectstart', (e) => e.preventDefault());
-  installBtn.style.userSelect = 'none';
-  installBtn.style.webkitUserSelect = 'none';
-  installBtn.style.webkitTouchCallout = 'none';
-  
-  // Check if PWA mode (app already open)
-  const pwaMode = isPwaMode();
-  const desktopMode = isDesktop();
-  
-  // 1️⃣ If PWA is open - hide button completely
-  if (pwaMode) {
-    installBtn.style.display = "none";
-    return;
-  }
-  
-  // Default hidden
-  installBtn.style.display = "none";
-  
-  // 2️⃣ Check if already installed (but opened in browser)
-  const isInstalled = localStorage.getItem("appInstalled") === "true";
-  
-  if (isInstalled) {
-    installBtn.innerHTML = "<span>Open App</span>";
-    installBtn.style.display = "inline-block";
-    installBtn.onclick = openPwaApp;  // Use the new function
-    return;
-  }
-  
-  // 3️⃣ Listen for beforeinstallprompt
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    isInstallableChecked = true;
-    
-    // Clear instruction timer
-    if (instructionTimer) {
-      clearTimeout(instructionTimer);
-      instructionTimer = null;
-    }
-    
-    // Hide instruction if exists
-    const instructionEl = document.getElementById("installInstruction");
-    if (instructionEl) instructionEl.style.display = "none";
-    
-    // Show install button
-    installBtn.style.display = "inline-block";
-    installBtn.innerHTML = "<span>Install App (Recommended)</span>";
-    installBtn.disabled = false;
-    installBtn.classList.remove("installing");
-    
-    // Install click handler
-    installBtn.onclick = async () => {
-      if (!deferredPrompt || installInProgress) return;
-      
-      installInProgress = true;
-      installBtn.disabled = true;
-      installBtn.innerHTML = "<span>Installing...</span>";
-      installBtn.classList.add("installing");
-      
-      try {
-        deferredPrompt.prompt();
-        const choiceResult = await deferredPrompt.userChoice;
-        
-        if (choiceResult.outcome === 'accepted') {
-          // Don't change button immediately - wait for appinstalled event
-          console.log('Installation accepted');
-          // Button will be updated by appinstalled event
-        } else {
-          // Installation dismissed
-          installInProgress = false;
-          installBtn.disabled = false;
-          installBtn.innerHTML = "<span>Install App (Recommended)</span>";
-          installBtn.classList.remove("installing");
-          deferredPrompt = null;
-        }
-      } catch (error) {
-        installInProgress = false;
-        installBtn.disabled = false;
-        installBtn.innerHTML = "<span>Install App (Recommended)</span>";
-        installBtn.classList.remove("installing");
-        deferredPrompt = null;
-      }
-    };
-  });
-  
-  // 4️⃣ Wait 4 seconds, then check if we got the install prompt
-  setTimeout(() => {
-    // Double-check if PWA mode was activated during wait
-    if (isPwaMode()) {
-      installBtn.style.display = "none";
-      const instructionEl = document.getElementById("installInstruction");
-      if (instructionEl) instructionEl.style.display = "none";
-      return;
-    }
-    
-    // Check if already installed
-    if (localStorage.getItem("appInstalled") === "true") {
-      installBtn.innerHTML = "<span>Open App</span>";
-      installBtn.style.display = "inline-block";
-      installBtn.onclick = openPwaApp;
-      return;
-    }
-    
-    // If we got the install prompt, button is already visible
-    if (deferredPrompt) {
-      return;
-    }
-    
-    // On desktop: only show download button if not installable
-    if (desktopMode) {
-      installBtn.style.display = "inline-block";
-      installBtn.innerHTML = "<span>Download App</span>";
-      installBtn.onclick = () => {
-        window.open('https://quikwash.in', '_blank');
-      };
-      return;
-    }
-    
-    // On mobile without install prompt: show instruction as last resort
-    if (!deferredPrompt && !isInstallableChecked) {
-      // Create or show instruction text
-      let instruction = document.getElementById("installInstruction");
-      if (!instruction) {
-        instruction = document.createElement("div");
-        instruction.id = "installInstruction";
-        instruction.className = "install-instruction";
-        instruction.innerHTML = `📱 Tap <span>⁝</span> (3 dots) → "Add to Home screen" → Add`;
-        installBtn.parentNode.insertBefore(instruction, installBtn.nextSibling);
-      }
-      instruction.style.display = "block";
-    }
-  }, 4000);
 }
 
 // ================================
@@ -532,16 +407,14 @@ function setupInstallButton() {
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js?v=8')
+      navigator.serviceWorker.register('service-worker.js')
         .then(registration => {
-          console.log('Service Worker registered');
+          // Check for updates every hour
           setInterval(() => {
             registration.update();
           }, 60 * 60 * 1000);
         })
-        .catch(error => {
-          console.log('Service Worker registration failed:', error);
-        });
+        .catch(() => {});
     });
   }
 }
@@ -562,23 +435,49 @@ function setupCTAButton() {
 }
 
 // ================================
-// INITIALIZE EVERYTHING
+// MAIN INIT WITH 4 SECOND WAIT
 // ================================
 async function init() {
   try {
     await sendAnalytics();
   } catch (err) {}
   
-  setupInstallButton();
   setupHeroTransition();
   loadTestimonials();
   registerServiceWorker();
   setupCTAButton();
-  disableCopyMenu();
+  
+  // Listen for beforeinstallprompt
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // If check hasn't been done yet, wait for 4 seconds
+    if (!installCheckDone) {
+      setTimeout(() => {
+        checkPWAStatus();
+        installCheckDone = true;
+      }, 4000); // 4 second wait
+    }
+  });
+  
+  // Also check after 4 seconds even if no beforeinstallprompt
+  setTimeout(() => {
+    if (!installCheckDone) {
+      checkPWAStatus();
+      installCheckDone = true;
+    }
+  }, 4000);
+  
+  // Listen for app installed
+  window.addEventListener("appinstalled", () => {
+    localStorage.setItem("appInstalled", "true");
+    checkPWAStatus();
+  });
 }
 
 // ================================
-// START WHEN READY
+// START
 // ================================
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {

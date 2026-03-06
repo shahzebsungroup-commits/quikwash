@@ -1,72 +1,21 @@
 <!DOCTYPE html>
-<html lang="en-IN">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kwikkwash – Doorstep Car Wash</title>
   
-  <!-- Meta Description -->
-  <meta name="description" content="Kwikkwash – Premium doorstep car wash service. Water-efficient, fast and reliable car cleaning at your location in just 45 minutes.">
-  
-  <!-- Robots -->
-  <meta name="robots" content="index, follow">
-  
-  <!-- Geo Hints -->
-  <meta name="geo.region" content="IN">
-  <meta name="geo.placename" content="India">
-  
-  <!-- Canonical URL -->
-  <link rel="canonical" href="https://quikwash.in">
-  
   <!-- PWA Tags -->
   <meta name="theme-color" content="#F6C84C">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="application-name" content="Kwikkwash">
-  <link rel="manifest" href="manifest.json?v=2">
-  
-  <!-- Apple PWA Support -->
+  <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Kwikkwash">
-  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/icon-192.png">
   
   <!-- Icons -->
-  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/favicon.ico">
-  
-  <!-- Preload Hero Image (Performance) -->
-  <link rel="preload" as="image" href="https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/washing.jpeg">
-  
-  <!-- Open Graph / Facebook -->
-  <meta property="og:title" content="Kwikkwash – Doorstep Car Wash">
-  <meta property="og:description" content="Premium doorstep car wash service. Fast, water-efficient and reliable.">
-  <meta property="og:type" content="website">
-  <meta property="og:image" content="https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/washing.jpeg">
-  <meta property="og:url" content="https://quikwash.in">
-  <meta property="og:site_name" content="Kwikkwash">
-  <meta property="og:locale" content="en_IN">
-  
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Kwikkwash – Doorstep Car Wash">
-  <meta name="twitter:description" content="Premium doorstep car wash service at your location.">
-  <meta name="twitter:image" content="https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/washing.jpeg">
+  <link rel="icon" href="https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/favicon.ico">
+  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/icon-192.png">
   
   <link rel="stylesheet" href="looks.css">
-  
-  <!-- Structured Data / Schema.org -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "name": "Kwikkwash",
-    "description": "Doorstep car wash service",
-    "url": "https://quikwash.in",
-    "image": "https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/washing.jpeg",
-    "priceRange": "$$",
-    "areaServed": "India",
-    "serviceType": "Doorstep Car Wash"
-  }
-  </script>
 </head>
 <body>
   <!-- ================= HERO ================= -->
@@ -80,7 +29,7 @@
     <img
       src="https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/washing.jpeg"
       class="heroImg"
-      alt="Professional doorstep car wash service by Kwikkwash"
+      alt="Car wash"
       id="heroImg">
 
     <!-- HERO OVERLAY -->
@@ -98,10 +47,16 @@
         <span>Step In !</span>
       </button>
       
-      <!-- Install App Button (Will be shown/hidden by JS) -->
-<button id="installBtn" class="aiBtn install-btn">
-  <span>Install App (Recommended)</span>
-</button>
+      <!-- Install/Open App Button (Controlled by JS) -->
+      <button id="installBtn" class="aiBtn install-btn" style="display: none;">
+        <span>Install App (Recommended)</span>
+      </button>
+
+      <!-- Instruction text for shortcut (only shown as last resort) -->
+      <div id="instructionText" class="instruction-text" style="display: none;">
+        <p>📱 Add to Home Screen</p>
+        <small>Tap share → Add to Home Screen</small>
+      </div>
 
       <div class="subtext">Fast • Clean • Reliable</div>
     </div>
@@ -122,7 +77,6 @@
     </div>
   </section>
 
-  <script src="javascript.js?v=1"></script>
+  <script src="javascript.js"></script>
 </body>
-
 </html>
