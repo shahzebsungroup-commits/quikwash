@@ -1030,11 +1030,11 @@ function showBookingConfirmPopup() {
                 </div>
             </div>
             <div class="confirm-buttons">
-                <button class="confirm-btn cancel" onclick="closeConfirmPopup()">
+             <!--  <button class="confirm-btn cancel" onclick="closeConfirmPopup()">
                     <i class="fas fa-times"></i> Cancel
-                </button>
+                </button> -->
                 <button class="confirm-btn confirm" onclick="proceedToBooking()">
-                    <i class="fas fa-check"></i> Confirm & Pay
+                    <i class="fas fa-check"></i> Secure booking
                 </button>
             </div>
         </div>
