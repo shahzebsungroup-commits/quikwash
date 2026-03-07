@@ -1410,9 +1410,9 @@ async function init() {
         `;
 
         typingTimer = setTimeout(async () => {
-            const matchedCity = availableCities.find(c => 
-                c.toLowerCase() === city.toLowerCase()
-            );
+const matchedCity = availableCities.find(c => 
+    c.trim().toLowerCase() === city.trim().toLowerCase()
+);
 
             if (matchedCity) {
                 dropdown.value = matchedCity;
