@@ -17,11 +17,19 @@ let currentCompleteBooking = null;
 let selectedPaymentMode = null;
 let currentRejectBooking = null;
 let confirmResolve = null;
+let activeSection = 'running';
 
 // Store all bookings
 let allPendingBookings = [];
 let allCompletedBookings = [];
 let allCancelledBookings = [];
+
+const STATUS_COUNT_IDS = {
+    running: { section: 'runningCount', guide: 'runningGuideCount' },
+    pending: { section: 'pendingCount', guide: 'pendingGuideCount' },
+    completed: { section: 'completedCount', guide: 'completedGuideCount' },
+    cancelled: { section: 'cancelledCount', guide: 'cancelledGuideCount' }
+};
 
 // ========== TOAST NOTIFICATION SYSTEM ==========
 function showToast(message, type = 'info', duration = 3000) {
@@ -119,6 +127,8 @@ function showToast(message, type = 'info', duration = 3000) {
 
 // ========== INITIALIZATION ==========
 document.addEventListener('DOMContentLoaded', async () => {
+    setupSectionAccordion();
+
     await loadEmployeeData();
     await loadAllTasks();
     
@@ -127,6 +137,108 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     setInterval(loadAllTasks, 30000);
 });
+
+function setStatusCount(status, count) {
+    const ids = STATUS_COUNT_IDS[status];
+    if (!ids) return;
+    
+    const safeCount = Number.isFinite(count) ? count : 0;
+    
+    const sectionBadge = document.getElementById(ids.section);
+    if (sectionBadge) {
+        sectionBadge.textContent = safeCount;
+    }
+    
+    const guideBadge = document.getElementById(ids.guide);
+    if (guideBadge) {
+        guideBadge.textContent = safeCount;
+    }
+}
+
+function setupSectionAccordion() {
+    const sectionButtons = document.querySelectorAll('[data-toggle-section]');
+    const guideCards = document.querySelectorAll('.guide-card[data-section]');
+    
+    if (!sectionButtons.length) return;
+    
+    sectionButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            toggleSection(button.dataset.toggleSection);
+        });
+    });
+    
+    guideCards.forEach((card) => {
+        card.addEventListener('click', () => {
+            expandSection(card.dataset.section, true);
+        });
+        
+        card.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                expandSection(card.dataset.section, true);
+            }
+        });
+    });
+    
+    expandSection(activeSection, false);
+}
+
+function toggleSection(sectionKey) {
+    if (!sectionKey) return;
+    
+    const targetSection = document.querySelector(`.status-section[data-section="${sectionKey}"]`);
+    if (!targetSection) return;
+    
+    const isExpanded = targetSection.classList.contains('expanded');
+    if (isExpanded) {
+        targetSection.classList.remove('expanded');
+        targetSection.classList.add('collapsed');
+        
+        const button = targetSection.querySelector('[data-toggle-section]');
+        if (button) {
+            button.setAttribute('aria-expanded', 'false');
+        }
+        
+        activeSection = '';
+        document.querySelectorAll('.guide-card[data-section]').forEach((card) => {
+            card.classList.remove('active');
+        });
+        return;
+    }
+    
+    expandSection(sectionKey, false);
+}
+
+function expandSection(sectionKey, shouldScroll = false) {
+    if (!sectionKey) return;
+    
+    activeSection = sectionKey;
+    
+    const sections = document.querySelectorAll('.status-section[data-section]');
+    sections.forEach((section) => {
+        const isActive = section.dataset.section === sectionKey;
+        section.classList.toggle('expanded', isActive);
+        section.classList.toggle('collapsed', !isActive);
+        
+        const button = section.querySelector('[data-toggle-section]');
+        if (button) {
+            button.setAttribute('aria-expanded', isActive ? 'true' : 'false');
+        }
+    });
+    
+    const guideCards = document.querySelectorAll('.guide-card[data-section]');
+    guideCards.forEach((card) => {
+        card.classList.toggle('active', card.dataset.section === sectionKey);
+    });
+    
+    if (shouldScroll) {
+        const targetSection = document.querySelector(`.status-section[data-section="${sectionKey}"]`);
+        if (targetSection) {
+            const targetTop = targetSection.getBoundingClientRect().top + window.pageYOffset - 8;
+            window.scrollTo({ top: targetTop, behavior: 'smooth' });
+        }
+    }
+}
 
 function loadQRCodeLibrary() {
     return new Promise((resolve) => {
@@ -254,7 +366,7 @@ async function loadRunningTask() {
             b.status !== 'canceled'
         );
         
-        document.getElementById('runningCount').textContent = runningBookings.length;
+        setStatusCount('running', runningBookings.length);
         
         if (runningBookings.length === 0) {
             document.getElementById('runningTasks').innerHTML = 
@@ -273,6 +385,7 @@ async function loadRunningTask() {
         
     } catch (error) {
         console.error('Error loading running task:', error);
+        setStatusCount('running', 0);
         document.getElementById('runningTasks').innerHTML = 
             '<div class="empty-state">Error loading tasks</div>';
         showToast('Failed to load running tasks', 'error');
@@ -282,6 +395,7 @@ async function loadRunningTask() {
 async function loadPendingTasks() {
     try {
         if (!currentCity) {
+            setStatusCount('pending', 0);
             document.getElementById('pendingTasksContainer').innerHTML = 
                 '<div class="empty-state">City not assigned</div>';
             return;
@@ -306,11 +420,12 @@ async function loadPendingTasks() {
             (!b.assigned_employee_code || b.assigned_employee_code === '' || b.assigned_employee_code === null)
         );
         
-        document.getElementById('pendingCount').textContent = allPendingBookings.length;
+        setStatusCount('pending', allPendingBookings.length);
         displayPendingTasks(allPendingBookings);
         
     } catch (error) {
         console.error('Error loading pending tasks:', error);
+        setStatusCount('pending', 0);
         document.getElementById('pendingTasksContainer').innerHTML = 
             '<div class="empty-state">Error loading tasks</div>';
         showToast('Failed to load pending tasks', 'error');
@@ -429,11 +544,12 @@ async function loadCompletedTasks() {
             return dateB - dateA;
         });
         
-        document.getElementById('completedCount').textContent = allCompletedBookings.length;
+        setStatusCount('completed', allCompletedBookings.length);
         displayCompletedTasks(allCompletedBookings);
         
     } catch (error) {
         console.error('Error loading completed tasks:', error);
+        setStatusCount('completed', 0);
         document.getElementById('completedTasks').innerHTML = 
             '<div class="empty-state">Error loading tasks</div>';
         showToast('Failed to load completed tasks', 'error');
@@ -489,11 +605,12 @@ async function loadCancelledTasks() {
             return dateB - dateA;
         });
         
-        document.getElementById('cancelledCount').textContent = allCancelledBookings.length;
+        setStatusCount('cancelled', allCancelledBookings.length);
         displayCancelledTasks(allCancelledBookings);
         
     } catch (error) {
         console.error('Error loading cancelled tasks:', error);
+        setStatusCount('cancelled', 0);
         showToast('Failed to load cancelled tasks', 'error');
     }
 }
