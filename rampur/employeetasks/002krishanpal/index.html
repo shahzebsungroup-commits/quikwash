@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -20,6 +20,112 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
+        }
+
+        :root {
+            --running-color: #005bff;
+            --running-soft: #e3eeff;
+            --pending-color: #ef7d00;
+            --pending-soft: #fff0df;
+            --completed-color: #009a3e;
+            --completed-soft: #e5ffef;
+            --cancelled-color: #d01a1a;
+            --cancelled-soft: #ffe9e9;
+        }
+
+        .status-guide {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .guide-card {
+            border-radius: 12px;
+            border: 2px solid;
+            padding: 12px;
+            background: white;
+            cursor: pointer;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+
+        .guide-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .guide-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .guide-count {
+            min-width: 30px;
+            height: 24px;
+            border-radius: 12px;
+            padding: 0 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 800;
+            color: white;
+            background: #0f172a;
+        }
+
+        .guide-card p {
+            font-size: 12px;
+            color: #475569;
+            line-height: 1.4;
+        }
+
+        .guide-card.running-guide {
+            border-color: var(--running-color);
+            background: var(--running-soft);
+        }
+
+        .guide-card.pending-guide {
+            border-color: var(--pending-color);
+            background: var(--pending-soft);
+        }
+
+        .guide-card.completed-guide {
+            border-color: var(--completed-color);
+            background: var(--completed-soft);
+        }
+
+        .guide-card.cancelled-guide {
+            border-color: var(--cancelled-color);
+            background: var(--cancelled-soft);
+        }
+
+        .running-guide .guide-count {
+            background: var(--running-color);
+        }
+
+        .pending-guide .guide-count {
+            background: var(--pending-color);
+        }
+
+        .completed-guide .guide-count {
+            background: var(--completed-color);
+        }
+
+        .cancelled-guide .guide-count {
+            background: var(--cancelled-color);
+        }
+
+        .guide-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 10px rgba(15, 23, 42, 0.1);
+        }
+
+        .guide-card.active {
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.15);
         }
 
         /* Header */
@@ -79,6 +185,154 @@
             white-space: nowrap;
         }
 
+        .section {
+            background: white;
+            border: 2px solid #dbe2ea;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 22px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            padding: 12px 14px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            width: 100%;
+            border: 0;
+            text-align: left;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .section-title:focus-visible {
+            outline: 2px solid #0f172a;
+            outline-offset: 2px;
+        }
+
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.2;
+        }
+
+        .section-title-right {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .toggle-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 13px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.12);
+            color: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            transition: transform 0.15s ease;
+            flex-shrink: 0;
+        }
+
+        .section-content {
+            display: block;
+        }
+
+        .status-section.collapsed .section-content {
+            display: none;
+        }
+
+        .status-section.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .section-help {
+            font-size: 13px;
+            color: #4b5563;
+            margin-bottom: 12px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 30px;
+            border-radius: 15px;
+            padding: 0 10px;
+            font-size: 14px;
+            font-weight: 700;
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .status-section.running-section {
+            border-color: #8db8ff;
+        }
+
+        .status-section.pending-section {
+            border-color: #ffc98b;
+        }
+
+        .status-section.completed-section {
+            border-color: #8be7b1;
+        }
+
+        .status-section.cancelled-section {
+            border-color: #ff9f9f;
+        }
+
+        .running-section .section-title {
+            background: var(--running-soft);
+            color: #1d4ed8;
+        }
+
+        .pending-section .section-title {
+            background: var(--pending-soft);
+            color: #9a5700;
+        }
+
+        .completed-section .section-title {
+            background: var(--completed-soft);
+            color: #166534;
+        }
+
+        .cancelled-section .section-title {
+            background: var(--cancelled-soft);
+            color: #991b1b;
+        }
+
+        .running-section .badge {
+            background: var(--running-color);
+            color: white;
+        }
+
+        .pending-section .badge {
+            background: var(--pending-color);
+            color: white;
+        }
+
+        .completed-section .badge {
+            background: var(--completed-color);
+            color: white;
+        }
+
+        .cancelled-section .badge {
+            background: var(--cancelled-color);
+            color: white;
+        }
+
         /* Slot Group Styling */
         .slot-group {
             margin-bottom: 25px;
@@ -132,6 +386,20 @@
             color: #f39c12;
         }
 
+        .pending-section .slot-group {
+            border-left-color: var(--pending-color);
+            background: #fff;
+            border: 1px solid #f7d8aa;
+        }
+
+        .pending-section .slot-header {
+            color: #8a4b00;
+        }
+
+        .pending-section .slot-time {
+            background: var(--pending-color);
+        }
+
         /* Task Cards Grid */
         .task-grid {
             display: grid;
@@ -169,6 +437,28 @@
         .task-card.cancelled {
             border-left-color: #e74c3c;
             opacity: 0.7;
+        }
+
+        .running-section .task-card.running {
+            background: #f4f9ff;
+            border-left-color: var(--running-color);
+        }
+
+        .pending-section .task-card.pending {
+            background: #fff9f0;
+            border-left-color: var(--pending-color);
+        }
+
+        .completed-section .task-card.completed {
+            background: #f2fff5;
+            border-left-color: var(--completed-color);
+            opacity: 1;
+        }
+
+        .cancelled-section .task-card.cancelled {
+            background: #fff4f4;
+            border-left-color: var(--cancelled-color);
+            opacity: 1;
         }
 
         .task-header {
@@ -525,6 +815,18 @@
             .task-grid {
                 grid-template-columns: 1fr;
             }
+
+            .status-guide {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .section-title {
+                font-size: 17px;
+            }
+
+            .section {
+                padding: 12px;
+            }
         }
         /* Next Slot Highlight Animation */
 @keyframes soft-blink {
@@ -544,6 +846,39 @@
     .task-card.next-slot {
         animation: soft-blink 1.5s infinite;
     }
+
+    .status-guide {
+        grid-template-columns: 1fr;
+    }
+
+    .guide-card {
+        padding: 10px;
+    }
+
+    .guide-title {
+        font-size: 14px;
+    }
+
+    .guide-card p {
+        font-size: 11px;
+    }
+
+    .section-title {
+        font-size: 15px;
+        padding: 10px 11px;
+    }
+
+    .section-help {
+        font-size: 12px;
+    }
+}
+
+@media (hover: none) {
+    .task-card:hover,
+    .guide-card:hover {
+        transform: none;
+        box-shadow: none;
+    }
 }
     </style>
 </head>
@@ -552,58 +887,113 @@
         <!-- Header with Search -->
         <div class="header">
             <h1>
-                🧼 KwikkWash
+                KwikkWash
                 <span class="employee-badge" id="employeeInfo">Loading...</span>
             </h1>
             <div class="header-right">
                 <input type="text" 
                        class="search-box" 
                        id="globalSearch" 
-                       placeholder="🔍 Search by name, phone, booking ID, service..." 
+                       placeholder="Search by name, phone, booking ID, service..." 
                        autocomplete="off">
                 <span class="employee-badge" id="cityInfo"></span>
             </div>
         </div>
 
-        <!-- My Running Task Section -->
-        <div class="section">
-            <div class="section-title">
-                🏃 My Running Task
-                <span class="badge" id="runningCount">0</span>
+        <div class="status-guide" aria-label="Task status guide">
+            <div class="guide-card running-guide active" data-section="running" role="button" tabindex="0">
+                <div class="guide-top">
+                    <div class="guide-title">1. RUNNING</div>
+                    <span class="guide-count" id="runningGuideCount">0</span>
+                </div>
+                <p>Ye task abhi aapke paas chal raha hai.</p>
             </div>
-            <div id="runningTasks" class="task-grid">
-                <div class="loading">Loading...</div>
+            <div class="guide-card pending-guide" data-section="pending" role="button" tabindex="0">
+                <div class="guide-top">
+                    <div class="guide-title">2. PENDING</div>
+                    <span class="guide-count" id="pendingGuideCount">0</span>
+                </div>
+                <p>Ye naya task hai, yahin se pick karna hai.</p>
+            </div>
+            <div class="guide-card completed-guide" data-section="completed" role="button" tabindex="0">
+                <div class="guide-top">
+                    <div class="guide-title">3. COMPLETED</div>
+                    <span class="guide-count" id="completedGuideCount">0</span>
+                </div>
+                <p>Jo task aap complete kar chuke hain.</p>
+            </div>
+            <div class="guide-card cancelled-guide" data-section="cancelled" role="button" tabindex="0">
+                <div class="guide-top">
+                    <div class="guide-title">4. CANCELLED</div>
+                    <span class="guide-count" id="cancelledGuideCount">0</span>
+                </div>
+                <p>Jo task cancel ya reject ho gaya hai.</p>
+            </div>
+        </div>
+
+        <!-- My Running Task Section -->
+        <div class="section status-section running-section expanded" id="runningSection" data-section="running">
+            <button class="section-title" type="button" data-toggle-section="running" aria-expanded="true" aria-controls="runningContent">
+                <span class="section-label">RUNNING TASK - Abhi Kaam</span>
+                <span class="section-title-right">
+                    <span class="badge" id="runningCount">0</span>
+                    <span class="toggle-icon" aria-hidden="true">v</span>
+                </span>
+            </button>
+            <div class="section-content" id="runningContent">
+                <p class="section-help">Sirf wahi task jo is waqt aapke paas assigned hai.</p>
+                <div id="runningTasks" class="task-grid">
+                    <div class="loading">Loading...</div>
+                </div>
             </div>
         </div>
 
         <!-- Pending Tasks in Your Area (Slot & Time Wise) -->
-        <div class="section">
-            <div class="section-title">
-                ⏳ Pending Tasks in Your Area
-                <span class="badge" id="pendingCount">0</span>
+        <div class="section status-section pending-section collapsed" id="pendingSection" data-section="pending">
+            <button class="section-title" type="button" data-toggle-section="pending" aria-expanded="false" aria-controls="pendingContent">
+                <span class="section-label">PENDING TASKS - Naya Pick Karein</span>
+                <span class="section-title-right">
+                    <span class="badge" id="pendingCount">0</span>
+                    <span class="toggle-icon" aria-hidden="true">v</span>
+                </span>
+            </button>
+            <div class="section-content" id="pendingContent">
+                <p class="section-help">Yahan se naye tasks pick karein. Slot ke hisab se list hai.</p>
+                <div id="pendingTasksContainer"></div>
             </div>
-            <div id="pendingTasksContainer"></div>
         </div>
 
         <!-- My Completed Tasks (Last 7 Days) -->
-        <div class="section">
-            <div class="section-title">
-                ✅ My Completed Tasks (Last 7 Days)
-                <span class="badge" id="completedCount">0</span>
-            </div>
-            <div id="completedTasks" class="task-grid">
-                <div class="loading">Loading...</div>
+        <div class="section status-section completed-section collapsed" id="completedSection" data-section="completed">
+            <button class="section-title" type="button" data-toggle-section="completed" aria-expanded="false" aria-controls="completedContent">
+                <span class="section-label">COMPLETED TASKS - Pura Ho Gaya</span>
+                <span class="section-title-right">
+                    <span class="badge" id="completedCount">0</span>
+                    <span class="toggle-icon" aria-hidden="true">v</span>
+                </span>
+            </button>
+            <div class="section-content" id="completedContent">
+                <p class="section-help">Last 7 days me complete hue tasks.</p>
+                <div id="completedTasks" class="task-grid">
+                    <div class="loading">Loading...</div>
+                </div>
             </div>
         </div>
 
         <!-- My Cancelled Tasks (Last 7 Days) -->
-        <div class="section">
-            <div class="section-title">
-                ❌ My Cancelled Tasks (Last 7 Days)
-                <span class="badge" id="cancelledCount">0</span>
-            </div>
-            <div id="cancelledTasks" class="task-grid">
-                <div class="loading">Loading...</div>
+        <div class="section status-section cancelled-section collapsed" id="cancelledSection" data-section="cancelled">
+            <button class="section-title" type="button" data-toggle-section="cancelled" aria-expanded="false" aria-controls="cancelledContent">
+                <span class="section-label">CANCELLED TASKS - Radd Ho Gaya</span>
+                <span class="section-title-right">
+                    <span class="badge" id="cancelledCount">0</span>
+                    <span class="toggle-icon" aria-hidden="true">v</span>
+                </span>
+            </button>
+            <div class="section-content" id="cancelledContent">
+                <p class="section-help">Last 7 days me cancel ya reject hue tasks.</p>
+                <div id="cancelledTasks" class="task-grid">
+                    <div class="loading">Loading...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -611,7 +1001,7 @@
     <!-- Payment Modal -->
     <div class="modal" id="paymentModal">
         <div class="modal-content">
-            <div class="modal-title">💰 Complete Task - Payment</div>
+            <div class="modal-title">ðŸ’° Complete Task - Payment</div>
             <div class="modal-body">
                 <div class="booking-details" id="modalBookingDetails">
                     <p><strong>Booking:</strong> <span id="modalBookingId"></span></p>
@@ -623,10 +1013,10 @@
                     <label>Select Payment Mode:</label>
                     <div class="payment-options">
                         <div class="payment-option" data-mode="cash" onclick="selectPaymentMode('cash')">
-                            <span>💵 Cash</span>
+                            <span>ðŸ’µ Cash</span>
                         </div>
                         <div class="payment-option" data-mode="online" onclick="selectPaymentMode('online')">
-                            <span>📱 Online</span>
+                            <span>ðŸ“± Online</span>
                         </div>
                     </div>
                 </div>
@@ -649,7 +1039,7 @@
                     <div class="form-group">
                         <label>
                             <input type="checkbox" id="cashReceived"> 
-                            I confirm received ₹<span id="cashAmount"></span> in cash
+                            I confirm received â‚¹<span id="cashAmount"></span> in cash
                         </label>
                     </div>
                 </div>
@@ -664,7 +1054,7 @@
     <!-- Reject Modal -->
     <div class="modal" id="rejectModal">
         <div class="modal-content">
-            <div class="modal-title">❌ Reject Task</div>
+            <div class="modal-title">âŒ Reject Task</div>
             <div class="modal-body">
                 <div class="form-group">
                     <label>Reason for rejection:</label>
@@ -693,3 +1083,4 @@
     <script src="employee-dashboard.js"></script>
 </body>
 </html>
+
