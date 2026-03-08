@@ -1,5 +1,4 @@
-// ========== CONFIGURATION ==========
-const CONFIG = {
+﻿const CONFIG = {
     API_BASE: "https://app.vbo.co.in",
     EMPLOYEE_CODE: "002",
     GST_RATE: 18,
@@ -10,7 +9,6 @@ const CONFIG = {
     SEARCH_MIN_CHARS: 3
 };
 
-// ========== STATE ==========
 let currentEmployee = null;
 let currentCity = null;
 let currentCompleteBooking = null;
@@ -19,10 +17,10 @@ let currentRejectBooking = null;
 let confirmResolve = null;
 let activeSection = 'running';
 
-// Store all bookings
 let allPendingBookings = [];
 let allCompletedBookings = [];
 let allCancelledBookings = [];
+const actionLocks = new Set();
 
 const STATUS_COUNT_IDS = {
     running: { section: 'runningCount', guide: 'runningGuideCount' },
@@ -31,29 +29,24 @@ const STATUS_COUNT_IDS = {
     cancelled: { section: 'cancelledCount', guide: 'cancelledGuideCount' }
 };
 
-// ========== TOAST NOTIFICATION SYSTEM ==========
 function showToast(message, type = 'info', duration = 3000) {
-    // Remove existing toast if any
     const existingToast = document.getElementById('customToast');
     if (existingToast) {
         existingToast.remove();
     }
     
-    // Create toast container
     const toast = document.createElement('div');
     toast.id = 'customToast';
     
-    // Set styles based on type
     const colors = {
-        success: { bg: '#2ecc71', icon: '✅' },
-        error: { bg: '#e74c3c', icon: '❌' },
-        warning: { bg: '#f39c12', icon: '⚠️' },
-        info: { bg: '#3498db', icon: 'ℹ️' }
+        success: { bg: '#2ecc71', icon: '[OK]' },
+        error: { bg: '#e74c3c', icon: '[X]' },
+        warning: { bg: '#f39c12', icon: '[!]' },
+        info: { bg: '#3498db', icon: '[i]' }
     };
     
     const color = colors[type] || colors.info;
     
-    // Style the toast
     Object.assign(toast.style, {
         position: 'fixed',
         top: '20px',
@@ -75,14 +68,12 @@ function showToast(message, type = 'info', duration = 3000) {
         cursor: 'pointer'
     });
     
-    // Add content
     toast.innerHTML = `
         <span style="font-size: 20px;">${color.icon}</span>
         <span style="flex: 1;">${message}</span>
         <span style="font-size: 12px; opacity: 0.7;">${Math.round(duration/1000)}s</span>
     `;
     
-    // Add animation styles if not present
     if (!document.getElementById('toastStyles')) {
         const style = document.createElement('style');
         style.id = 'toastStyles';
@@ -99,10 +90,8 @@ function showToast(message, type = 'info', duration = 3000) {
         document.head.appendChild(style);
     }
     
-    // Add to document
     document.body.appendChild(toast);
     
-    // Auto remove after duration
     setTimeout(() => {
         if (toast && toast.parentNode) {
             toast.style.animation = 'fadeOut 0.5s ease-out';
@@ -114,7 +103,6 @@ function showToast(message, type = 'info', duration = 3000) {
         }
     }, duration);
     
-    // Allow click to dismiss
     toast.addEventListener('click', () => {
         toast.style.animation = 'fadeOut 0.3s ease-out';
         setTimeout(() => {
@@ -125,7 +113,27 @@ function showToast(message, type = 'info', duration = 3000) {
     });
 }
 
-// ========== INITIALIZATION ==========
+function lockAction(actionKey, buttonEl = null) {
+    if (!actionKey || actionLocks.has(actionKey)) {
+        return false;
+    }
+    actionLocks.add(actionKey);
+    if (buttonEl) {
+        buttonEl.disabled = true;
+    }
+    return true;
+}
+
+function unlockAction(actionKey, buttonEl = null) {
+    if (!actionKey) {
+        return;
+    }
+    actionLocks.delete(actionKey);
+    if (buttonEl) {
+        buttonEl.disabled = false;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     setupSectionAccordion();
 
@@ -304,7 +312,6 @@ function performSearch(term) {
     displayCancelledTasks(filteredCancelled);
 }
 
-// ========== EMPLOYEE DATA LOADING ==========
 async function loadEmployeeData() {
     try {
         const response = await fetch(
@@ -321,18 +328,17 @@ async function loadEmployeeData() {
         currentCity = data?.city || '';
         
         document.getElementById('employeeInfo').textContent = 
-            `👤 ${data?.employee_name || 'Employee'} (${CONFIG.EMPLOYEE_CODE})`;
+            `${data?.employee_name || 'Employee'} (${CONFIG.EMPLOYEE_CODE})`;
         document.getElementById('cityInfo').textContent = 
-            `📍 ${data?.city || 'City not assigned'}`;
+            `${data?.city || 'City not assigned'}`;
             
     } catch (error) {
         console.error('Error loading employee:', error);
-        document.getElementById('employeeInfo').textContent = `👤 Employee (${CONFIG.EMPLOYEE_CODE})`;
+        document.getElementById('employeeInfo').textContent = `Employee (${CONFIG.EMPLOYEE_CODE})`;
         showToast('Failed to load employee data', 'error');
     }
 }
 
-// ========== TASKS LOADING ==========
 async function loadAllTasks() {
     await Promise.all([
         loadRunningTask(),
@@ -439,13 +445,11 @@ function displayPendingTasks(bookings) {
         return;
     }
     
-    // Get current time to determine next slot
     const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     const currentTimeStr = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
     
-    // Define slots with their time ranges
     const slotDefinitions = [
         { name: '09-11', start: '09:00', end: '11:00', order: 1 },
         { name: '11-01', start: '11:00', end: '13:00', order: 2 },
@@ -453,7 +457,6 @@ function displayPendingTasks(bookings) {
         { name: '03-05', start: '15:00', end: '17:00', order: 4 }
     ];
     
-    // Find next slot based on current time
     let nextSlotName = null;
     for (let slot of slotDefinitions) {
         if (currentTimeStr < slot.end) {
@@ -462,7 +465,6 @@ function displayPendingTasks(bookings) {
         }
     }
     
-    // Group by slot only
     const slots = {};
     
     bookings.forEach(booking => {
@@ -473,7 +475,6 @@ function displayPendingTasks(bookings) {
         slots[slot].push(booking);
     });
     
-    // Sort slots by predefined order
     const sortedSlots = Object.keys(slots).sort((a, b) => {
         const order = { '09-11': 1, '11-01': 2, '01-03': 3, '03-05': 4 };
         return (order[a] || 99) - (order[b] || 99);
@@ -482,19 +483,17 @@ function displayPendingTasks(bookings) {
     let html = '';
     
     sortedSlots.forEach(slot => {
-        // Sort bookings within slot by booking_date (oldest first)
         slots[slot].sort((a, b) => {
             const dateA = new Date(a.booking_date || 0);
             const dateB = new Date(b.booking_date || 0);
             return dateA - dateB;
         });
         
-        // Check if this is the next slot to highlight
         const isNextSlot = (slot === nextSlotName);
         
         html += `<div class="slot-group">`;
         html += `<div class="slot-header">`;
-        html += `<span>⏰ Slot: ${slot}</span>`;
+        html += `<span>Slot: ${slot}</span>`;
         html += `<span class="slot-time">${slots[slot].length} tasks</span>`;
         html += `</div>`;
         
@@ -681,14 +680,14 @@ function createTaskCard(booking, type, extraClass = '') {
         actions = `
             <div class="task-actions">
                 <button class="btn btn-success" onclick="openCompleteModal('${bookingId}')">
-                    ✅ Complete
+                    Complete
                 </button>
                 <button class="btn btn-danger" onclick="openRejectModal('${bookingId}')">
-                    ❌ Reject
+                    Reject
                 </button>
                 ${lat && lng ? `
                     <button class="btn btn-warning" onclick="openDirections(${lat}, ${lng})" title="Navigate">
-                        🗺️
+                        Map
                     </button>
                 ` : ''}
             </div>
@@ -697,13 +696,13 @@ function createTaskCard(booking, type, extraClass = '') {
         actions = `
             <div class="task-actions">
                 <button class="btn btn-primary" 
-                        onclick="pickTask('${bookingId}')"
+                        onclick="pickTask('${bookingId}', this)"
                         id="pickBtn-${bookingId}">
-                    📌 Pick
+                    Pick
                 </button>
                 ${lat && lng ? `
                     <button class="btn btn-warning" onclick="openDirections(${lat}, ${lng})" title="Navigate">
-                        🗺️
+                        Map
                     </button>
                 ` : ''}
             </div>
@@ -713,7 +712,7 @@ function createTaskCard(booking, type, extraClass = '') {
             <div class="task-actions">
                 ${lat && lng ? `
                     <button class="btn btn-warning" onclick="openDirections(${lat}, ${lng})" title="Navigate">
-                        🗺️
+                        Map
                     </button>
                 ` : ''}
             </div>
@@ -724,7 +723,7 @@ function createTaskCard(booking, type, extraClass = '') {
         checkRunningTask().then(hasRunningTask => {
             const btn = document.getElementById(`pickBtn-${bookingId}`);
             if (btn) {
-                btn.disabled = hasRunningTask;
+                btn.disabled = hasRunningTask || actionLocks.has(`pick-${bookingId}`);
             }
         });
     }
@@ -732,37 +731,37 @@ function createTaskCard(booking, type, extraClass = '') {
     return `
         <div class="task-card ${type} ${extraClass}" data-booking-id="${bookingId}">
             <div class="task-header">
-                <span class="booking-id">📋 ${bookingId}</span>
+                <span class="booking-id">${bookingId}</span>
                 <span class="slot-badge">${slot}</span>
             </div>
             <div class="customer-info">
                 <div class="customer-name">
-                    👤 ${customerName}
+                    ${customerName}
                     <span class="contact-actions">
                         ${phone ? `
-                            <a href="${callUrl}" class="contact-btn" title="Call">📞</a>
-                            <a href="${whatsappUrl}" class="contact-btn" title="WhatsApp" target="_blank">💬</a>
+                            <a href="${callUrl}" class="contact-btn" title="Call">Call</a>
+                            <a href="${whatsappUrl}" class="contact-btn" title="WhatsApp" target="_blank">Chat</a>
                         ` : ''}
                     </span>
                 </div>
-                <div class="service-name">🔧 ${serviceCode} | ₹${amount}</div>
+                <div class="service-name">${serviceCode} | Rs ${amount}</div>
                 
                 <div class="task-meta">
                     <span class="meta-item" title="Booking Date">
-                        📅 ${bookingDate || 'N/A'}
+                        Date: ${bookingDate || 'N/A'}
                     </span>
                     <span class="meta-item" title="Created At">
-                        🕐 ${createdDate}
+                        Created: ${createdDate}
                     </span>
                 </div>
                 
                 <div class="task-address" title="Address">
-                    📍 ${address}
+                    ${address}
                 </div>
                 
                 ${booking.employee_remark ? `
                     <div class="task-remark">
-                        📝 Remark: ${booking.employee_remark}
+                        Remark: ${booking.employee_remark}
                     </div>
                 ` : ''}
             </div>
@@ -771,9 +770,14 @@ function createTaskCard(booking, type, extraClass = '') {
     `;
 }
 
-// ========== TASK ACTIONS ==========
-async function pickTask(bookingId) {
+async function pickTask(bookingId, triggerButton = null) {
+    const actionKey = `pick-${bookingId}`;
+    if (!lockAction(actionKey, triggerButton)) {
+        return;
+    }
+
     if (!await confirmAction('Pick Task', 'Do you want to pick this task?')) {
+        unlockAction(actionKey, triggerButton);
         return;
     }
     
@@ -821,13 +825,16 @@ async function pickTask(bookingId) {
             
             showToast('Task picked successfully!', 'success');
             await loadAllTasks();
-        } else {
-            showToast('Failed to pick task', 'error');
+            return;
         }
+
+        showToast('Failed to pick task', 'error');
+        unlockAction(actionKey, triggerButton);
         
     } catch (error) {
         console.error('Error picking task:', error);
         showToast('Error picking task', 'error');
+        unlockAction(actionKey, triggerButton);
     }
 }
 
@@ -836,7 +843,6 @@ function openDirections(lat, lng) {
     window.open(url, '_blank');
 }
 
-// ========== COMPLETE TASK FLOW ==========
 async function openCompleteModal(bookingId) {
     try {
         const response = await fetch(
@@ -858,13 +864,15 @@ async function openCompleteModal(bookingId) {
     }
 }
 
-function selectPaymentMode(mode) {
+function selectPaymentMode(mode, optionElement = null) {
     selectedPaymentMode = mode;
     
     document.querySelectorAll('.payment-option').forEach(opt => {
         opt.classList.remove('selected');
     });
-    event.currentTarget.classList.add('selected');
+    if (optionElement) {
+        optionElement.classList.add('selected');
+    }
     
     if (mode === 'online') {
         document.getElementById('onlinePaymentSection').style.display = 'block';
@@ -873,7 +881,7 @@ function selectPaymentMode(mode) {
         const amount = currentCompleteBooking?.total_amount || 
                       currentCompleteBooking?.service_units * CONFIG.DEFAULT_RATE || 
                       0;
-        document.getElementById('onlineAmount').textContent = `₹${amount}`;
+        document.getElementById('onlineAmount').textContent = `Rs ${amount}`;
         
         setTimeout(() => generateBarcode(), 100);
     } else {
@@ -901,7 +909,7 @@ async function generateBarcode() {
             throw new Error('Amount not available');
         }
         
-        document.getElementById('onlineAmount').textContent = `₹${totalAmount}`;
+        document.getElementById('onlineAmount').textContent = `Rs ${totalAmount}`;
         
         const upiString = `upi://pay?pa=${CONFIG.UPI_ID}&pn=KwikkWash&am=${totalAmount}&cu=INR&tn=${currentCompleteBooking?.booking_id || 'TASK'}`;
         
@@ -929,12 +937,12 @@ async function generateBarcode() {
                            currentCompleteBooking?.service_units * CONFIG.DEFAULT_RATE || 
                            0;
         
-        document.getElementById('onlineAmount').textContent = `₹${totalAmount}`;
+        document.getElementById('onlineAmount').textContent = `Rs ${totalAmount}`;
         
         document.getElementById('barcode').innerHTML = 
             `<div style="padding: 15px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 10px; text-align: center;">
-                <p style="color: #856404; margin-bottom: 10px; font-size: 14px;">📱 Payment QR Code</p>
-                <p style="font-weight: bold; font-size: 20px; margin: 10px 0;">₹${totalAmount}</p>
+                <p style="color: #856404; margin-bottom: 10px; font-size: 14px;">Payment QR Code</p>
+                <p style="font-weight: bold; font-size: 20px; margin: 10px 0;">Rs ${totalAmount}</p>
                 <p style="font-size: 14px; margin: 5px 0;">UPI ID: ${CONFIG.UPI_ID}</p>
                 <p style="font-size: 12px; color: #666; word-break: break-all; background: white; padding: 8px; border-radius: 5px;">
                     Ref: ${currentCompleteBooking?.booking_id || ''}
@@ -946,23 +954,34 @@ async function generateBarcode() {
     }
 }
 
-async function confirmPayment() {
+async function confirmPayment(triggerButton = null) {
+    const confirmButton = triggerButton || document.getElementById('confirmPaymentBtn');
+    const bookingId = currentCompleteBooking?.booking_id || 'unknown';
+    const actionKey = `complete-${bookingId}`;
+    if (!lockAction(actionKey, confirmButton)) {
+        return;
+    }
+
     if (!selectedPaymentMode) {
         showToast('Please select payment mode', 'warning');
+        unlockAction(actionKey, confirmButton);
         return;
     }
     
     if (selectedPaymentMode === 'online' && !document.getElementById('paymentConfirmed').checked) {
         showToast('Please confirm payment received', 'warning');
+        unlockAction(actionKey, confirmButton);
         return;
     }
     
     if (selectedPaymentMode === 'cash' && !document.getElementById('cashReceived').checked) {
         showToast('Please confirm cash received', 'warning');
+        unlockAction(actionKey, confirmButton);
         return;
     }
     
     if (!await confirmAction('Complete Task', 'Mark this task as complete?')) {
+        unlockAction(actionKey, confirmButton);
         return;
     }
     
@@ -1018,27 +1037,36 @@ async function confirmPayment() {
             closePaymentModal();
             showToast('Task completed successfully!', 'success');
             await loadAllTasks();
+            return;
         } else {
             showToast('Failed to update booking', 'error');
+            unlockAction(actionKey, confirmButton);
         }
         
     } catch (error) {
         console.error('Error completing task:', error);
         showToast('Error completing task', 'error');
+        unlockAction(actionKey, confirmButton);
     }
 }
 
 function closePaymentModal() {
+    const bookingId = currentCompleteBooking?.booking_id;
+    if (bookingId) {
+        actionLocks.delete(`complete-${bookingId}`);
+    }
     document.getElementById('paymentModal').classList.remove('active');
     selectedPaymentMode = null;
     currentCompleteBooking = null;
     document.getElementById('onlinePaymentSection').style.display = 'none';
     document.getElementById('cashPaymentSection').style.display = 'none';
     document.getElementById('confirmPaymentBtn').disabled = true;
+    document.querySelectorAll('.payment-option').forEach(opt => opt.classList.remove('selected'));
+    document.getElementById('paymentConfirmed').checked = false;
+    document.getElementById('cashReceived').checked = false;
     document.getElementById('barcode').innerHTML = '';
 }
 
-// ========== REJECT TASK ==========
 function openRejectModal(bookingId) {
     currentRejectBooking = bookingId;
     document.getElementById('rejectModal').classList.add('active');
@@ -1047,18 +1075,31 @@ function openRejectModal(bookingId) {
 function closeRejectModal() {
     document.getElementById('rejectModal').classList.remove('active');
     document.getElementById('rejectReason').value = '';
+    const rejectBtn = document.getElementById('confirmRejectBtn');
+    if (rejectBtn) {
+        rejectBtn.disabled = false;
+    }
     currentRejectBooking = null;
 }
 
-async function confirmReject() {
+async function confirmReject(triggerButton = null) {
+    const bookingId = currentRejectBooking || 'unknown';
+    const actionKey = `reject-${bookingId}`;
+    const rejectButton = triggerButton || document.getElementById('confirmRejectBtn');
+    if (!lockAction(actionKey, rejectButton)) {
+        return;
+    }
+
     const reason = document.getElementById('rejectReason').value.trim();
     
     if (!reason) {
         showToast('Please enter rejection reason', 'warning');
+        unlockAction(actionKey, rejectButton);
         return;
     }
     
     if (!await confirmAction('Reject Task', 'Are you sure you want to reject this task?')) {
+        unlockAction(actionKey, rejectButton);
         return;
     }
     
@@ -1116,35 +1157,51 @@ async function confirmReject() {
             closeRejectModal();
             showToast('Task rejected successfully', 'success');
             await loadAllTasks();
+            return;
         } else {
             showToast(result?.message || 'Failed to reject task', 'error');
+            unlockAction(actionKey, rejectButton);
         }
         
     } catch (error) {
         console.error('Error rejecting task:', error);
         showToast('Error rejecting task: ' + error.message, 'error');
+        unlockAction(actionKey, rejectButton);
     }
 }
 
-// ========== CONFIRMATION MODAL ==========
 function confirmAction(title, message) {
     return new Promise((resolve) => {
         confirmResolve = resolve;
         document.getElementById('confirmTitle').textContent = title;
         document.getElementById('confirmMessage').textContent = message;
+        const confirmYesBtn = document.getElementById('confirmYesBtn');
+        if (confirmYesBtn) {
+            confirmYesBtn.disabled = false;
+        }
         document.getElementById('confirmModal').classList.add('active');
     });
 }
 
 function closeConfirmModal() {
     document.getElementById('confirmModal').classList.remove('active');
+    const confirmYesBtn = document.getElementById('confirmYesBtn');
+    if (confirmYesBtn) {
+        confirmYesBtn.disabled = false;
+    }
     if (confirmResolve) {
         confirmResolve(false);
         confirmResolve = null;
     }
 }
 
-function executeConfirmedAction() {
+function executeConfirmedAction(triggerButton = null) {
+    if (triggerButton && triggerButton.disabled) {
+        return;
+    }
+    if (triggerButton) {
+        triggerButton.disabled = true;
+    }
     document.getElementById('confirmModal').classList.remove('active');
     if (confirmResolve) {
         confirmResolve(true);
