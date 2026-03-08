@@ -1440,8 +1440,49 @@ const matchedCity = availableCities.find(c =>
     }
 }
 
+function initFooterAccordions() {
+    const sections = Array.from(document.querySelectorAll(".about-toggle, .faq-toggle"));
+    if (!sections.length) return;
+
+    sections.forEach(section => {
+        const summary = section.querySelector(":scope > summary");
+        if (!summary) return;
+
+        if (section.open) {
+            section.classList.add("is-open");
+            summary.setAttribute("aria-expanded", "true");
+        } else {
+            summary.setAttribute("aria-expanded", "false");
+        }
+
+        summary.addEventListener("click", (event) => {
+            event.preventDefault();
+
+            const shouldOpen = !section.classList.contains("is-open");
+            sections.forEach(other => {
+                const otherSummary = other.querySelector(":scope > summary");
+                const openState = (other === section) ? shouldOpen : false;
+
+                other.classList.toggle("is-open", openState);
+                if (openState) {
+                    other.setAttribute("open", "");
+                } else {
+                    other.removeAttribute("open");
+                }
+
+                if (otherSummary) {
+                    otherSummary.setAttribute("aria-expanded", openState ? "true" : "false");
+                }
+            });
+        });
+    });
+}
+
 // ---------- INITIALIZE ----------
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener("DOMContentLoaded", () => {
+    init();
+    initFooterAccordions();
+});
 
 // Export functions
 window.scrollToBooking = function() {
