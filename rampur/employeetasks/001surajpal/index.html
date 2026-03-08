@@ -884,7 +884,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header with Search -->
         <div class="header">
             <h1>
                 KwikkWash
@@ -931,7 +930,6 @@
             </div>
         </div>
 
-        <!-- My Running Task Section -->
         <div class="section status-section running-section expanded" id="runningSection" data-section="running">
             <button class="section-title" type="button" data-toggle-section="running" aria-expanded="true" aria-controls="runningContent">
                 <span class="section-label">RUNNING TASK - Abhi Kaam</span>
@@ -948,7 +946,6 @@
             </div>
         </div>
 
-        <!-- Pending Tasks in Your Area (Slot & Time Wise) -->
         <div class="section status-section pending-section collapsed" id="pendingSection" data-section="pending">
             <button class="section-title" type="button" data-toggle-section="pending" aria-expanded="false" aria-controls="pendingContent">
                 <span class="section-label">PENDING TASKS - Naya Pick Karein</span>
@@ -963,7 +960,6 @@
             </div>
         </div>
 
-        <!-- My Completed Tasks (Last 7 Days) -->
         <div class="section status-section completed-section collapsed" id="completedSection" data-section="completed">
             <button class="section-title" type="button" data-toggle-section="completed" aria-expanded="false" aria-controls="completedContent">
                 <span class="section-label">COMPLETED TASKS - Pura Ho Gaya</span>
@@ -980,7 +976,6 @@
             </div>
         </div>
 
-        <!-- My Cancelled Tasks (Last 7 Days) -->
         <div class="section status-section cancelled-section collapsed" id="cancelledSection" data-section="cancelled">
             <button class="section-title" type="button" data-toggle-section="cancelled" aria-expanded="false" aria-controls="cancelledContent">
                 <span class="section-label">CANCELLED TASKS - Radd Ho Gaya</span>
@@ -998,10 +993,9 @@
         </div>
     </div>
 
-    <!-- Payment Modal -->
     <div class="modal" id="paymentModal">
         <div class="modal-content">
-            <div class="modal-title">ðŸ’° Complete Task - Payment</div>
+            <div class="modal-title">Complete Task - Payment</div>
             <div class="modal-body">
                 <div class="booking-details" id="modalBookingDetails">
                     <p><strong>Booking:</strong> <span id="modalBookingId"></span></p>
@@ -1012,11 +1006,11 @@
                 <div class="form-group">
                     <label>Select Payment Mode:</label>
                     <div class="payment-options">
-                        <div class="payment-option" data-mode="cash" onclick="selectPaymentMode('cash')">
-                            <span>ðŸ’µ Cash</span>
+                        <div class="payment-option" data-mode="cash" onclick="selectPaymentMode('cash', this)">
+                            <span>Cash</span>
                         </div>
-                        <div class="payment-option" data-mode="online" onclick="selectPaymentMode('online')">
-                            <span>ðŸ“± Online</span>
+                        <div class="payment-option" data-mode="online" onclick="selectPaymentMode('online', this)">
+                            <span>Online</span>
                         </div>
                     </div>
                 </div>
@@ -1039,22 +1033,21 @@
                     <div class="form-group">
                         <label>
                             <input type="checkbox" id="cashReceived"> 
-                            I confirm received â‚¹<span id="cashAmount"></span> in cash
+                            I confirm received Rs <span id="cashAmount"></span> in cash
                         </label>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closePaymentModal()">Cancel</button>
-                <button class="btn btn-success" onclick="confirmPayment()" id="confirmPaymentBtn" disabled>Confirm Complete</button>
+                <button class="btn btn-success" onclick="confirmPayment(this)" id="confirmPaymentBtn" disabled>Confirm Complete</button>
             </div>
         </div>
     </div>
 
-    <!-- Reject Modal -->
     <div class="modal" id="rejectModal">
         <div class="modal-content">
-            <div class="modal-title">âŒ Reject Task</div>
+            <div class="modal-title">Reject Task</div>
             <div class="modal-body">
                 <div class="form-group">
                     <label>Reason for rejection:</label>
@@ -1063,19 +1056,18 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeRejectModal()">Cancel</button>
-                <button class="btn btn-danger" onclick="confirmReject()">Confirm Reject</button>
+                <button class="btn btn-danger" onclick="confirmReject(this)" id="confirmRejectBtn">Confirm Reject</button>
             </div>
         </div>
     </div>
 
-    <!-- Confirmation Modal -->
     <div class="modal" id="confirmModal">
         <div class="modal-content">
             <div class="modal-title" id="confirmTitle">Confirm Action</div>
             <div class="modal-body" id="confirmMessage"></div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeConfirmModal()">No</button>
-                <button class="btn btn-primary" onclick="executeConfirmedAction()">Yes</button>
+                <button class="btn btn-primary" onclick="executeConfirmedAction(this)" id="confirmYesBtn">Yes</button>
             </div>
         </div>
     </div>
@@ -1083,4 +1075,3 @@
     <script src="employee-dashboard.js"></script>
 </body>
 </html>
-
