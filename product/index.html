@@ -34,7 +34,23 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="app-loading">
+    <div id="appLoader" class="app-loader" aria-live="polite">
+        <div class="app-loader-orbit">
+            <div class="app-loader-ring ring-one"></div>
+            <div class="app-loader-ring ring-two"></div>
+            <div class="app-loader-core">
+                <i class="fas fa-location-dot"></i>
+            </div>
+        </div>
+        <div class="app-loader-copy">
+            <p class="app-loader-title">Preparing your city view</p>
+            <p class="app-loader-subtitle">Loading locations and nearby services...</p>
+        </div>
+    </div>
+
+    <div id="cityTopBar" class="city-topbar"></div>
+
     <!-- Landing Section -->
     <section id="landing" class="hero">
         <video class="heroVideo" autoplay muted loop playsinline>
@@ -66,11 +82,6 @@
             <!-- Left Panel - Services -->
             <div class="services-panel">
                 <div class="city-section">
-                    <h2>
-                        <i class="fas fa-map-marker-alt"></i>
-                        Select Location
-                    </h2>
-                    
                     <div class="city-selector">
                         <select id="cityDropdown" class="city-select"></select>
                         <input type="text" id="otherCityInput" placeholder="Enter your city" style="display:none;">
@@ -345,30 +356,59 @@
             </div>
         </div>
     </div>
-
     <!-- Map Popup -->
     <div id="mapPopup" class="map-popup">
         <div class="map-popup-content">
             <div class="map-popup-header">
                 <h3><i class="fas fa-map-pin"></i> Select Location on Map</h3>
+                <div class="map-popup-header-badge"><i class="fas fa-earth-asia"></i></div>
                 <button class="map-popup-close" onclick="closeMapPopup()">✕</button>
-            </div>
-            <div class="map-search-bar">
-                <input id="mapSearch" type="text" placeholder="Search for a city or place">
             </div>
             <div class="map-stage">
                 <div id="mapContainer"></div>
                 <div class="map-center-pin" aria-hidden="true">
                     <i class="fas fa-map-marker-alt"></i>
                 </div>
+                <div class="map-floating-controls">
+                    <button id="mapCurrentLocation" type="button" class="map-mini-btn" aria-label="Go to current location">
+                        <i class="fas fa-location-crosshairs"></i>
+                    </button>
+                    <button id="mapZoomIn" type="button" class="map-mini-btn" aria-label="Zoom in">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button id="mapZoomOut" type="button" class="map-mini-btn" aria-label="Zoom out">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
             </div>
             <div class="map-popup-footer">
-                <p><i class="fas fa-info-circle"></i> Move the map until the pin is over your exact location</p>
+                <button id="mapFooterToggle" type="button" class="map-footer-toggle" aria-expanded="true" aria-label="Collapse map tools">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div id="mapFooterTools" class="map-footer-tools">
+                    <div class="map-search-bar compact">
+                        <input id="mapSearch" type="text" placeholder="Search address or place" autocomplete="off">
+                    </div>
+                    <p class="map-hint"><i class="fas fa-info-circle"></i> <span>Move map, pin at center</span></p>
+                    <div class="map-type-toggle">
+                        <button id="mapTypeRoadmap" type="button" class="map-type-btn active" data-map-type="roadmap">
+                            <i class="fas fa-map"></i> Map
+                        </button>
+                        <button id="mapTypeSatellite" type="button" class="map-type-btn" data-map-type="satellite">
+                            <i class="fas fa-satellite"></i> Satellite
+                        </button>
+                        <button id="mapTypeTerrain" type="button" class="map-type-btn" data-map-type="terrain">
+                            <i class="fas fa-mountain"></i> Terrain
+                        </button>
+                        <button id="mapThemeToggle" type="button" class="map-theme-btn active" data-map-theme="dark">
+                            <i class="fas fa-moon"></i> Dark
+                        </button>
+                    </div>
+                </div>
                 <button id="confirmMapLocation" class="map-confirm-btn">Confirm Location</button>
             </div>
         </div>
     </div>
-
     <!-- Location Range Confirmation Popup -->
     <div id="rangeConfirmPopup" class="confirm-popup">
         <div class="confirm-box confirm-box-warning">
@@ -411,3 +451,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+

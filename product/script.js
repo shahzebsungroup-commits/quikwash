@@ -16,8 +16,50 @@ let mapSearchBox = null;
 let geocoder = null;
 let googleMapsReady = false;
 let currentMapCenter = null;
+let mapControlsBound = false;
+let mapFooterCollapseTimer = null;
 
 const DEFAULT_CITY = "Rampur";
+let lightStyle = [
+    { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
+    { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
+    { featureType: "administrative.land_parcel", elementType: "labels.text.fill", stylers: [{ color: "#bdbdbd" }] },
+    { featureType: "poi", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
+    { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+    { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#e5e5e5" }] },
+    { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
+    { featureType: "road.arterial", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#dadada" }] },
+    { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+    { featureType: "road.local", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
+    { featureType: "transit.line", elementType: "geometry", stylers: [{ color: "#e5e5e5" }] },
+    { featureType: "transit.station", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9c9c9" }] },
+    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] }
+];
+let darkStyle = [
+    { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+    { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+    { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+    { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#263c3f" }] },
+    { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#6b9a76" }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#38414e" }] },
+    { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#212a37" }] },
+    { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca5b3" }] },
+    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#746855" }] },
+    { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#1f2835" }] },
+    { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#f3d19c" }] },
+    { featureType: "transit", elementType: "geometry", stylers: [{ color: "#2f3948" }] },
+    { featureType: "transit.station", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#17263c" }] },
+    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#515c6d" }] },
+    { featureType: "water", elementType: "labels.text.stroke", stylers: [{ color: "#17263c" }] }
+];
 
 // ---------- TIMESTAMP FUNCTION ----------
 function getFormattedTimestamp() {
@@ -76,13 +118,33 @@ function showToast(msg) {
 // ---------- OPEN BOOKING (Slow Scroll) ----------
 function openBooking() {
     const bookingForm = document.getElementById("booking-form");
-    
-    setTimeout(() => {
-        bookingForm.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
-    }, 1000);
+    if (!bookingForm) return;
+
+    const startY = window.scrollY;
+    const targetY = bookingForm.getBoundingClientRect().top + window.scrollY - 24;
+    const distance = targetY - startY;
+    const duration = 1600;
+    const startTime = performance.now();
+
+    const easeInOutCubic = (t) => (
+        t < 0.5
+            ? 4 * t * t * t
+            : 1 - Math.pow(-2 * t + 2, 3) / 2
+    );
+
+    const animateScroll = (currentTime) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = easeInOutCubic(progress);
+
+        window.scrollTo(0, startY + distance * eased);
+
+        if (progress < 1) {
+            requestAnimationFrame(animateScroll);
+        }
+    };
+
+    requestAnimationFrame(animateScroll);
 }
 
 // ---------- SHOW SLOT FULL POPUP ----------
@@ -317,6 +379,30 @@ function clearTransientBookingUi() {
     document.getElementById("userFormContainer").style.display = "none";
     window.__slotData = null;
     window.__selectedSlot = null;
+}
+
+function revealAppAfterLocationReady() {
+    const loader = document.getElementById("appLoader");
+    document.body.classList.remove("app-loading");
+    document.body.classList.add("app-ready");
+
+    setTimeout(() => {
+        document.body.classList.add("city-selection-compact");
+    }, 900);
+
+    if (loader) {
+        loader.classList.add("hide");
+        setTimeout(() => loader.remove(), 450);
+    }
+}
+
+function moveCitySelectorToTopBar() {
+    const topBar = document.getElementById("cityTopBar");
+    const citySection = document.querySelector(".services-panel .city-section");
+    if (!topBar || !citySection) return;
+
+    topBar.appendChild(citySection);
+    document.body.classList.add("city-topbar-mounted");
 }
 
 async function applyFallbackToOther(prefill = "") {
@@ -1346,6 +1432,121 @@ function centerMapOn(coords, zoom = 16) {
     selectedMapLng = coords.lng;
 }
 
+function setActiveMapTypeButton(type) {
+    document.querySelectorAll(".map-type-btn").forEach(button => {
+        button.classList.toggle("active", button.dataset.mapType === type);
+    });
+}
+
+function setActiveMapThemeButton(theme) {
+    const button = document.getElementById("mapThemeToggle");
+    if (!button) return;
+
+    button.classList.add("active");
+    button.dataset.mapTheme = theme;
+    button.innerHTML = theme === "dark"
+        ? '<i class="fas fa-moon"></i> Dark'
+        : '<i class="fas fa-sun"></i> Light';
+}
+
+function toggleMapTheme(theme) {
+    if (!map) return;
+    map.setOptions({
+        styles: theme === "dark" ? darkStyle : lightStyle
+    });
+    setActiveMapThemeButton(theme);
+}
+
+function setMapType(type) {
+    if (!map) return;
+
+    if (type === "satellite") {
+        map.setMapTypeId("hybrid");
+        setActiveMapTypeButton("satellite");
+        return;
+    }
+
+    if (type === "terrain") {
+        map.setMapTypeId("terrain");
+        setActiveMapTypeButton("terrain");
+        return;
+    }
+
+    map.setMapTypeId("roadmap");
+    setActiveMapTypeButton("roadmap");
+}
+
+function bindMapUiControls() {
+    if (mapControlsBound) return;
+
+    document.getElementById("mapZoomIn")?.addEventListener("click", () => {
+        if (map) {
+            map.setZoom((map.getZoom() || 16) + 1);
+        }
+    });
+
+    document.getElementById("mapZoomOut")?.addEventListener("click", () => {
+        if (map) {
+            map.setZoom((map.getZoom() || 16) - 1);
+        }
+    });
+
+    document.getElementById("mapCurrentLocation")?.addEventListener("click", async () => {
+        const liveLocation = await getUserLocation();
+        const fallbackLocation = liveLocation || userLocation || getDefaultCoordinates();
+
+        if (!fallbackLocation) {
+            showToast("Current location is not available");
+            return;
+        }
+
+        userLocation = liveLocation || userLocation || fallbackLocation;
+        centerMapOn({
+            lat: fallbackLocation.lat,
+            lng: fallbackLocation.lng
+        });
+    });
+
+    document.querySelectorAll(".map-type-btn").forEach(button => {
+        button.addEventListener("click", () => {
+            setMapType(button.dataset.mapType);
+        });
+    });
+
+    document.getElementById("mapThemeToggle")?.addEventListener("click", () => {
+        const button = document.getElementById("mapThemeToggle");
+        const nextTheme = button?.dataset.mapTheme === "dark" ? "light" : "dark";
+        toggleMapTheme(nextTheme);
+    });
+
+    document.getElementById("mapFooterToggle")?.addEventListener("click", () => {
+        const tools = document.getElementById("mapFooterTools");
+        if (!tools) return;
+
+        const shouldCollapse = !tools.classList.contains("collapsed");
+        setMapFooterCollapsed(shouldCollapse);
+    });
+
+    mapControlsBound = true;
+}
+
+function setMapFooterCollapsed(collapsed) {
+    const tools = document.getElementById("mapFooterTools");
+    const toggle = document.getElementById("mapFooterToggle");
+    if (!tools || !toggle) return;
+
+    tools.classList.toggle("collapsed", collapsed);
+    toggle.classList.toggle("collapsed", collapsed);
+    toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+}
+
+function scheduleMapFooterAutoCollapse() {
+    clearTimeout(mapFooterCollapseTimer);
+    mapFooterCollapseTimer = setTimeout(() => {
+        setMapFooterCollapsed(true);
+    }, 3000);
+}
+
 function ensureMapInitialized() {
     if (!googleMapsReady || !window.google?.maps) return false;
 
@@ -1356,23 +1557,36 @@ function ensureMapInitialized() {
             center: defaultCoords,
             zoom: 16,
             disableDefaultUI: true,
-            zoomControl: true,
+            zoomControl: false,
             gestureHandling: "greedy",
-            styles: [
-                { elementType: "geometry", stylers: [{ color: "#121212" }] },
-                { elementType: "labels.text.fill", stylers: [{ color: "#d6b04e" }] },
-                { elementType: "labels.text.stroke", stylers: [{ color: "#121212" }] },
-                { featureType: "road", elementType: "geometry", stylers: [{ color: "#2a2a2a" }] },
-                { featureType: "poi", elementType: "geometry", stylers: [{ color: "#1a1a1a" }] },
-                { featureType: "water", elementType: "geometry", stylers: [{ color: "#0d2a3a" }] }
-            ]
+            keyboardShortcuts: false,
+            mapTypeControl: false,
+            fullscreenControl: true,
+            streetViewControl: false,
+            styles: darkStyle
+        });
+
+        map.setOptions({
+            draggable: true,
+            gestureHandling: "greedy"
         });
 
         geocoder = new google.maps.Geocoder();
-        map.addListener("idle", updateCurrentMapCenter);
+        map.addListener("drag", () => {
+            updateCurrentMapCenter();
+        });
+
+        map.addListener("center_changed", () => {
+            updateCurrentMapCenter();
+        });
+
+        map.addListener("dragend", () => {
+            updateCurrentMapCenter();
+        });
 
         const searchInput = document.getElementById("mapSearch");
         mapSearchBox = new google.maps.places.SearchBox(searchInput);
+        searchInput.setAttribute("autocomplete", "off");
         map.addListener("bounds_changed", () => {
             mapSearchBox.setBounds(map.getBounds());
         });
@@ -1389,9 +1603,12 @@ function ensureMapInitialized() {
                 lng: location.lng()
             });
         });
+
+        bindMapUiControls();
+        setMapType("roadmap");
+        toggleMapTheme("dark");
     } else {
         google.maps.event.trigger(map, "resize");
-        centerMapOn(defaultCoords, map.getZoom() || 16);
     }
 
     return true;
@@ -1409,6 +1626,16 @@ async function openMapPopup() {
     const popup = document.getElementById("mapPopup");
     popup.classList.add("show");
 
+    setMapFooterCollapsed(false);
+    scheduleMapFooterAutoCollapse();
+
+    const pin = document.querySelector(".map-center-pin");
+    if (pin) {
+        pin.classList.remove("drop-animation");
+        pin.classList.add("pick-animation");
+        setTimeout(() => pin.classList.remove("pick-animation"), 300);
+    }
+
     if (!ensureMapInitialized()) {
         popup.classList.remove("show");
         showToast("Map is still loading. Please wait a moment.");
@@ -1423,7 +1650,11 @@ async function openMapPopup() {
 }
 
 function closeMapPopup() {
-    document.getElementById("mapPopup").classList.remove("show");
+    const mapPopup = document.getElementById("mapPopup");
+    if (!mapPopup) return;
+
+    clearTimeout(mapFooterCollapseTimer);
+    mapPopup.classList.remove("show");
 }
 
 function showRangeConfirmPopup(message) {
@@ -1459,14 +1690,23 @@ function closeRangeConfirmPopup() {
 
 // ---------- CONFIRM MAP LOCATION ----------
 async function confirmMapLocation() {
-    if (!currentMapCenter?.lat || !currentMapCenter?.lng) {
+    const liveCenter = map?.getCenter
+        ? { lat: map.getCenter().lat(), lng: map.getCenter().lng() }
+        : currentMapCenter;
+
+    if (!liveCenter?.lat || !liveCenter?.lng) {
         showToast("Move the map to choose a location");
         return;
     }
 
-    const coords = { ...currentMapCenter };
+    if (navigator.vibrate) {
+        navigator.vibrate([20, 10, 40]);
+    }
+
+    const coords = { ...liveCenter };
     const addressData = await reverseGeocodeLocation(coords.lat, coords.lng);
     const addressField = document.getElementById("userAddress");
+    const userPinnedAddress = addressData.formattedAddress;
     const dropdown = document.getElementById("cityDropdown");
     const otherInput = document.getElementById("otherCityInput");
     const isOtherMode = dropdown?.value === "Other";
@@ -1480,7 +1720,7 @@ async function confirmMapLocation() {
         selectedMapLng = coords.lng;
 
         if (addressField) {
-            addressField.value = addressData.formattedAddress;
+            addressField.value = userPinnedAddress;
         }
 
         if (otherInput && addressData.cityName && !otherInput.value.trim()) {
@@ -1498,7 +1738,7 @@ async function confirmMapLocation() {
         selectedMapLng = coords.lng;
 
         if (addressField) {
-            addressField.value = addressData.formattedAddress;
+            addressField.value = userPinnedAddress;
         }
 
         closeMapPopup();
@@ -1533,7 +1773,7 @@ async function confirmMapLocation() {
     selectedMapLng = coords.lng;
 
     if (addressField) {
-        addressField.value = addressData.formattedAddress;
+        addressField.value = userPinnedAddress;
     }
 
     closeMapPopup();
@@ -1931,6 +2171,8 @@ async function init() {
     dropdown.innerHTML = availableCities.map(c => `<option value="${c}">${c}</option>`).join("");
     dropdown.innerHTML += `<option value="Other">🏙️ Other City</option>`;
     otherInput.placeholder = "Enter your city name";
+    moveCitySelectorToTopBar();
+    revealAppAfterLocationReady();
 
     await resolveInitialLocationFlow();
 
