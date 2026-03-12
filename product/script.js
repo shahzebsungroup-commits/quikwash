@@ -10,8 +10,14 @@ let currentCity = null;
 let userLocation = null;
 let selectedMapLat = null;
 let selectedMapLng = null;
+let allPartners = [];
 let map = null;
-let marker = null;
+let mapSearchBox = null;
+let geocoder = null;
+let googleMapsReady = false;
+let currentMapCenter = null;
+
+const DEFAULT_CITY = "Rampur";
 
 // ---------- TIMESTAMP FUNCTION ----------
 function getFormattedTimestamp() {
@@ -163,55 +169,365 @@ async function getUserLocation() {
 // ---------- DISTANCE ----------
 function isWithinRange(userLat, userLng, partner) {
     if (!partner.office_lat || !partner.office_lng) return false;
+    const officeLat = Number(partner.office_lat);
+    const officeLng = Number(partner.office_lng);
+    const serviceRange = Number(partner.service_range_km || 0);
     const R = 6371;
-    const dLat = (partner.office_lat - userLat) * Math.PI / 180;
-    const dLng = (partner.office_lng - userLng) * Math.PI / 180;
+    const dLat = (officeLat - userLat) * Math.PI / 180;
+    const dLng = (officeLng - userLng) * Math.PI / 180;
     const a = Math.sin(dLat / 2) ** 2 +
               Math.cos(userLat * Math.PI / 180) *
-              Math.cos(partner.office_lat * Math.PI / 180) *
+              Math.cos(officeLat * Math.PI / 180) *
               Math.sin(dLng / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distance = R * c;
-    return distance <= (partner.service_range_km || 0);
+    return distance <= serviceRange;
 }
 
 // ---------- FETCH CITIES ----------
-async function fetchCities() {
+async function fetchAllPartners() {
     try {
         const res = await fetch(`${BASE_URL}/kwikkwash/partners/all`);
-        const data = await res.json();
-        return [...new Set(data.map(p => p.city).filter(Boolean))];
+        allPartners = await res.json();
+        return allPartners;
     } catch (error) {
-        console.error("Error fetching cities:", error);
+        console.error("Error fetching partners:", error);
+        allPartners = [];
         return [];
     }
 }
 
-// ---------- DETECT CITY ----------
-async function detectCity(location) {
-    if (!location) return null;
-    try {
-        const res = await fetch(`${BASE_URL}/kwikkwash/partners/all`);
-        const partners = await res.json();
-        for (let p of partners) {
-            if (isWithinRange(location.lat, location.lng, p)) {
-                return p.city;
+async function fetchCities() {
+    const partners = allPartners.length ? allPartners : await fetchAllPartners();
+    return [...new Set(partners.map(p => p.city).filter(Boolean))];
+}
+
+function normalizeCityName(value) {
+    if (!value) return "";
+
+    return value
+        .toLowerCase()
+        .replace(/\s+/g, "")
+        .replace(/[^a-z]/g, "")
+        .replace(/aa/g, "a")
+        .replace(/oo/g, "u")
+        .replace(/[aeiou]/g, match => {
+            if (match === "a" || match === "e" || match === "i" || match === "o" || match === "u") {
+                return "a";
+            }
+            return match;
+        });
+}
+
+function fuzzyMatchCity(input, cityList) {
+    const normalizedInput = normalizeCityName(input);
+    if (!normalizedInput || normalizedInput.length < 2) return null;
+
+    for (const city of cityList) {
+        const normalizedCity = normalizeCityName(city);
+        if (normalizedInput === normalizedCity) {
+            return city;
+        }
+    }
+
+    for (const city of cityList) {
+        const normalizedCity = normalizeCityName(city);
+        if (
+            normalizedCity.includes(normalizedInput) ||
+            normalizedInput.includes(normalizedCity)
+        ) {
+            return city;
+        }
+    }
+
+    for (const city of cityList) {
+        const normalizedCity = normalizeCityName(city);
+        if (normalizedCity.length >= 3 && normalizedInput.length >= 3) {
+            if (normalizedCity.substring(0, 3) === normalizedInput.substring(0, 3)) {
+                return city;
             }
         }
-    } catch (error) {
-        console.error("Error detecting city:", error);
     }
+
     return null;
+}
+
+function resolveKnownCityName(city) {
+    if (!city) return null;
+    return fuzzyMatchCity(city, availableCities) || city;
+}
+
+function getPartnersForCity(city) {
+    const resolvedCity = resolveKnownCityName(city);
+    const normalizedTarget = normalizeCityName(resolvedCity || city);
+    return allPartners.filter(partner => normalizeCityName(partner.city) === normalizedTarget);
+}
+
+function getDefaultPartner() {
+    return (
+        getPartnersForCity(DEFAULT_CITY).find(partner => partner.office_lat && partner.office_lng) ||
+        allPartners.find(partner => partner.office_lat && partner.office_lng) ||
+        null
+    );
+}
+
+function getDefaultCoordinates() {
+    const defaultPartner = getDefaultPartner();
+    if (!defaultPartner) return null;
+
+    return {
+        lat: Number(defaultPartner.office_lat),
+        lng: Number(defaultPartner.office_lng)
+    };
+}
+
+function setOtherCityMode(visible, value = "") {
+    const otherInput = document.getElementById("otherCityInput");
+    if (!otherInput) return;
+
+    otherInput.style.display = visible ? "block" : "none";
+    otherInput.required = visible;
+    otherInput.value = value;
+}
+
+function setDropdownToCity(city) {
+    const dropdown = document.getElementById("cityDropdown");
+    if (dropdown) {
+        dropdown.value = city;
+    }
+}
+
+function showCityEntryPrompt(message = "Enter your city to see available services") {
+    const container = document.getElementById("servicesList");
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="empty-state">
+            <i class="fas fa-city"></i>
+            <p>${message}</p>
+        </div>
+    `;
+}
+
+function clearTransientBookingUi() {
+    document.getElementById("slotsContainer").innerHTML = "";
+    const slotsSection = document.getElementById("slotsSection");
+    if (slotsSection) slotsSection.style.display = "none";
+
+    document.getElementById("userFormContainer").style.display = "none";
+    window.__slotData = null;
+    window.__selectedSlot = null;
+}
+
+async function applyFallbackToOther(prefill = "") {
+    setDropdownToCity("Other");
+    setOtherCityMode(true, prefill);
+    currentCity = DEFAULT_CITY;
+    clearTransientBookingUi();
+    await loadServicesFromDefault();
+}
+
+function prepareOtherCitySelection(prefill = "", message = "Enter your city to see available services") {
+    setDropdownToCity("Other");
+    setOtherCityMode(true, prefill);
+    clearTransientBookingUi();
+    currentCity = null;
+    showCityEntryPrompt(message);
+}
+
+async function applyOtherCityResolution(cityName, { loadDefaultOnNoMatch = true } = {}) {
+    const trimmedCity = (cityName || "").trim();
+    const matchedCity = fuzzyMatchCity(trimmedCity, availableCities);
+
+    if (matchedCity) {
+        setDropdownToCity(matchedCity);
+        setOtherCityMode(false);
+        currentCity = matchedCity;
+        await loadServicesForCity(matchedCity);
+        return { matched: true, city: matchedCity };
+    }
+
+    setDropdownToCity("Other");
+    setOtherCityMode(true, trimmedCity);
+
+    if (loadDefaultOnNoMatch && trimmedCity) {
+        currentCity = DEFAULT_CITY;
+        await loadServicesFromDefault();
+        return { matched: false, city: trimmedCity, usedDefault: true };
+    }
+
+    currentCity = null;
+    clearTransientBookingUi();
+    showCityEntryPrompt();
+    return { matched: false, city: trimmedCity, usedDefault: false };
+}
+
+function findNearestPartnerInRange(coords, partners = allPartners) {
+    let nearestPartner = null;
+    let shortestDistance = Infinity;
+
+    for (const partner of partners) {
+        if (!isWithinRange(coords.lat, coords.lng, partner)) continue;
+
+        const distance = getDistanceKm(coords.lat, coords.lng, Number(partner.office_lat), Number(partner.office_lng));
+        if (distance < shortestDistance) {
+            shortestDistance = distance;
+            nearestPartner = partner;
+        }
+    }
+
+    return nearestPartner;
+}
+
+function getDistanceKm(lat1, lng1, lat2, lng2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLng / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+function getCityPartners(city) {
+    if (!city || city === "Other") return [];
+    return getPartnersForCity(city);
+}
+
+function extractCityFromAddressComponents(addressComponents = []) {
+    const priorityTypes = [
+        "locality",
+        "postal_town",
+        "administrative_area_level_2",
+        "administrative_area_level_1"
+    ];
+
+    for (const type of priorityTypes) {
+        const component = addressComponents.find(item => item.types?.includes(type));
+        if (component) {
+            return component.long_name;
+        }
+    }
+
+    return "";
+}
+
+async function waitForGoogleMapsReady(timeoutMs = 4000) {
+    if (googleMapsReady && window.google?.maps) return true;
+
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+        if (googleMapsReady && window.google?.maps) {
+            return true;
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    return false;
+}
+
+async function getBrowserLocationPermissionState() {
+    if (!navigator.permissions?.query) return "prompt";
+
+    try {
+        const result = await navigator.permissions.query({ name: "geolocation" });
+        return result.state || "prompt";
+    } catch (error) {
+        return "prompt";
+    }
+}
+
+async function showLocationPermissionPopup() {
+    const popup = document.getElementById("locationPopup");
+    const allowBtn = document.getElementById("allowLocationBtn");
+    const denyBtn = document.getElementById("denyLocationBtn");
+    const rememberCheck = document.getElementById("rememberLocationChoice");
+    const permissionState = await getBrowserLocationPermissionState();
+
+    const savedPref = localStorage.getItem("locationPref");
+    if (savedPref === "allowed" && permissionState === "granted") {
+        return Promise.resolve(true);
+    }
+    if (savedPref === "denied") {
+        return Promise.resolve(false);
+    }
+
+    return new Promise((resolve) => {
+        const cleanup = () => {
+            popup.classList.remove("show");
+            allowBtn.onclick = null;
+            denyBtn.onclick = null;
+        };
+
+        allowBtn.onclick = () => {
+            const remember = rememberCheck?.checked || false;
+            if (remember) {
+                localStorage.setItem("locationPref", "allowed");
+            }
+            cleanup();
+            resolve(true);
+        };
+
+        denyBtn.onclick = () => {
+            const remember = rememberCheck?.checked || false;
+            if (remember) {
+                localStorage.setItem("locationPref", "denied");
+            }
+            cleanup();
+            resolve(false);
+        };
+
+        popup.classList.add("show");
+    });
+}
+
+async function resolveInitialLocationFlow() {
+    const allowed = await showLocationPermissionPopup();
+
+    if (!allowed) {
+        prepareOtherCitySelection();
+        return;
+    }
+
+    userLocation = await getUserLocation();
+    const detectedCity = detectCity(userLocation);
+
+    if (detectedCity && availableCities.includes(detectedCity)) {
+        setDropdownToCity(detectedCity);
+        setOtherCityMode(false);
+        await loadServicesForCity(detectedCity);
+        return;
+    }
+
+    if (!userLocation) {
+        prepareOtherCitySelection();
+        return;
+    }
+
+    await waitForGoogleMapsReady();
+    const addressData = await reverseGeocodeLocation(userLocation.lat, userLocation.lng);
+    if (addressData.cityName) {
+        await applyOtherCityResolution(addressData.cityName, { loadDefaultOnNoMatch: true });
+        return;
+    }
+
+    prepareOtherCitySelection();
+}
+
+// ---------- DETECT CITY ----------
+function detectCity(location) {
+    if (!location) return null;
+    const partner = findNearestPartnerInRange(location);
+    return partner?.city || null;
 }
 
 // ---------- LOAD DEFAULT SERVICES ----------
 async function loadServicesFromDefault() {
     try {
-        // Set dropdown to Rampur
-        const dropdown = document.getElementById("cityDropdown");
-        dropdown.value = "Rampur";
-        
-        currentCity = "Rampur";
+        currentCity = DEFAULT_CITY;
+        console.log("Loading default services for:", currentCity);
         
         const container = document.getElementById("servicesList");
         container.innerHTML = `
@@ -219,14 +535,13 @@ async function loadServicesFromDefault() {
                 <div class="loading-spinner"></div>
                 <div class="loading-text">
                     <i class="fas fa-clock"></i>
-                    Loading default services...
+                    Loading services...
                 </div>
             </div>
         `;
         
-        const res = await fetch(`${BASE_URL}/kwikkwash/partner-services?partner_code=01`);
-        const services = await res.json();
-        const activeServices = services.filter(s => s.active === 1);
+        const activeServices = await fetchServices(DEFAULT_CITY);
+        console.log("Default services received:", activeServices.length);
         renderServices(activeServices);
         
         const slotsSection = document.getElementById("slotsSection");
@@ -252,16 +567,40 @@ async function loadServicesFromDefault() {
 async function fetchServices(city) {
     if (!city) return [];
     try {
-        const actualCity = city === "Other"
+        const requestedCity = city === "Other"
             ? (currentCity || "Rampur")
             : (city.startsWith("Other,") ? city.split(",")[1] : city);
+        const actualCity = resolveKnownCityName(requestedCity) || requestedCity;
+        console.log("Fetching services for:", actualCity, "currentCity:", currentCity);
             
         const resPartners = await fetch(`${BASE_URL}/kwikkwash/partners/city/${encodeURIComponent(actualCity)}`);
-        const partners = await resPartners.json();
+        let partners = [];
+
+        if (!resPartners.ok) {
+            console.warn("Partners API failed, trying cached partner data");
+            partners = getPartnersForCity(actualCity);
+        } else {
+            partners = await resPartners.json();
+        }
+
+        if (!Array.isArray(partners) || partners.length === 0) {
+            partners = getPartnersForCity(actualCity);
+        }
+
+        if (!Array.isArray(partners) || partners.length === 0) {
+            if (actualCity !== DEFAULT_CITY) {
+                console.warn("No partners found, retrying with default city");
+                return fetchServices(DEFAULT_CITY);
+            }
+            return [];
+        }
+
         let servicesMap = {};
 
         for (let p of partners) {
             const res = await fetch(`${BASE_URL}/kwikkwash/partner-services?partner_code=${p.partner_code}`);
+            if (!res.ok) continue;
+
             const services = await res.json();
             for (let s of services) {
                 if (s.active === 1) {
@@ -275,15 +614,32 @@ async function fetchServices(city) {
             }
         }
 
-        return Object.entries(servicesMap).map(([code, data]) => ({
+        const services = Object.entries(servicesMap).map(([code, data]) => ({
             service_code: code,
             price: data.price,
             units: data.units,
             short_details: data.short_details,
             long_details: data.long_details
         }));
+
+        if (services.length === 0) {
+            if (actualCity !== DEFAULT_CITY) {
+                console.warn("No services found, retrying with default city");
+                return fetchServices(DEFAULT_CITY);
+            }
+            return [];
+        }
+
+        return services;
     } catch (error) {
         console.error("Error fetching services:", error);
+        const requestedCity = city === "Other"
+            ? (currentCity || "Rampur")
+            : (city.startsWith("Other,") ? city.split(",")[1] : city);
+        const actualCity = resolveKnownCityName(requestedCity) || requestedCity;
+        if (actualCity !== DEFAULT_CITY) {
+            return fetchServices(DEFAULT_CITY);
+        }
         return [];
     }
 }
@@ -484,6 +840,18 @@ function updateTotal() {
     document.getElementById("subtotal").innerText = subtotal.toFixed(2);
     document.getElementById("gst").innerText = gst.toFixed(2);
     document.getElementById("total").innerText = total.toFixed(2);
+}
+
+function clearSelectedServices() {
+    selectedServices = [];
+    document.querySelectorAll(".service-checkbox-input").forEach(cb => {
+        cb.checked = false;
+    });
+    document.querySelectorAll(".service-card").forEach(card => {
+        card.classList.remove("selected");
+    });
+    updateTotal();
+    updateServiceCount();
 }
 
 // ---------- LOAD SERVICES FOR CITY ----------
@@ -862,99 +1230,315 @@ function hideUserForm() {
     if (slotsSection) slotsSection.style.display = 'block';
 }
 
-// ---------- REVERSE GEOCODING ----------
-async function getAddressFromLatLng(lat, lng) {
+// ---------- GEOCODING ----------
+async function reverseGeocodeLocation(lat, lng) {
+    if (!window.google?.maps) {
+        return {
+            formattedAddress: `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+            cityName: ""
+        };
+    }
+
+    if (!geocoder) {
+        geocoder = new google.maps.Geocoder();
+    }
+
     try {
-        const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`
-        );
-        const data = await res.json();
-        return data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        const response = await geocoder.geocode({
+            location: { lat, lng }
+        });
+        const result = response.results?.[0];
+
+        return {
+            formattedAddress: result?.formatted_address || `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+            cityName: extractCityFromAddressComponents(result?.address_components || [])
+        };
     } catch (error) {
         console.error("Reverse geocoding error:", error);
-        return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        return {
+            formattedAddress: `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+            cityName: ""
+        };
     }
 }
 
-// ---------- MAP FUNCTIONS ----------
-function openMapPopup() {
-    const popup = document.getElementById('mapPopup');
-    popup.classList.add('show');
-    
-    // Initialize map if not already done
-    if (!map) {
-        initMap();
-    } else {
-        setTimeout(() => {
-            map.invalidateSize();
-        }, 100);
+async function geocodeCityName(cityName) {
+    const query = (cityName || "").trim();
+    if (!query || !window.google?.maps) return null;
+
+    if (!geocoder) {
+        geocoder = new google.maps.Geocoder();
     }
-    
-    // Attach confirm button event
+
+    try {
+        const response = await geocoder.geocode({ address: query });
+        const location = response.results?.[0]?.geometry?.location;
+        if (!location) return null;
+
+        return {
+            lat: location.lat(),
+            lng: location.lng()
+        };
+    } catch (error) {
+        console.error("City geocoding error:", error);
+        return null;
+    }
+}
+
+function getSelectedCityCoordinates() {
+    const dropdown = document.getElementById("cityDropdown");
+    const selectedValue = dropdown?.value;
+    if (!selectedValue || selectedValue === "Other") return null;
+
+    const partner = getPartnersForCity(selectedValue).find(item => item.office_lat && item.office_lng);
+    if (!partner) return null;
+
+    return {
+        lat: Number(partner.office_lat),
+        lng: Number(partner.office_lng)
+    };
+}
+
+async function getPreferredMapCenter() {
+    if (selectedMapLat && selectedMapLng) {
+        return {
+            lat: selectedMapLat,
+            lng: selectedMapLng
+        };
+    }
+
+    const selectedCityCoords = getSelectedCityCoordinates();
+    if (selectedCityCoords) return selectedCityCoords;
+
+    const otherInputValue = document.getElementById("otherCityInput")?.value.trim();
+    if (otherInputValue) {
+        const typedCityCoords = await geocodeCityName(otherInputValue);
+        if (typedCityCoords) return typedCityCoords;
+    }
+
+    if (userLocation?.lat && userLocation?.lng) {
+        return userLocation;
+    }
+
+    return getDefaultCoordinates() || { lat: 28.6139, lng: 77.209 };
+}
+
+// ---------- MAP FUNCTIONS ----------
+function updateCurrentMapCenter() {
+    if (!map) return;
+
+    const center = map.getCenter();
+    currentMapCenter = {
+        lat: center.lat(),
+        lng: center.lng()
+    };
+    selectedMapLat = currentMapCenter.lat;
+    selectedMapLng = currentMapCenter.lng;
+}
+
+function centerMapOn(coords, zoom = 16) {
+    if (!map || !coords) return;
+
+    map.setCenter(coords);
+    map.setZoom(zoom);
+    currentMapCenter = { ...coords };
+    selectedMapLat = coords.lat;
+    selectedMapLng = coords.lng;
+}
+
+function ensureMapInitialized() {
+    if (!googleMapsReady || !window.google?.maps) return false;
+
+    const defaultCoords = userLocation || getDefaultCoordinates() || { lat: 28.6139, lng: 77.209 };
+
+    if (!map) {
+        map = new google.maps.Map(document.getElementById("mapContainer"), {
+            center: defaultCoords,
+            zoom: 16,
+            disableDefaultUI: true,
+            zoomControl: true,
+            gestureHandling: "greedy",
+            styles: [
+                { elementType: "geometry", stylers: [{ color: "#121212" }] },
+                { elementType: "labels.text.fill", stylers: [{ color: "#d6b04e" }] },
+                { elementType: "labels.text.stroke", stylers: [{ color: "#121212" }] },
+                { featureType: "road", elementType: "geometry", stylers: [{ color: "#2a2a2a" }] },
+                { featureType: "poi", elementType: "geometry", stylers: [{ color: "#1a1a1a" }] },
+                { featureType: "water", elementType: "geometry", stylers: [{ color: "#0d2a3a" }] }
+            ]
+        });
+
+        geocoder = new google.maps.Geocoder();
+        map.addListener("idle", updateCurrentMapCenter);
+
+        const searchInput = document.getElementById("mapSearch");
+        mapSearchBox = new google.maps.places.SearchBox(searchInput);
+        map.addListener("bounds_changed", () => {
+            mapSearchBox.setBounds(map.getBounds());
+        });
+
+        mapSearchBox.addListener("places_changed", () => {
+            const places = mapSearchBox.getPlaces();
+            const place = places?.[0];
+            const location = place?.geometry?.location;
+
+            if (!location) return;
+
+            centerMapOn({
+                lat: location.lat(),
+                lng: location.lng()
+            });
+        });
+    } else {
+        google.maps.event.trigger(map, "resize");
+        centerMapOn(defaultCoords, map.getZoom() || 16);
+    }
+
+    return true;
+}
+
+function initMap() {
+    window.googleMapsReady = true;
+    googleMapsReady = true;
+    if (document.getElementById("mapPopup")?.classList.contains("show")) {
+        ensureMapInitialized();
+    }
+}
+
+async function openMapPopup() {
+    const popup = document.getElementById("mapPopup");
+    popup.classList.add("show");
+
+    if (!ensureMapInitialized()) {
+        popup.classList.remove("show");
+        showToast("Map is still loading. Please wait a moment.");
+        return;
+    }
+
+    const preferredCoords = await getPreferredMapCenter();
+
     setTimeout(() => {
-        const confirmBtn = document.getElementById("confirmMapLocation");
-        if (confirmBtn) {
-            confirmBtn.onclick = confirmMapLocation;
-        }
+        centerMapOn(preferredCoords);
     }, 100);
 }
 
 function closeMapPopup() {
-    document.getElementById('mapPopup').classList.remove('show');
+    document.getElementById("mapPopup").classList.remove("show");
 }
 
-function initMap() {
-    // Default to India center or user location if available
-    const defaultLat = userLocation?.lat || 28.6139;
-    const defaultLng = userLocation?.lng || 77.2090;
-    
-    map = L.map('mapContainer').setView([defaultLat, defaultLng], 15);
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-    
-    // Add draggable marker
-    marker = L.marker([defaultLat, defaultLng], {
-        draggable: true,
-        autoPan: true
-    }).addTo(map);
-    
-    // Update coordinates when marker is dragged
-    marker.on('dragend', function(e) {
-        const position = marker.getLatLng();
-        selectedMapLat = position.lat;
-        selectedMapLng = position.lng;
-    });
-    
-    // Set initial selected coordinates
-    selectedMapLat = defaultLat;
-    selectedMapLng = defaultLng;
-}
+function showRangeConfirmPopup(message) {
+    const popup = document.getElementById("rangeConfirmPopup");
+    const messageEl = document.getElementById("rangeConfirmMessage");
+    const cancelBtn = document.getElementById("rangeCancelBtn");
+    const proceedBtn = document.getElementById("rangeProceedBtn");
 
-// ---------- CONFIRM MAP LOCATION (UPDATED) ----------
-async function confirmMapLocation() {
-    if (selectedMapLat && selectedMapLng) {
-        // Update userLocation with map selected coordinates
-        userLocation = {
-            lat: selectedMapLat,
-            lng: selectedMapLng
+    messageEl.textContent = message;
+
+    return new Promise((resolve) => {
+        const cleanup = (result) => {
+            popup.classList.remove("show");
+            cancelBtn.onclick = null;
+            proceedBtn.onclick = null;
+            resolve(result);
         };
-        
-        // Get street address from coordinates
-        const address = await getAddressFromLatLng(selectedMapLat, selectedMapLng);
-        
-        // Update address field with fetched address (replace, not append)
-        const addressField = document.getElementById('userAddress');
-        if (addressField) {
-            addressField.value = address;
-        }
-        
-        showToast('📍 Location selected from map');
-        closeMapPopup();
-    }
+
+        cancelBtn.onclick = () => cleanup(false);
+        proceedBtn.onclick = () => cleanup(true);
+        popup.classList.add("show");
+    });
 }
 
+function closeRangeConfirmPopup() {
+    const cancelBtn = document.getElementById("rangeCancelBtn");
+    if (cancelBtn?.onclick) {
+        cancelBtn.onclick();
+        return;
+    }
+    document.getElementById("rangeConfirmPopup").classList.remove("show");
+}
+
+// ---------- CONFIRM MAP LOCATION ----------
+async function confirmMapLocation() {
+    if (!currentMapCenter?.lat || !currentMapCenter?.lng) {
+        showToast("Move the map to choose a location");
+        return;
+    }
+
+    const coords = { ...currentMapCenter };
+    const addressData = await reverseGeocodeLocation(coords.lat, coords.lng);
+    const addressField = document.getElementById("userAddress");
+    const dropdown = document.getElementById("cityDropdown");
+    const otherInput = document.getElementById("otherCityInput");
+    const isOtherMode = dropdown?.value === "Other";
+    const selectedCity = dropdown?.value === "Other" ? (currentCity || DEFAULT_CITY) : dropdown?.value;
+    const currentCityPartners = getCityPartners(selectedCity);
+    const withinCurrentRange = currentCityPartners.some(partner => isWithinRange(coords.lat, coords.lng, partner));
+
+    if (isOtherMode) {
+        userLocation = coords;
+        selectedMapLat = coords.lat;
+        selectedMapLng = coords.lng;
+
+        if (addressField) {
+            addressField.value = addressData.formattedAddress;
+        }
+
+        if (otherInput && addressData.cityName && !otherInput.value.trim()) {
+            otherInput.value = addressData.cityName;
+        }
+
+        closeMapPopup();
+        showToast("Location updated");
+        return;
+    }
+
+    if (withinCurrentRange) {
+        userLocation = coords;
+        selectedMapLat = coords.lat;
+        selectedMapLng = coords.lng;
+
+        if (addressField) {
+            addressField.value = addressData.formattedAddress;
+        }
+
+        closeMapPopup();
+        showToast("Location updated");
+        return;
+    }
+
+    const confirmed = await showRangeConfirmPopup(
+        `This pin is outside ${selectedCity}'s active service zone. If you continue, we may need to refresh your city and selected services before checkout.`
+    );
+
+    if (!confirmed) {
+        closeMapPopup();
+        return;
+    }
+
+    clearSelectedServices();
+
+    const partnerMatch = findNearestPartnerInRange(coords);
+    if (partnerMatch?.city && availableCities.includes(partnerMatch.city)) {
+        setDropdownToCity(partnerMatch.city);
+        setOtherCityMode(false);
+        await loadServicesForCity(partnerMatch.city);
+    } else {
+        setDropdownToCity("Other");
+        setOtherCityMode(true, addressData.cityName || "");
+        await loadServicesFromDefault();
+    }
+
+    userLocation = coords;
+    selectedMapLat = coords.lat;
+    selectedMapLng = coords.lng;
+
+    if (addressField) {
+        addressField.value = addressData.formattedAddress;
+    }
+
+    closeMapPopup();
+    showToast("Location updated");
+}
 // ---------- SHOW BOOKING CONFIRMATION POPUP ----------
 function showBookingConfirmPopup() {
     // Strong vibration when popup opens
@@ -1325,13 +1909,20 @@ document.addEventListener('click', function(e) {
             closeConfirmPopup();
         }
     }
+
+    const rangePopup = document.getElementById('rangeConfirmPopup');
+    if (rangePopup && rangePopup.classList.contains('show')) {
+        if (e.target === rangePopup) {
+            closeRangeConfirmPopup();
+        }
+    }
 });
 
 // ---------- INIT FUNCTION ----------
 async function init() {
     console.log("🚀 init() called");
-    
-    userLocation = await getUserLocation();
+
+    await fetchAllPartners();
     availableCities = await fetchCities();
 
     const dropdown = document.getElementById("cityDropdown");
@@ -1339,49 +1930,17 @@ async function init() {
 
     dropdown.innerHTML = availableCities.map(c => `<option value="${c}">${c}</option>`).join("");
     dropdown.innerHTML += `<option value="Other">🏙️ Other City</option>`;
+    otherInput.placeholder = "Enter your city name";
 
-    let detectedCity = await detectCity(userLocation);
-    
-    if (detectedCity && availableCities.includes(detectedCity)) {
-        dropdown.value = detectedCity;
-        await loadServicesForCity(detectedCity);
-    } else {
-        dropdown.value = "Other";
-        otherInput.style.display = "block";
-        otherInput.required = true;
-        otherInput.placeholder = "Enter your city name";
-        
-        // Do NOT auto-select Rampur, let user enter city
-        document.getElementById("servicesList").innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-city"></i>
-                <p>Enter your city to see available services</p>
-            </div>
-        `;
-    }
+    await resolveInitialLocationFlow();
 
     dropdown.addEventListener("change", async function(e) {
         if (e.target.value === "Other") {
-            otherInput.style.display = "block";
-            otherInput.required = true;
-            document.getElementById("servicesList").innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-city"></i>
-                    <p>Enter your city to see available services</p>
-                </div>
-            `;
-            const slotsSection = document.getElementById("slotsSection");
-            if (slotsSection) slotsSection.style.display = 'none';
-            
-            document.getElementById("userFormContainer").style.display = 'none';
-            window.__selectedSlot = null;
+            prepareOtherCitySelection(otherInput.value.trim());
         } else {
-            otherInput.style.display = "none";
-            otherInput.required = false;
-            otherInput.value = "";
+            setOtherCityMode(false);
             await loadServicesForCity(e.target.value);
-            document.getElementById("userFormContainer").style.display = 'none';
-            window.__selectedSlot = null;
+            clearTransientBookingUi();
         }
     });
 
@@ -1389,57 +1948,33 @@ async function init() {
         const city = otherInput.value.trim();
         clearTimeout(typingTimer);
 
-        if (city.length < 3) {
-            document.getElementById("servicesList").innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-search"></i>
-                    <p>Enter at least 3 characters to search</p>
-                </div>
-            `;
+        if (!city) {
+            prepareOtherCitySelection();
             return;
         }
 
-        document.getElementById("servicesList").innerHTML = `
-            <div class="loading-container">
-                <div class="loading-spinner"></div>
-                <div class="loading-text">
-                    <i class="fas fa-search"></i>
-                    Searching services...
-                </div>
-            </div>
-        `;
+        if (city.length < 3) {
+            return;
+        }
 
         typingTimer = setTimeout(async () => {
-const matchedCity = availableCities.find(c => 
-    c.trim().toLowerCase() === city.trim().toLowerCase()
-);
-
-            if (matchedCity) {
-                dropdown.value = matchedCity;
-                otherInput.style.display = "none";
-                otherInput.required = false;
-                otherInput.value = "";
-                await loadServicesForCity(matchedCity);
-            } else {
-                // Only load default if user explicitly types and no match
-                loadServicesFromDefault();
-            }
+            await applyOtherCityResolution(city, { loadDefaultOnNoMatch: true });
         }, 1500);
     });
 
     document.getElementById("nextBtn").addEventListener("click", handleNextClick);
-    
+    document.getElementById("confirmMapLocation").addEventListener("click", confirmMapLocation);
+
     updateServiceCount();
-    
+
     const slotsSection = document.getElementById("slotsSection");
-    if (slotsSection) slotsSection.style.display = 'none';
-    
+    if (slotsSection) slotsSection.style.display = "none";
+
     const nextBtn = document.getElementById("nextBtn");
     if (nextBtn) {
         nextBtn.style.display = "none";
     }
 }
-
 function initFooterAccordions() {
     const sections = Array.from(document.querySelectorAll(".about-toggle, .faq-toggle"));
     if (!sections.length) return;
@@ -1507,7 +2042,11 @@ window.closeInfoModal = closeInfoModal;
 window.showSlotFullPopup = showSlotFullPopup;
 window.openMapPopup = openMapPopup;
 window.closeMapPopup = closeMapPopup;
+window.initMap = initMap;
 window.confirmMapLocation = confirmMapLocation;
 window.showBookingConfirmPopup = showBookingConfirmPopup;
 window.closeConfirmPopup = closeConfirmPopup;
+window.closeRangeConfirmPopup = closeRangeConfirmPopup;
 window.proceedToBooking = proceedToBooking;
+
+

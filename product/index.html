@@ -11,9 +11,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- Leaflet for Map -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Google Maps API load karo bina browser popup ke
+        window.initMap = function() {
+            window.googleMapsReady = true;
+            console.log('Google Maps ready');
+        };
+
+        (function loadGoogleMaps() {
+            const script = document.createElement('script');
+            script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyB82gWcx0dAeta4yTi7ZjmNjAa-CgC1aI0&libraries=places,geometry&callback=initMap&v=weekly';
+            script.async = true;
+            script.defer = true;
+            script.onerror = () => console.error('Google Maps failed to load');
+            document.head.appendChild(script);
+        })();
+    </script>
     
     <!-- html2canvas for screenshot -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -304,6 +317,35 @@
         </div>
     </div>
 
+    <!-- Location Permission Popup -->
+    <div id="locationPopup" class="location-popup">
+        <div class="location-popup-content">
+            <div class="location-popup-header">
+                <div class="location-popup-badge">Fastest setup</div>
+                <h3><i class="fas fa-location-crosshairs"></i> Turn On Location</h3>
+            </div>
+            <div class="location-popup-body">
+                <p>Use your current location to instantly check the right city, service availability, and the fastest booking flow near you.</p>
+                <p class="location-popup-note">You can still continue manually if you prefer.</p>
+            </div>
+            <div class="location-popup-remember">
+                <label>
+                    <input type="checkbox" id="rememberLocationChoice" checked>
+                    <span>Remember my choice</span>
+                    <span class="location-popup-remember-hint">for this device</span>
+                </label>
+            </div>
+            <div class="location-popup-actions">
+                <button id="denyLocationBtn" class="confirm-btn cancel" type="button">
+                    <i class="fas fa-times"></i> Enter Manually
+                </button>
+                <button id="allowLocationBtn" class="confirm-btn confirm" type="button">
+                    <i class="fas fa-location-arrow"></i> Use My Location
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Map Popup -->
     <div id="mapPopup" class="map-popup">
         <div class="map-popup-content">
@@ -311,10 +353,42 @@
                 <h3><i class="fas fa-map-pin"></i> Select Location on Map</h3>
                 <button class="map-popup-close" onclick="closeMapPopup()">✕</button>
             </div>
-            <div id="mapContainer"></div>
+            <div class="map-search-bar">
+                <input id="mapSearch" type="text" placeholder="Search for a city or place">
+            </div>
+            <div class="map-stage">
+                <div id="mapContainer"></div>
+                <div class="map-center-pin" aria-hidden="true">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+            </div>
             <div class="map-popup-footer">
-                <p><i class="fas fa-info-circle"></i> Drag the pin to your exact location</p>
+                <p><i class="fas fa-info-circle"></i> Move the map until the pin is over your exact location</p>
                 <button id="confirmMapLocation" class="map-confirm-btn">Confirm Location</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Location Range Confirmation Popup -->
+    <div id="rangeConfirmPopup" class="confirm-popup">
+        <div class="confirm-box confirm-box-warning">
+            <div class="confirm-header">
+                <h3><i class="fas fa-compass"></i> Update Service Area?</h3>
+            </div>
+            <div class="confirm-body">
+                <div class="range-confirm-icon">
+                    <i class="fas fa-location-crosshairs"></i>
+                </div>
+                <p id="rangeConfirmMessage" class="range-confirm-message"></p>
+                <p class="range-confirm-subtext">We'll keep your address, but services and city availability may need a quick refresh.</p>
+            </div>
+            <div class="confirm-buttons">
+                <button id="rangeCancelBtn" class="confirm-btn cancel" type="button">
+                    <i class="fas fa-arrow-left"></i> Keep Current
+                </button>
+                <button id="rangeProceedBtn" class="confirm-btn confirm" type="button">
+                    <i class="fas fa-check"></i> Update Area
+                </button>
             </div>
         </div>
     </div>
