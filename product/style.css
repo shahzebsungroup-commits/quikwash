@@ -2535,9 +2535,11 @@ body.app-loading > *:not(.app-loader) {
     backdrop-filter: blur(8px);
 }
 
-.app-loader-core i {
-    font-size: 1.7rem;
-    color: var(--text-gold);
+.app-loader-pin {
+    width: 34px;
+    height: 46px;
+    overflow: visible;
+    filter: drop-shadow(0 0 14px rgba(246, 200, 76, 0.34));
     animation: loaderPulse 1.6s ease-in-out infinite;
 }
 
@@ -2843,6 +2845,7 @@ body.app-loading > *:not(.app-loader) {
 #pinArrowGroup,
 #pinRippleMain,
 #pinRippleOuter,
+#pinRippleThird,
 #pinShadowEllipse {
     transform-box: fill-box;
     transform-origin: center;
@@ -2854,7 +2857,8 @@ body.app-loading > *:not(.app-loader) {
 }
 
 #pinRippleMain,
-#pinRippleOuter {
+#pinRippleOuter,
+#pinRippleThird {
     fill: none;
     opacity: 0;
 }
@@ -2868,6 +2872,11 @@ body.app-loading > *:not(.app-loader) {
 #pinRippleOuter {
     stroke: #FFEA80;
     stroke-width: 2;
+}
+
+#pinRippleThird {
+    stroke: rgba(255, 246, 190, 0.9);
+    stroke-width: 1.6;
 }
 
 .map-center-pin.pick-animation {
