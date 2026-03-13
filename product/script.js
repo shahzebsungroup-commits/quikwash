@@ -1,6 +1,3 @@
-// ---------- SCRIPT LOADED DEBUG ----------
-console.log("✅ script.js loaded");
-
 const BASE_URL = "https://app.vbo.co.in";
 
 let selectedServices = [];
@@ -18,6 +15,7 @@ let googleMapsReady = false;
 let currentMapCenter = null;
 let mapControlsBound = false;
 let mapFooterCollapseTimer = null;
+let pinMotionState = null;
 
 const DEFAULT_CITY = "Rampur";
 let lightStyle = [
@@ -61,7 +59,6 @@ let darkStyle = [
     { featureType: "water", elementType: "labels.text.stroke", stylers: [{ color: "#17263c" }] }
 ];
 
-// ---------- TIMESTAMP FUNCTION ----------
 function getFormattedTimestamp() {
     const now = new Date();
     const date = now.toISOString().split("T")[0];
@@ -72,7 +69,6 @@ function getFormattedTimestamp() {
     return `${date} ${hours}:${minutes} ${ampm}`;
 }
 
-// ---------- FORMAT TIME (AM/PM) ----------
 function formatTime(time) {
     if (!time) return "";
     const [h, m] = time.split(":");
@@ -82,7 +78,6 @@ function formatTime(time) {
     return `${hour}:${m} ${ampm}`;
 }
 
-// ---------- GET ICON FOR SERVICE ----------
 function getIcon(service) {
     const s = service.toLowerCase();
     if (s.includes("car")) return "🚗";
@@ -99,7 +94,6 @@ function getIcon(service) {
     return "⚙️";
 }
 
-// ---------- SHOW TOAST MESSAGE ----------
 function showToast(msg) {
     const existingToast = document.querySelector('.toast');
     if (existingToast) existingToast.remove();
@@ -115,7 +109,6 @@ function showToast(msg) {
     }, 4000);
 }
 
-// ---------- OPEN BOOKING (Slow Scroll) ----------
 function openBooking() {
     const bookingForm = document.getElementById("booking-form");
     if (!bookingForm) return;
@@ -147,7 +140,6 @@ function openBooking() {
     requestAnimationFrame(animateScroll);
 }
 
-// ---------- SHOW SLOT FULL POPUP ----------
 function showSlotFullPopup() {
     const popup = document.createElement("div");
     popup.className = "slot-popup";
@@ -164,7 +156,6 @@ function showSlotFullPopup() {
     document.body.appendChild(popup);
 }
 
-// ---------- CAPTURE POPUP SCREENSHOT ----------
 function capturePopup() {
     const popup = document.getElementById("successPopup");
     if (!popup) return;
@@ -184,7 +175,6 @@ function capturePopup() {
     });
 }
 
-// ---------- INFO MODAL ----------
 function showInfoModal(title, content) {
     document.getElementById('infoModalTitle').innerText = title || "Service Details";
     const contentDiv = document.getElementById('infoModalBody');
@@ -196,7 +186,6 @@ function closeInfoModal() {
     document.getElementById('infoModal').classList.remove('show');
 }
 
-// Global info button handler
 document.addEventListener("click", function(e) {
     if (e.target.closest('.info-btn')) {
         e.stopPropagation();
@@ -208,7 +197,6 @@ document.addEventListener("click", function(e) {
     }
 });
 
-// Close modal when clicking outside
 document.addEventListener('click', function(e) {
     const modal = document.getElementById('infoModal');
     if (modal.classList.contains('show') && e.target === modal) {
@@ -216,7 +204,6 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// ---------- LOCATION ----------
 async function getUserLocation() {
     return new Promise((resolve) => {
         if (!navigator.geolocation) return resolve(null);
@@ -228,7 +215,6 @@ async function getUserLocation() {
     });
 }
 
-// ---------- DISTANCE ----------
 function isWithinRange(userLat, userLng, partner) {
     if (!partner.office_lat || !partner.office_lng) return false;
     const officeLat = Number(partner.office_lat);
@@ -246,7 +232,6 @@ function isWithinRange(userLat, userLng, partner) {
     return distance <= serviceRange;
 }
 
-// ---------- FETCH CITIES ----------
 async function fetchAllPartners() {
     try {
         const res = await fetch(`${BASE_URL}/kwikkwash/partners/all`);
@@ -528,41 +513,60 @@ async function getBrowserLocationPermissionState() {
 async function showLocationPermissionPopup() {
     const popup = document.getElementById("locationPopup");
     const allowBtn = document.getElementById("allowLocationBtn");
+    const mapBtn = document.getElementById("pickOnMapBtn");
     const denyBtn = document.getElementById("denyLocationBtn");
     const rememberCheck = document.getElementById("rememberLocationChoice");
     const permissionState = await getBrowserLocationPermissionState();
 
     const savedPref = localStorage.getItem("locationPref");
     if (savedPref === "allowed" && permissionState === "granted") {
-        return Promise.resolve(true);
+        return Promise.resolve("location");
     }
-    if (savedPref === "denied") {
-        return Promise.resolve(false);
+    if (savedPref === "manual" || savedPref === "denied") {
+        return Promise.resolve("manual");
+    }
+    if (savedPref === "map") {
+        return Promise.resolve("map");
     }
 
     return new Promise((resolve) => {
+        const persistChoice = (choice) => {
+            if (!rememberCheck?.checked) {
+                localStorage.removeItem("locationPref");
+                return;
+            }
+
+            if (choice === "location") {
+                localStorage.setItem("locationPref", "allowed");
+                return;
+            }
+
+            localStorage.setItem("locationPref", choice);
+        };
+
         const cleanup = () => {
             popup.classList.remove("show");
             allowBtn.onclick = null;
+            mapBtn.onclick = null;
             denyBtn.onclick = null;
         };
 
         allowBtn.onclick = () => {
-            const remember = rememberCheck?.checked || false;
-            if (remember) {
-                localStorage.setItem("locationPref", "allowed");
-            }
+            persistChoice("location");
             cleanup();
-            resolve(true);
+            resolve("location");
+        };
+
+        mapBtn.onclick = () => {
+            persistChoice("map");
+            cleanup();
+            resolve("map");
         };
 
         denyBtn.onclick = () => {
-            const remember = rememberCheck?.checked || false;
-            if (remember) {
-                localStorage.setItem("locationPref", "denied");
-            }
+            persistChoice("manual");
             cleanup();
-            resolve(false);
+            resolve("manual");
         };
 
         popup.classList.add("show");
@@ -570,9 +574,25 @@ async function showLocationPermissionPopup() {
 }
 
 async function resolveInitialLocationFlow() {
-    const allowed = await showLocationPermissionPopup();
+    const locationAction = await showLocationPermissionPopup();
 
-    if (!allowed) {
+    if (locationAction === "manual") {
+        prepareOtherCitySelection();
+        return;
+    }
+
+    if (locationAction === "map") {
+        prepareOtherCitySelection();
+        const mapReady = await waitForGoogleMapsReady();
+        if (mapReady) {
+            openMapPopup();
+            return;
+        }
+        showToast("Map is still loading. Please try again in a moment.");
+        return;
+    }
+
+    if (locationAction !== "location") {
         prepareOtherCitySelection();
         return;
     }
@@ -602,14 +622,12 @@ async function resolveInitialLocationFlow() {
     prepareOtherCitySelection();
 }
 
-// ---------- DETECT CITY ----------
 function detectCity(location) {
     if (!location) return null;
     const partner = findNearestPartnerInRange(location);
     return partner?.city || null;
 }
 
-// ---------- LOAD DEFAULT SERVICES ----------
 async function loadServicesFromDefault() {
     try {
         currentCity = DEFAULT_CITY;
@@ -649,7 +667,6 @@ async function loadServicesFromDefault() {
     }
 }
 
-// ---------- FETCH SERVICES ----------
 async function fetchServices(city) {
     if (!city) return [];
     try {
@@ -730,7 +747,6 @@ async function fetchServices(city) {
     }
 }
 
-// ---------- RENDER SERVICES (With Flip Cards) ----------
 function renderServices(services) {
     const container = document.getElementById("servicesList");
     container.innerHTML = "";
@@ -863,7 +879,6 @@ function renderServices(services) {
     updateServiceCount();
 }
 
-// ---------- HANDLE SERVICE SELECTION ----------
 function handleServiceSelection(e) {
     const code = e.target.dataset.code;
     const price = parseFloat(e.target.dataset.price);
@@ -909,7 +924,6 @@ function handleServiceSelection(e) {
     }, 400);
 }
 
-// ---------- UPDATE SERVICE COUNT ----------
 function updateServiceCount() {
     const countEl = document.getElementById("service-count");
     if (countEl) {
@@ -917,7 +931,6 @@ function updateServiceCount() {
     }
 }
 
-// ---------- UPDATE TOTAL ----------
 function updateTotal() {
     const subtotal = selectedServices.reduce((s, i) => s + i.price, 0);
     const gst = subtotal * 0.18;
@@ -940,7 +953,6 @@ function clearSelectedServices() {
     updateServiceCount();
 }
 
-// ---------- LOAD SERVICES FOR CITY ----------
 async function loadServicesForCity(city) {
     currentCity = city;
     const container = document.getElementById("servicesList");
@@ -965,7 +977,6 @@ async function loadServicesForCity(city) {
     window.__slotData = null;
 }
 
-// ---------- LOAD SLOTS FOR CITY ----------
 async function loadSlotsForCity(city) {
     if (!city || selectedServices.length === 0) return;
     
@@ -1022,7 +1033,6 @@ async function loadSlotsForCity(city) {
     }
 }
 
-// ---------- RENDER SLOTS ----------
 function renderSlots(slotData) {
     const container = document.getElementById("slotsContainer");
     
@@ -1090,7 +1100,6 @@ function renderSlots(slotData) {
     });
 }
 
-// ---------- RENDER SLOT CARDS ----------
 function renderSlotCards(slots, dayType) {
     if (slots.length === 0) {
         return '<div class="empty-state" style="grid-column: 1/-1;"><p>No slots available</p></div>';
@@ -1129,7 +1138,6 @@ function renderSlotCards(slots, dayType) {
     }).join('');
 }
 
-// ---------- SELECT SLOT ----------
 function selectSlot(element) {
     // Show popup for full slots instead of toast
     if (element.dataset.disabled === "true") {
@@ -1169,7 +1177,6 @@ function selectSlot(element) {
     }
 }
 
-// ---------- HANDLE NEXT BUTTON ----------
 function handleNextClick() {
     const cityValue = document.getElementById("cityDropdown").value;
     const otherCity = document.getElementById("otherCityInput").value.trim();
@@ -1203,7 +1210,6 @@ function handleNextClick() {
     showUserFormOnPage();
 }
 
-// ---------- SHOW USER FORM ----------
 function showUserFormOnPage() {
     const slotsSection = document.getElementById("slotsSection");
     if (slotsSection) slotsSection.style.display = 'none';
@@ -1287,7 +1293,6 @@ function showUserFormOnPage() {
     document.getElementById("confirmBookingBtn").onclick = showBookingConfirmPopup;
 }
 
-// ---------- EDIT SLOT ----------
 function editSlot() {
     hideUserForm();
     
@@ -1316,7 +1321,6 @@ function hideUserForm() {
     if (slotsSection) slotsSection.style.display = 'block';
 }
 
-// ---------- GEOCODING ----------
 async function reverseGeocodeLocation(lat, lng) {
     if (!window.google?.maps) {
         return {
@@ -1409,7 +1413,6 @@ async function getPreferredMapCenter() {
     return getDefaultCoordinates() || { lat: 28.6139, lng: 77.209 };
 }
 
-// ---------- MAP FUNCTIONS ----------
 function updateCurrentMapCenter() {
     if (!map) return;
 
@@ -1530,6 +1533,109 @@ function bindMapUiControls() {
     mapControlsBound = true;
 }
 
+function initPinMotion() {
+    const root = document.getElementById("pinFx");
+    const arrow = document.getElementById("pinArrowGroup");
+    const mainRipple = document.getElementById("pinRippleMain");
+    const outerRipple = document.getElementById("pinRippleOuter");
+    const shadow = document.getElementById("pinShadowEllipse");
+    const cssPin = document.getElementById("cssPin");
+
+    if (!root || !arrow || !mainRipple || !outerRipple || !shadow || !cssPin) return;
+
+    pinMotionState = { root, arrow, mainRipple, outerRipple, shadow, cssPin };
+}
+
+function playSharpPinDrop() {
+    if (!pinMotionState) initPinMotion();
+    if (!pinMotionState) return Promise.resolve();
+
+    const { root, arrow, mainRipple, outerRipple, shadow, cssPin } = pinMotionState;
+    const animatedNodes = [root, arrow, mainRipple, outerRipple, shadow];
+    animatedNodes.forEach(node => node.getAnimations().forEach(animation => animation.cancel()));
+
+    root.style.opacity = "1";
+    cssPin.style.opacity = "0";
+    arrow.style.opacity = "1";
+    mainRipple.style.opacity = "0";
+    outerRipple.style.opacity = "0";
+    shadow.style.opacity = "0";
+
+    arrow.animate(
+        [
+            { transform: "translateY(-54px) scale(0.68)", offset: 0, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+            { transform: "translateY(10px) scale(1.16)", offset: 0.42, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" },
+            { transform: "translateY(-12px) scale(0.92)", offset: 0.62 },
+            { transform: "translateY(4px) scale(1.04)", offset: 0.78 },
+            { transform: "translateY(0) scale(1)", offset: 1 }
+        ],
+        { duration: 620, fill: "forwards" }
+    );
+
+    shadow.animate(
+        [
+            { transform: "scale(0.3)", opacity: 0.08 },
+            { transform: "scale(2.2)", opacity: 0.72, offset: 0.46 },
+            { transform: "scale(1)", opacity: 0.4 }
+        ],
+        { duration: 580, fill: "forwards" }
+    );
+
+    mainRipple.animate(
+        [
+            { transform: "scale(0)", opacity: 0 },
+            { opacity: 0.95, offset: 0.18 },
+            { transform: "scale(4.8)", opacity: 0 }
+        ],
+        { duration: 560, delay: 70, fill: "forwards" }
+    );
+
+    outerRipple.animate(
+        [
+            { transform: "scale(0.24)", opacity: 0 },
+            { opacity: 0.78, offset: 0.22 },
+            { transform: "scale(6.2)", opacity: 0 }
+        ],
+        { duration: 620, delay: 140, fill: "forwards" }
+    );
+
+    if (navigator.vibrate) {
+        navigator.vibrate([24, 12, 72, 16, 34]);
+    }
+
+    return new Promise(resolve => {
+        setTimeout(() => {
+            cssPin.style.opacity = "1";
+            root.style.opacity = "0";
+            resolve();
+        }, 720);
+    });
+}
+
+function setMapPinDragging(isDragging) {
+    const pin = document.getElementById("cssPin");
+    if (!pin) return;
+
+    pin.classList.remove("drop-flip");
+    pin.classList.toggle("drag-active", isDragging);
+}
+
+function playMapPinDropFlip() {
+    const pin = document.getElementById("cssPin");
+    if (!pin) return;
+
+    pin.classList.remove("drag-active");
+    pin.classList.remove("drop-flip");
+    void pin.offsetWidth;
+    pin.classList.add("drop-flip");
+
+    if (navigator.vibrate) {
+        navigator.vibrate([10, 8, 18]);
+    }
+
+    setTimeout(() => pin.classList.remove("drop-flip"), 1420);
+}
+
 function setMapFooterCollapsed(collapsed) {
     const tools = document.getElementById("mapFooterTools");
     const toggle = document.getElementById("mapFooterToggle");
@@ -1566,12 +1672,17 @@ function ensureMapInitialized() {
             styles: darkStyle
         });
 
+        initPinMotion();
         map.setOptions({
             draggable: true,
             gestureHandling: "greedy"
         });
 
         geocoder = new google.maps.Geocoder();
+        map.addListener("dragstart", () => {
+            setMapPinDragging(true);
+        });
+
         map.addListener("drag", () => {
             updateCurrentMapCenter();
         });
@@ -1581,6 +1692,7 @@ function ensureMapInitialized() {
         });
 
         map.addListener("dragend", () => {
+            playMapPinDropFlip();
             updateCurrentMapCenter();
         });
 
@@ -1657,6 +1769,10 @@ function closeMapPopup() {
     mapPopup.classList.remove("show");
 }
 
+function triggerMapPinConfirmFeedback() {
+    return playSharpPinDrop();
+}
+
 function showRangeConfirmPopup(message) {
     const popup = document.getElementById("rangeConfirmPopup");
     const messageEl = document.getElementById("rangeConfirmMessage");
@@ -1688,7 +1804,6 @@ function closeRangeConfirmPopup() {
     document.getElementById("rangeConfirmPopup").classList.remove("show");
 }
 
-// ---------- CONFIRM MAP LOCATION ----------
 async function confirmMapLocation() {
     const liveCenter = map?.getCenter
         ? { lat: map.getCenter().lat(), lng: map.getCenter().lng() }
@@ -1697,10 +1812,6 @@ async function confirmMapLocation() {
     if (!liveCenter?.lat || !liveCenter?.lng) {
         showToast("Move the map to choose a location");
         return;
-    }
-
-    if (navigator.vibrate) {
-        navigator.vibrate([20, 10, 40]);
     }
 
     const coords = { ...liveCenter };
@@ -1715,6 +1826,7 @@ async function confirmMapLocation() {
     const withinCurrentRange = currentCityPartners.some(partner => isWithinRange(coords.lat, coords.lng, partner));
 
     if (isOtherMode) {
+        await triggerMapPinConfirmFeedback();
         userLocation = coords;
         selectedMapLat = coords.lat;
         selectedMapLng = coords.lng;
@@ -1733,6 +1845,7 @@ async function confirmMapLocation() {
     }
 
     if (withinCurrentRange) {
+        await triggerMapPinConfirmFeedback();
         userLocation = coords;
         selectedMapLat = coords.lat;
         selectedMapLng = coords.lng;
@@ -1776,10 +1889,10 @@ async function confirmMapLocation() {
         addressField.value = userPinnedAddress;
     }
 
+    await triggerMapPinConfirmFeedback();
     closeMapPopup();
     showToast("Location updated");
 }
-// ---------- SHOW BOOKING CONFIRMATION POPUP ----------
 function showBookingConfirmPopup() {
     // Strong vibration when popup opens
     if (navigator.vibrate) {
@@ -1854,9 +1967,6 @@ function showBookingConfirmPopup() {
                 </div>
             </div>
             <div class="confirm-buttons">
-             <!--  <button class="confirm-btn cancel" onclick="closeConfirmPopup()">
-                    <i class="fas fa-times"></i> Cancel
-                </button> -->
                 <button class="confirm-btn confirm" onclick="proceedToBooking()">
                     <i class="fas fa-check"></i> Secure booking
                 </button>
@@ -1883,7 +1993,6 @@ function proceedToBooking() {
     submitBooking();
 }
 
-// ---------- GENERATE CAPTCHA ----------
 function generateCaptcha() {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     let captcha = "";
@@ -1895,7 +2004,6 @@ function generateCaptcha() {
     if (captchaEl) captchaEl.innerText = captcha;
 }
 
-// ---------- DOWNLOAD POPUP SCREENSHOT ----------
 async function downloadPopup() {
     const popup = document.getElementById('successPopup');
     if (!popup) return;
@@ -1915,7 +2023,6 @@ async function downloadPopup() {
     }
 }
 
-// ---------- SUBMIT BOOKING (UPDATED WITH AMOUNTS AND MAP COORDS) ----------
 async function submitBooking() {
     console.log("🔥 submitBooking triggered");
     
@@ -2045,7 +2152,6 @@ booking_date: (() => {
     }
 }
 
-// ---------- SHOW SUCCESS POPUP ----------
 function showSuccessPopup(bookingId, isOtherCity) {
     const popup = document.createElement('div');
     popup.className = 'success-popup';
@@ -2112,7 +2218,6 @@ function closeSuccessPopup() {
     location.reload();
 }
 
-// ---------- TERMS POPUP ----------
 function openTermsPopup() {
     const popup = document.getElementById('terms-popup');
     if (popup) {
@@ -2127,7 +2232,6 @@ function closeTermsPopup() {
     }
 }
 
-// Close popup when clicking outside
 document.addEventListener('click', function(e) {
     const termsPopup = document.getElementById('terms-popup');
     if (termsPopup && termsPopup.classList.contains('show')) {
@@ -2158,10 +2262,7 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// ---------- INIT FUNCTION ----------
 async function init() {
-    console.log("🚀 init() called");
-
     await fetchAllPartners();
     availableCities = await fetchCities();
 
@@ -2255,13 +2356,11 @@ function initFooterAccordions() {
     });
 }
 
-// ---------- INITIALIZE ----------
 document.addEventListener("DOMContentLoaded", () => {
     init();
     initFooterAccordions();
 });
 
-// Export functions
 window.scrollToBooking = function() {
     document.getElementById('booking-form').scrollIntoView({ 
         behavior: "smooth", 
@@ -2290,5 +2389,7 @@ window.showBookingConfirmPopup = showBookingConfirmPopup;
 window.closeConfirmPopup = closeConfirmPopup;
 window.closeRangeConfirmPopup = closeRangeConfirmPopup;
 window.proceedToBooking = proceedToBooking;
+
+
 
 
