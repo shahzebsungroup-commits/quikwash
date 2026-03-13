@@ -1503,11 +1503,13 @@ function bindMapUiControls() {
             return;
         }
 
+        resetMapPinVisualState();
         userLocation = liveLocation || userLocation || fallbackLocation;
         centerMapOn({
             lat: fallbackLocation.lat,
             lng: fallbackLocation.lng
         });
+        playMapPinWaveOnly({ vibratePattern: [8, 10, 16] });
     });
 
     document.querySelectorAll(".map-type-btn").forEach(button => {
@@ -1538,20 +1540,98 @@ function initPinMotion() {
     const arrow = document.getElementById("pinArrowGroup");
     const mainRipple = document.getElementById("pinRippleMain");
     const outerRipple = document.getElementById("pinRippleOuter");
+    const thirdRipple = document.getElementById("pinRippleThird");
     const shadow = document.getElementById("pinShadowEllipse");
     const cssPin = document.getElementById("cssPin");
 
-    if (!root || !arrow || !mainRipple || !outerRipple || !shadow || !cssPin) return;
+    if (!root || !arrow || !mainRipple || !outerRipple || !thirdRipple || !shadow || !cssPin) return;
 
-    pinMotionState = { root, arrow, mainRipple, outerRipple, shadow, cssPin };
+    pinMotionState = { root, arrow, mainRipple, outerRipple, thirdRipple, shadow, cssPin };
+}
+
+function resetMapPinVisualState() {
+    const pin = document.getElementById("cssPin");
+    if (!pin) return;
+
+    pin.classList.remove("drag-active", "drop-flip");
+    pin.style.opacity = "1";
+    void pin.offsetWidth;
+}
+
+function playMapPinWaveOnly({ vibratePattern = null, keepPinMotion = false } = {}) {
+    if (!pinMotionState) initPinMotion();
+    if (!pinMotionState) return Promise.resolve();
+
+    if (!keepPinMotion) {
+        resetMapPinVisualState();
+    }
+
+    const { root, arrow, mainRipple, outerRipple, thirdRipple, shadow, cssPin } = pinMotionState;
+    const animatedNodes = [root, arrow, mainRipple, outerRipple, thirdRipple, shadow];
+    animatedNodes.forEach(node => node.getAnimations().forEach(animation => animation.cancel()));
+
+    root.style.opacity = "1";
+    cssPin.style.opacity = "1";
+    arrow.style.opacity = "0";
+    mainRipple.style.opacity = "0";
+    outerRipple.style.opacity = "0";
+    thirdRipple.style.opacity = "0";
+    shadow.style.opacity = "0";
+
+    shadow.animate(
+        [
+            { transform: "scale(0.72)", opacity: 0.14 },
+            { transform: "scale(1.28)", opacity: 0.34, offset: 0.28 },
+            { transform: "scale(1)", opacity: 0.18 }
+        ],
+        { duration: 560, fill: "forwards" }
+    );
+
+    mainRipple.animate(
+        [
+            { transform: "scale(0.82)", opacity: 0 },
+            { transform: "scale(1)", opacity: 0.95, offset: 0.14 },
+            { transform: "scale(5.2)", opacity: 0 }
+        ],
+        { duration: 700, delay: 0, fill: "forwards" }
+    );
+
+    outerRipple.animate(
+        [
+            { transform: "scale(0.82)", opacity: 0 },
+            { transform: "scale(1)", opacity: 0.76, offset: 0.14 },
+            { transform: "scale(4.15)", opacity: 0 }
+        ],
+        { duration: 620, delay: 120, fill: "forwards" }
+    );
+
+    thirdRipple.animate(
+        [
+            { transform: "scale(0.82)", opacity: 0 },
+            { transform: "scale(1)", opacity: 0.58, offset: 0.14 },
+            { transform: "scale(3.2)", opacity: 0 }
+        ],
+        { duration: 560, delay: 230, fill: "forwards" }
+    );
+
+    if (navigator.vibrate && Array.isArray(vibratePattern)) {
+        navigator.vibrate(vibratePattern);
+    }
+
+    return new Promise(resolve => {
+        setTimeout(() => {
+            root.style.opacity = "0";
+            resolve();
+        }, 860);
+    });
 }
 
 function playSharpPinDrop() {
     if (!pinMotionState) initPinMotion();
     if (!pinMotionState) return Promise.resolve();
 
-    const { root, arrow, mainRipple, outerRipple, shadow, cssPin } = pinMotionState;
-    const animatedNodes = [root, arrow, mainRipple, outerRipple, shadow];
+    const { root, arrow, mainRipple, outerRipple, thirdRipple, shadow, cssPin } = pinMotionState;
+    const animatedNodes = [root, arrow, mainRipple, outerRipple, thirdRipple, shadow];
     animatedNodes.forEach(node => node.getAnimations().forEach(animation => animation.cancel()));
 
     root.style.opacity = "1";
@@ -1559,6 +1639,7 @@ function playSharpPinDrop() {
     arrow.style.opacity = "1";
     mainRipple.style.opacity = "0";
     outerRipple.style.opacity = "0";
+    thirdRipple.style.opacity = "0";
     shadow.style.opacity = "0";
 
     arrow.animate(
@@ -1574,8 +1655,8 @@ function playSharpPinDrop() {
 
     shadow.animate(
         [
-            { transform: "scale(0.3)", opacity: 0.08 },
-            { transform: "scale(2.2)", opacity: 0.72, offset: 0.46 },
+            { transform: "scale(0.32)", opacity: 0.08 },
+            { transform: "scale(1.9)", opacity: 0.68, offset: 0.46 },
             { transform: "scale(1)", opacity: 0.4 }
         ],
         { duration: 580, fill: "forwards" }
@@ -1583,20 +1664,29 @@ function playSharpPinDrop() {
 
     mainRipple.animate(
         [
-            { transform: "scale(0)", opacity: 0 },
-            { opacity: 0.95, offset: 0.18 },
-            { transform: "scale(4.8)", opacity: 0 }
+            { transform: "scale(0.82)", opacity: 0 },
+            { transform: "scale(1)", opacity: 0.95, offset: 0.14 },
+            { transform: "scale(5.6)", opacity: 0 }
         ],
-        { duration: 560, delay: 70, fill: "forwards" }
+        { duration: 720, delay: 70, fill: "forwards" }
     );
 
     outerRipple.animate(
         [
-            { transform: "scale(0.24)", opacity: 0 },
-            { opacity: 0.78, offset: 0.22 },
-            { transform: "scale(6.2)", opacity: 0 }
+            { transform: "scale(0.82)", opacity: 0 },
+            { transform: "scale(1)", opacity: 0.8, offset: 0.14 },
+            { transform: "scale(4.4)", opacity: 0 }
         ],
-        { duration: 620, delay: 140, fill: "forwards" }
+        { duration: 640, delay: 190, fill: "forwards" }
+    );
+
+    thirdRipple.animate(
+        [
+            { transform: "scale(0.82)", opacity: 0 },
+            { transform: "scale(1)", opacity: 0.62, offset: 0.14 },
+            { transform: "scale(3.35)", opacity: 0 }
+        ],
+        { duration: 580, delay: 310, fill: "forwards" }
     );
 
     if (navigator.vibrate) {
@@ -1608,7 +1698,7 @@ function playSharpPinDrop() {
             cssPin.style.opacity = "1";
             root.style.opacity = "0";
             resolve();
-        }, 720);
+        }, 920);
     });
 }
 
@@ -1633,6 +1723,7 @@ function playMapPinDropFlip() {
         navigator.vibrate([10, 8, 18]);
     }
 
+    playMapPinWaveOnly({ keepPinMotion: true });
     setTimeout(() => pin.classList.remove("drop-flip"), 1420);
 }
 

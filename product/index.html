@@ -36,7 +36,20 @@
             <div class="app-loader-ring ring-one"></div>
             <div class="app-loader-ring ring-two"></div>
             <div class="app-loader-core">
-                <i class="fas fa-location-dot"></i>
+                <svg viewBox="0 0 96 132" class="app-loader-pin" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="loaderPinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#FFE17C"></stop>
+                            <stop offset="55%" stop-color="#F6C84C"></stop>
+                            <stop offset="100%" stop-color="#D99C1B"></stop>
+                        </linearGradient>
+                    </defs>
+                    <path d="M48 8 C73 8 90 26 90 49 C90 79 64 90 48 122 C32 90 6 79 6 49 C6 26 23 8 48 8 Z" fill="url(#loaderPinGradient)"></path>
+                    <path d="M20 23 C11 31 8 42 8 52 C8 75 24 86 40 108 C28 86 20 74 20 58 C20 43 23 32 30 22 Z" fill="rgba(123,77,7,0.26)"></path>
+                    <path d="M48 14 C66 14 79 28 79 46 C79 59 72 67 60 74 C67 61 70 53 70 44 C70 30 60 19 48 14 Z" fill="rgba(255,255,255,0.24)"></path>
+                    <circle cx="48" cy="49" r="16" fill="rgba(11,11,11,0.24)" stroke="rgba(255,239,171,0.95)" stroke-width="4"></circle>
+                    <circle cx="48" cy="49" r="11" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.6"></circle>
+                </svg>
             </div>
         </div>
         <div class="app-loader-copy">
@@ -313,14 +326,14 @@
     </div>
 
     <div id="locationPopup" class="location-popup">
-        <div class="location-popup-content">
+            <div class="location-popup-content">
             <div class="location-popup-header">
-                <div class="location-popup-badge">Fastest setup</div>
-                <h3><i class="fas fa-location-crosshairs"></i> Choose Your Location Setup</h3>
+                <div class="location-popup-badge">Smart setup</div>
+                <h3><i class="fas fa-location-crosshairs"></i> Set Your Service Area</h3>
             </div>
             <div class="location-popup-body">
-                <p>Choose the fastest way to set your service area. We will only ask Chrome for location access if you explicitly tap <strong>Use My Location</strong>.</p>
-                <p class="location-popup-note">You can also pick on the map or continue manually without any browser permission prompt.</p>
+                <p>Set your service area to see the most relevant availability and scheduling options near you.</p>
+                <p class="location-popup-note">Use your current location for the quickest setup, choose your spot on the map, or continue by entering details manually.</p>
             </div>
             <div class="location-popup-remember">
                 <label>
@@ -381,10 +394,11 @@
                                 <stop offset="100%" stop-color="#FFAA00"></stop>
                             </linearGradient>
                         </defs>
-                        <ellipse id="pinShadowEllipse" cx="60" cy="84" rx="18" ry="6"></ellipse>
-                        <circle id="pinRippleMain" cx="60" cy="78" r="10"></circle>
-                        <circle id="pinRippleOuter" cx="60" cy="78" r="10"></circle>
-                        <g id="pinArrowGroup">
+                        <ellipse id="pinShadowEllipse" cx="60" cy="50" rx="15" ry="4.5"></ellipse>
+                        <circle id="pinRippleMain" cx="60" cy="48" r="4.5"></circle>
+                        <circle id="pinRippleOuter" cx="60" cy="48" r="4.5"></circle>
+                        <circle id="pinRippleThird" cx="60" cy="48" r="4.5"></circle>
+                        <g id="pinArrowGroup" transform="translate(0,-64)">
                             <path d="M60 10 C81 10 95 26 95 47 C95 73 74 84 60 112 C46 84 25 73 25 47 C25 26 39 10 60 10 Z" fill="url(#pinGoldGradient)"></path>
                             <path d="M35 22 C28 30 26 40 26 49 C26 68 38 80 50 98 C42 80 36 71 36 58 C36 44 39 33 45 24 Z" fill="rgba(123,77,7,0.26)"></path>
                             <path d="M60 15 C75 15 86 27 86 42 C86 53 80 61 69 67 C75 56 77 50 77 42 C77 30 69 20 60 15 Z" fill="rgba(255,255,255,0.22)"></path>
