@@ -521,15 +521,20 @@ async function showLocationPermissionPopup() {
     const rememberCheck = document.getElementById("rememberLocationChoice");
     const permissionState = await getBrowserLocationPermissionState();
 
+    const hasSelectedCity = Boolean(currentCity);
+    if (hasSelectedCity) {
+        return Promise.resolve("manual");
+    }
+
     const savedPref = localStorage.getItem("locationPref");
+    if (savedPref === "map") {
+        localStorage.removeItem("locationPref");
+    }
     if (savedPref === "allowed" && permissionState === "granted") {
         return Promise.resolve("location");
     }
     if (savedPref === "manual" || savedPref === "denied") {
         return Promise.resolve("manual");
-    }
-    if (savedPref === "map") {
-        return Promise.resolve("map");
     }
 
     return new Promise((resolve) => {
@@ -577,6 +582,10 @@ async function showLocationPermissionPopup() {
 }
 
 async function resolveInitialLocationFlow() {
+    if (currentCity) {
+        return;
+    }
+
     const locationAction = await showLocationPermissionPopup();
 
     if (locationAction === "manual") {
@@ -586,7 +595,7 @@ async function resolveInitialLocationFlow() {
 
     if (locationAction === "map") {
         prepareOtherCitySelection();
-        const mapReady = await waitForGoogleMapsReady();
+        const mapReady = await waitForGoogleMapsReady(2000);
         if (mapReady) {
             openMapPopup();
             return;
@@ -601,6 +610,14 @@ async function resolveInitialLocationFlow() {
     }
 
     userLocation = await getUserLocation();
+    if (userLocation) {
+        window.__selectedMapCoords = userLocation;
+        const mapReady = await waitForGoogleMapsReady(2000);
+        if (mapReady) {
+            const addressData = await reverseGeocodeLocation(userLocation.lat, userLocation.lng);
+            window.__selectedMapAddress = addressData.formattedAddress;
+        }
+    }
     const detectedCity = detectCity(userLocation);
 
     if (detectedCity && availableCities.includes(detectedCity)) {
@@ -1221,6 +1238,8 @@ function showUserFormOnPage() {
     const dropdown = document.getElementById("cityDropdown");
     const otherInput = document.getElementById("otherCityInput");
     let city = dropdown.value === "Other" ? otherInput.value.trim() : dropdown.value;
+    const savedAddress = window.__selectedMapAddress || "";
+    const defaultAddress = savedAddress ? savedAddress : `${city}, `;
 
     container.innerHTML = `
         <div class="booking-form">
@@ -1246,7 +1265,7 @@ function showUserFormOnPage() {
                     <i class="fas fa-map-marker-alt"></i> Complete Address
                 </label>
                 <textarea id="userAddress" rows="3" 
-                          class="form-input" placeholder="Enter your complete address">${city}, </textarea>
+                          class="form-input" placeholder="Enter your complete address">${defaultAddress}</textarea>
                 <button id="mapSelectBtn" type="button" class="map-select-btn">
                     <i class="fas fa-map-marker-alt"></i> 📍 Set on Map (Optional)
                 </button>
@@ -1974,6 +1993,8 @@ async function confirmMapLocation() {
     const addressData = await reverseGeocodeLocation(coords.lat, coords.lng);
     const addressField = document.getElementById("userAddress");
     const userPinnedAddress = addressData.formattedAddress;
+    window.__selectedMapAddress = userPinnedAddress;
+    window.__selectedMapCoords = coords;
     const dropdown = document.getElementById("cityDropdown");
     const otherInput = document.getElementById("otherCityInput");
     const isOtherMode = dropdown?.value === "Other";
@@ -2292,6 +2313,9 @@ booking_date: (() => {
         const isOtherCity = dropdown.value === "Other";
         showSuccessPopup(payload.booking_id, isOtherCity);
 
+        window.__selectedMapAddress = null;
+        window.__selectedMapCoords = null;
+
         // Reset selections
         window.__selectedSlot = null;
         window.__slotData = null;
@@ -2380,6 +2404,7 @@ function closeSuccessPopup() {
     if (popup) {
         popup.remove();
     }
+    localStorage.removeItem("locationPref");
     location.reload();
 }
 
@@ -2428,6 +2453,10 @@ document.addEventListener('click', function(e) {
 });
 
 async function init() {
+    if (localStorage.getItem("locationPref") === "map") {
+        localStorage.removeItem("locationPref");
+    }
+
     await fetchAllPartners();
     availableCities = await fetchCities();
 
