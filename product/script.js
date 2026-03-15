@@ -15,6 +15,9 @@ let googleMapsReady = false;
 let currentMapCenter = null;
 let mapControlsBound = false;
 let mapFooterCollapseTimer = null;
+let mapFooterAutoCollapseLocked = false;
+let mapSearchTimer = null;
+let mapSearchLastQuery = "";
 let pinMotionState = null;
 
 const DEFAULT_CITY = "Rampur";
@@ -1530,6 +1533,21 @@ function bindMapUiControls() {
 
         const shouldCollapse = !tools.classList.contains("collapsed");
         setMapFooterCollapsed(shouldCollapse);
+
+        mapFooterAutoCollapseLocked = true;
+        clearTimeout(mapFooterCollapseTimer);
+    });
+
+    document.querySelector(".map-popup-footer")?.addEventListener("click", (event) => {
+        const tools = document.getElementById("mapFooterTools");
+        if (!tools || !tools.classList.contains("collapsed")) return;
+
+        if (event.target.closest("#mapFooterToggle")) return;
+        if (event.target.closest("#confirmMapLocation")) return;
+
+        setMapFooterCollapsed(false);
+        mapFooterAutoCollapseLocked = true;
+        clearTimeout(mapFooterCollapseTimer);
     });
 
     mapControlsBound = true;
@@ -1738,10 +1756,50 @@ function setMapFooterCollapsed(collapsed) {
 }
 
 function scheduleMapFooterAutoCollapse() {
+    if (mapFooterAutoCollapseLocked) return;
     clearTimeout(mapFooterCollapseTimer);
     mapFooterCollapseTimer = setTimeout(() => {
+        const tools = document.getElementById("mapFooterTools");
+        const toggle = document.getElementById("mapFooterToggle");
+        const activeEl = document.activeElement;
+        if ((tools && tools.contains(activeEl)) || toggle === activeEl) {
+            scheduleMapFooterAutoCollapse();
+            return;
+        }
         setMapFooterCollapsed(true);
     }, 3000);
+}
+
+function scheduleMapSearch(query, delayMs = 1000) {
+    clearTimeout(mapSearchTimer);
+    const trimmedQuery = (query || "").trim();
+
+    if (!trimmedQuery || trimmedQuery.length < 3) return;
+
+    mapSearchTimer = setTimeout(async () => {
+        if (!window.google?.maps) return;
+        if (!document.getElementById("mapPopup")?.classList.contains("show")) return;
+
+        if (trimmedQuery === mapSearchLastQuery) return;
+        mapSearchLastQuery = trimmedQuery;
+
+        if (!geocoder) {
+            geocoder = new google.maps.Geocoder();
+        }
+
+        try {
+            const response = await geocoder.geocode({ address: trimmedQuery });
+            const location = response.results?.[0]?.geometry?.location;
+            if (!location) return;
+
+            centerMapOn({
+                lat: location.lat(),
+                lng: location.lng()
+            });
+        } catch (error) {
+            console.error("Auto search geocode error:", error);
+        }
+    }, delayMs);
 }
 
 function ensureMapInitialized() {
@@ -1790,6 +1848,12 @@ function ensureMapInitialized() {
         const searchInput = document.getElementById("mapSearch");
         mapSearchBox = new google.maps.places.SearchBox(searchInput);
         searchInput.setAttribute("autocomplete", "off");
+        if (!searchInput.dataset.autoSearchBound) {
+            searchInput.addEventListener("input", () => {
+                scheduleMapSearch(searchInput.value, 1000);
+            });
+            searchInput.dataset.autoSearchBound = "true";
+        }
         map.addListener("bounds_changed", () => {
             mapSearchBox.setBounds(map.getBounds());
         });
@@ -1830,6 +1894,7 @@ async function openMapPopup() {
     popup.classList.add("show");
 
     setMapFooterCollapsed(false);
+    mapFooterAutoCollapseLocked = false;
     scheduleMapFooterAutoCollapse();
 
     const pin = document.querySelector(".map-center-pin");
@@ -1926,8 +1991,17 @@ async function confirmMapLocation() {
             addressField.value = userPinnedAddress;
         }
 
-        if (otherInput && addressData.cityName && !otherInput.value.trim()) {
-            otherInput.value = addressData.cityName;
+        if (addressData.cityName) {
+            const resolvedCity = fuzzyMatchCity(addressData.cityName, availableCities);
+            if (resolvedCity) {
+                setDropdownToCity(resolvedCity);
+                setOtherCityMode(false);
+                await loadServicesForCity(resolvedCity);
+            } else {
+                await applyFallbackToOther(addressData.cityName);
+            }
+        } else {
+            await applyFallbackToOther("");
         }
 
         closeMapPopup();
