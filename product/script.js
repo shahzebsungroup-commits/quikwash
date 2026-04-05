@@ -18,9 +18,41 @@ let mapFooterCollapseTimer = null;
 let mapFooterAutoCollapseLocked = false;
 let mapSearchTimer = null;
 let mapSearchLastQuery = "";
+
+function stripLeadingPlusCode(address) {
+    if (!address) return "";
+    return address.replace(/^[23456789CFGHJMPQRVWX]{4,8}\+[23456789CFGHJMPQRVWX]{2,3},?\s*/i, "").trim();
+}
+
+function getDisplayAddress(address) {
+    return stripLeadingPlusCode(address) || address || "";
+}
+
+function getBookingAddressValue() {
+    const addressField = document.getElementById("userAddress");
+    const visibleAddress = addressField?.value.trim() || "";
+    const rawMapAddress = window.__selectedMapAddressRaw || "";
+    const displayMapAddress = window.__selectedMapAddress || "";
+
+    if (rawMapAddress && displayMapAddress && visibleAddress === displayMapAddress) {
+        return rawMapAddress;
+    }
+
+    return visibleAddress;
+}
 let pinMotionState = null;
 
 const DEFAULT_CITY = "Rampur";
+const SAVED_CITY_KEY = "kwikkwashSelectedCity";
+const FIRSTBOOK_CODE = "FIRSTBOOK";
+const FIRSTBOOK_DISCOUNT = 50;
+const firstBookingCheckCache = new Map();
+const firstBookingOfferState = {
+    phone: "",
+    eligible: false,
+    applied: false,
+    popupShown: false
+};
 let lightStyle = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
     { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
@@ -110,6 +142,175 @@ function showToast(msg) {
         toast.style.opacity = "0";
         setTimeout(() => toast.remove(), 2000);
     }, 4000);
+}
+
+function getServiceIconMarkup(service) {
+    const s = String(service || "").toLowerCase();
+    if (
+        s.includes("car") ||
+        s.includes("bike") ||
+        s.includes("motor") ||
+        s.includes("sofa") ||
+        s.includes("clean") ||
+        s.includes("wash") ||
+        s.includes("interior") ||
+        s.includes("exterior") ||
+        s.includes("polish") ||
+        s.includes("wax") ||
+        s.includes("vacuum") ||
+        s.includes("detailing") ||
+        s.includes("paint")
+    ) {
+        return getIcon(service);
+    }
+
+    return "🚘";
+}
+
+function normalizePhoneNumber(phone) {
+    return String(phone || "").replace(/\D/g, "").slice(-10);
+}
+
+function resetFirstBookingOffer() {
+    firstBookingOfferState.phone = "";
+    firstBookingOfferState.eligible = false;
+    firstBookingOfferState.applied = false;
+    firstBookingOfferState.popupShown = false;
+    const popup = document.getElementById("firstbookPopup");
+    if (popup) popup.remove();
+}
+
+function getPricingBreakdown() {
+    const subtotal = selectedServices.reduce((sum, service) => sum + service.price, 0);
+    const gst = subtotal * 0.18;
+    const discount = firstBookingOfferState.applied ? Math.min(FIRSTBOOK_DISCOUNT, subtotal + gst) : 0;
+    const total = Math.max(subtotal + gst - discount, 0);
+
+    return { subtotal, gst, discount, total };
+}
+
+function renderPricingBreakdown() {
+    const { subtotal, gst, discount, total } = getPricingBreakdown();
+    const subtotalEl = document.getElementById("subtotal");
+    const gstEl = document.getElementById("gst");
+    const totalEl = document.getElementById("total");
+    const discountRow = document.getElementById("discountRow");
+    const discountEl = document.getElementById("discount");
+
+    if (subtotalEl) subtotalEl.innerText = subtotal.toFixed(2);
+    if (gstEl) gstEl.innerText = gst.toFixed(2);
+    if (totalEl) totalEl.innerText = total.toFixed(2);
+
+    if (discountRow && discountEl) {
+        discountEl.innerText = discount.toFixed(2);
+        discountRow.style.display = discount > 0 ? "flex" : "none";
+    }
+}
+
+async function checkFirstBookingEligibility(phone) {
+    const normalizedPhone = normalizePhoneNumber(phone);
+
+    if (normalizedPhone.length !== 10) {
+        resetFirstBookingOffer();
+        renderPricingBreakdown();
+        return false;
+    }
+
+    if (firstBookingOfferState.phone === normalizedPhone) {
+        return firstBookingOfferState.eligible;
+    }
+
+    resetFirstBookingOffer();
+    firstBookingOfferState.phone = normalizedPhone;
+
+    try {
+        let hasExistingBooking = firstBookingCheckCache.get(normalizedPhone);
+
+        if (typeof hasExistingBooking === "undefined") {
+            const response = await fetch(`${BASE_URL}/kwikkwash/bookings`);
+            if (!response.ok) throw new Error("Failed to check booking history");
+
+            const bookings = await response.json();
+            hasExistingBooking = Array.isArray(bookings) && bookings.some((booking) => {
+                const bookingPhone = normalizePhoneNumber(booking.phone || booking.customer_name || "");
+                return bookingPhone === normalizedPhone;
+            });
+
+            firstBookingCheckCache.set(normalizedPhone, hasExistingBooking);
+        }
+
+        firstBookingOfferState.eligible = !hasExistingBooking;
+        renderPricingBreakdown();
+
+        if (firstBookingOfferState.eligible && !firstBookingOfferState.popupShown) {
+            showFirstBookingPopup();
+        }
+
+        return firstBookingOfferState.eligible;
+    } catch (error) {
+        console.error("First booking check failed:", error);
+        resetFirstBookingOffer();
+        renderPricingBreakdown();
+        return false;
+    }
+}
+
+function showFirstBookingPopup() {
+    if (document.getElementById("firstbookPopup") || !firstBookingOfferState.eligible || firstBookingOfferState.applied) {
+        return;
+    }
+
+    firstBookingOfferState.popupShown = true;
+
+    const popup = document.createElement("div");
+    popup.className = "firstbook-popup";
+    popup.id = "firstbookPopup";
+
+    const sprinkles = Array.from({ length: 18 }, (_, index) => {
+        const left = 4 + index * 5.2;
+        const delay = (index % 6) * 0.18;
+        return `<span style="left:${left}%; animation-delay:${delay}s;"></span>`;
+    }).join("");
+
+    popup.innerHTML = `
+        <div class="firstbook-card">
+            <div class="firstbook-sprinkles">${sprinkles}</div>
+            <div class="firstbook-header">
+                <span class="firstbook-badge"><i class="fas fa-star"></i> Welcome Perk</span>
+                <h3 class="firstbook-title">You unlocked Rs 50 off</h3>
+            </div>
+            <div class="firstbook-body">
+                <p class="firstbook-copy">Thank you for choosing kwikkwash to reach your doorstep. Apply your welcome coupon now.</p>
+                <div class="firstbook-coupon">
+                    <div>
+                        <span class="firstbook-code">${FIRSTBOOK_CODE}</span>
+                        <span class="firstbook-offer">OFF Rs 50 on first booking</span>
+                    </div>
+                    <i class="fas fa-gift" style="font-size:1.4rem; color:#ffd96a;"></i>
+                </div>
+            </div>
+            <div class="firstbook-actions">
+                <button type="button" class="firstbook-btn later" id="firstbookLaterBtn">Maybe later</button>
+                <button type="button" class="firstbook-btn apply" id="firstbookApplyBtn">Apply coupon</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    popup.querySelector("#firstbookLaterBtn")?.addEventListener("click", () => popup.remove());
+    popup.querySelector("#firstbookApplyBtn")?.addEventListener("click", () => {
+        firstBookingOfferState.applied = true;
+        renderPricingBreakdown();
+        popup.remove();
+        showToast("FIRSTBOOK applied. Rs 50 discount added.");
+    });
+
+    popup.addEventListener("click", (event) => {
+        if (event.target === popup) {
+            popup.remove();
+        }
+    });
 }
 
 function openBooking() {
@@ -347,6 +548,26 @@ function setDropdownToCity(city) {
     }
 }
 
+function getSavedConfirmedCity() {
+    const savedCity = localStorage.getItem(SAVED_CITY_KEY);
+    if (!savedCity) return "";
+    if (availableCities.includes(savedCity)) {
+        return savedCity;
+    }
+
+    localStorage.removeItem(SAVED_CITY_KEY);
+    return "";
+}
+
+function saveConfirmedCity(city) {
+    if (city && availableCities.includes(city)) {
+        localStorage.setItem(SAVED_CITY_KEY, city);
+        return;
+    }
+
+    localStorage.removeItem(SAVED_CITY_KEY);
+}
+
 function showCityEntryPrompt(message = "Enter your city to see available services") {
     const container = document.getElementById("servicesList");
     if (!container) return;
@@ -417,12 +638,14 @@ async function applyOtherCityResolution(cityName, { loadDefaultOnNoMatch = true 
         setDropdownToCity(matchedCity);
         setOtherCityMode(false);
         currentCity = matchedCity;
+        saveConfirmedCity(matchedCity);
         await loadServicesForCity(matchedCity);
         return { matched: true, city: matchedCity };
     }
 
     setDropdownToCity("Other");
     setOtherCityMode(true, trimmedCity);
+    saveConfirmedCity("");
 
     if (loadDefaultOnNoMatch && trimmedCity) {
         currentCity = DEFAULT_CITY;
@@ -515,66 +738,66 @@ async function getBrowserLocationPermissionState() {
 
 async function showLocationPermissionPopup() {
     const popup = document.getElementById("locationPopup");
-    const allowBtn = document.getElementById("allowLocationBtn");
-    const mapBtn = document.getElementById("pickOnMapBtn");
-    const denyBtn = document.getElementById("denyLocationBtn");
-    const rememberCheck = document.getElementById("rememberLocationChoice");
-    const permissionState = await getBrowserLocationPermissionState();
+    const citySelect = document.getElementById("locationPopupCitySelect");
+    const otherCityInput = document.getElementById("locationPopupOtherCity");
+    const confirmBtn = document.getElementById("confirmCitySelectionBtn");
+    const errorText = document.getElementById("locationPopupError");
+    const savedCity = getSavedConfirmedCity();
 
-    const hasSelectedCity = Boolean(currentCity);
-    if (hasSelectedCity) {
-        return Promise.resolve("manual");
-    }
-
-    const savedPref = localStorage.getItem("locationPref");
-    if (savedPref === "map") {
-        localStorage.removeItem("locationPref");
-    }
-    if (savedPref === "allowed" && permissionState === "granted") {
-        return Promise.resolve("location");
-    }
-    if (savedPref === "manual" || savedPref === "denied") {
-        return Promise.resolve("manual");
+    if (savedCity) {
+        return Promise.resolve({ type: "city", city: savedCity });
     }
 
     return new Promise((resolve) => {
-        const persistChoice = (choice) => {
-            if (!rememberCheck?.checked) {
-                localStorage.removeItem("locationPref");
-                return;
-            }
-
-            if (choice === "location") {
-                localStorage.setItem("locationPref", "allowed");
-                return;
-            }
-
-            localStorage.setItem("locationPref", choice);
-        };
-
         const cleanup = () => {
             popup.classList.remove("show");
-            allowBtn.onclick = null;
-            mapBtn.onclick = null;
-            denyBtn.onclick = null;
+            confirmBtn.onclick = null;
         };
 
-        allowBtn.onclick = () => {
-            persistChoice("location");
-            cleanup();
-            resolve("location");
-        };
+        if (citySelect) {
+            citySelect.value = "";
+            citySelect.onchange = () => {
+                const isOther = citySelect.value === "Other";
+                if (otherCityInput) {
+                    otherCityInput.style.display = isOther ? "block" : "none";
+                    if (!isOther) {
+                        otherCityInput.value = "";
+                    }
+                }
 
-        mapBtn.onclick = () => {
-            persistChoice("map");
-            cleanup();
-            resolve("map");
-        };
+                if (errorText) {
+                    errorText.style.display = "none";
+                }
+            };
+        }
 
-        denyBtn.onclick = () => {
-            persistChoice("manual");
+        confirmBtn.onclick = () => {
+            const selectedCity = citySelect?.value || "";
+            if (!selectedCity) {
+                if (errorText) errorText.style.display = "block";
+                return;
+            }
+
+            if (selectedCity === "Other") {
+                const typedCity = otherCityInput?.value.trim() || "";
+                if (!typedCity) {
+                    if (errorText) {
+                        errorText.textContent = "Please enter your city name to continue.";
+                        errorText.style.display = "block";
+                    }
+                    return;
+                }
+
+                if (errorText) errorText.style.display = "none";
+                saveConfirmedCity("");
+                cleanup();
+                resolve({ type: "other", city: typedCity });
+                return;
+            }
+
+            saveConfirmedCity(selectedCity);
             cleanup();
-            resolve("manual");
+            resolve({ type: "city", city: selectedCity });
         };
 
         popup.classList.add("show");
@@ -586,60 +809,20 @@ async function resolveInitialLocationFlow() {
         return;
     }
 
-    const locationAction = await showLocationPermissionPopup();
+    const citySelection = await showLocationPermissionPopup();
+    if (!citySelection) return;
 
-    if (locationAction === "manual") {
-        prepareOtherCitySelection();
+    if (citySelection.type === "other") {
+        prepareOtherCitySelection(citySelection.city);
+        await applyOtherCityResolution(citySelection.city, { loadDefaultOnNoMatch: true });
         return;
     }
 
-    if (locationAction === "map") {
-        prepareOtherCitySelection();
-        const mapReady = await waitForGoogleMapsReady(2000);
-        if (mapReady) {
-            openMapPopup();
-            return;
-        }
-        showToast("Map is still loading. Please try again in a moment.");
-        return;
-    }
-
-    if (locationAction !== "location") {
-        prepareOtherCitySelection();
-        return;
-    }
-
-    userLocation = await getUserLocation();
-    if (userLocation) {
-        window.__selectedMapCoords = userLocation;
-        const mapReady = await waitForGoogleMapsReady(2000);
-        if (mapReady) {
-            const addressData = await reverseGeocodeLocation(userLocation.lat, userLocation.lng);
-            window.__selectedMapAddress = addressData.formattedAddress;
-        }
-    }
-    const detectedCity = detectCity(userLocation);
-
-    if (detectedCity && availableCities.includes(detectedCity)) {
-        setDropdownToCity(detectedCity);
-        setOtherCityMode(false);
-        await loadServicesForCity(detectedCity);
-        return;
-    }
-
-    if (!userLocation) {
-        prepareOtherCitySelection();
-        return;
-    }
-
-    await waitForGoogleMapsReady();
-    const addressData = await reverseGeocodeLocation(userLocation.lat, userLocation.lng);
-    if (addressData.cityName) {
-        await applyOtherCityResolution(addressData.cityName, { loadDefaultOnNoMatch: true });
-        return;
-    }
-
-    prepareOtherCitySelection();
+    const selectedCity = citySelection.city;
+    setDropdownToCity(selectedCity);
+    setOtherCityMode(false);
+    currentCity = selectedCity;
+    await loadServicesForCity(selectedCity);
 }
 
 function detectCity(location) {
@@ -771,8 +954,13 @@ function renderServices(services) {
     const container = document.getElementById("servicesList");
     container.innerHTML = "";
     selectedServices = [];
+    const sortedServices = [...services].sort((a, b) => {
+        const priceDiff = (Number(a.price) || 0) - (Number(b.price) || 0);
+        if (priceDiff !== 0) return priceDiff;
+        return String(a.service_code || "").localeCompare(String(b.service_code || ""));
+    });
 
-    if (services.length === 0) {
+    if (sortedServices.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-tools"></i>
@@ -783,7 +971,7 @@ function renderServices(services) {
         return;
     }
 
-    services.forEach(service => {
+    sortedServices.forEach(service => {
         const div = document.createElement("div");
         div.className = `service-card`;
         div.setAttribute('data-code', service.service_code);
@@ -801,7 +989,7 @@ function renderServices(services) {
             <div class="service-card-inner">
                 <div class="service-card-front">
                     <div class="service-header">
-                        <div class="service-icon">${getIcon(service.service_code)}</div>
+                        <div class="service-icon">${getServiceIconMarkup(service.service_code)}</div>
                         <div class="service-checkbox"></div>
                     </div>
                     
@@ -952,13 +1140,7 @@ function updateServiceCount() {
 }
 
 function updateTotal() {
-    const subtotal = selectedServices.reduce((s, i) => s + i.price, 0);
-    const gst = subtotal * 0.18;
-    const total = subtotal + gst;
-
-    document.getElementById("subtotal").innerText = subtotal.toFixed(2);
-    document.getElementById("gst").innerText = gst.toFixed(2);
-    document.getElementById("total").innerText = total.toFixed(2);
+    renderPricingBreakdown();
 }
 
 function clearSelectedServices() {
@@ -1238,7 +1420,7 @@ function showUserFormOnPage() {
     const dropdown = document.getElementById("cityDropdown");
     const otherInput = document.getElementById("otherCityInput");
     let city = dropdown.value === "Other" ? otherInput.value.trim() : dropdown.value;
-    const savedAddress = window.__selectedMapAddress || "";
+    const savedAddress = getDisplayAddress(window.__selectedMapAddress || window.__selectedMapAddressRaw || "");
     const defaultAddress = savedAddress ? savedAddress : `${city}, `;
 
     container.innerHTML = `
@@ -1313,6 +1495,34 @@ function showUserFormOnPage() {
     // Attach map button handler
     document.getElementById("mapSelectBtn").onclick = openMapPopup;
     document.getElementById("confirmBookingBtn").onclick = showBookingConfirmPopup;
+
+    const phoneInput = document.getElementById("userPhone");
+    if (phoneInput) {
+        phoneInput.addEventListener("input", (event) => {
+            const nextValue = normalizePhoneNumber(event.target.value);
+            event.target.value = nextValue;
+
+            clearTimeout(typingTimer);
+
+            if (nextValue !== firstBookingOfferState.phone && firstBookingOfferState.phone) {
+                resetFirstBookingOffer();
+                renderPricingBreakdown();
+            }
+
+            if (nextValue.length === 10) {
+                typingTimer = setTimeout(() => checkFirstBookingEligibility(nextValue), 250);
+            } else if (!nextValue) {
+                resetFirstBookingOffer();
+                renderPricingBreakdown();
+            }
+        });
+
+        phoneInput.addEventListener("blur", () => {
+            if (phoneInput.value.length === 10) {
+                checkFirstBookingEligibility(phoneInput.value);
+            }
+        });
+    }
 }
 
 function editSlot() {
@@ -1993,7 +2203,9 @@ async function confirmMapLocation() {
     const addressData = await reverseGeocodeLocation(coords.lat, coords.lng);
     const addressField = document.getElementById("userAddress");
     const userPinnedAddress = addressData.formattedAddress;
-    window.__selectedMapAddress = userPinnedAddress;
+    const displayAddress = getDisplayAddress(userPinnedAddress);
+    window.__selectedMapAddressRaw = userPinnedAddress;
+    window.__selectedMapAddress = displayAddress;
     window.__selectedMapCoords = coords;
     const dropdown = document.getElementById("cityDropdown");
     const otherInput = document.getElementById("otherCityInput");
@@ -2009,7 +2221,7 @@ async function confirmMapLocation() {
         selectedMapLng = coords.lng;
 
         if (addressField) {
-            addressField.value = userPinnedAddress;
+            addressField.value = displayAddress;
         }
 
         if (addressData.cityName) {
@@ -2037,7 +2249,7 @@ async function confirmMapLocation() {
         selectedMapLng = coords.lng;
 
         if (addressField) {
-            addressField.value = userPinnedAddress;
+            addressField.value = displayAddress;
         }
 
         closeMapPopup();
@@ -2072,14 +2284,14 @@ async function confirmMapLocation() {
     selectedMapLng = coords.lng;
 
     if (addressField) {
-        addressField.value = userPinnedAddress;
+        addressField.value = displayAddress;
     }
 
     await triggerMapPinConfirmFeedback();
     closeMapPopup();
     showToast("Location updated");
 }
-function showBookingConfirmPopup() {
+async function showBookingConfirmPopup() {
     // Strong vibration when popup opens
     if (navigator.vibrate) {
         navigator.vibrate([200, 80, 200]);
@@ -2087,7 +2299,7 @@ function showBookingConfirmPopup() {
     
     // Get all details
     const phone = document.getElementById("userPhone").value.trim();
-    const address = document.getElementById("userAddress").value.trim();
+    const address = getBookingAddressValue();
     const captchaInput = document.getElementById("captchaInput").value.trim();
     
     // Validate basic info first
@@ -2106,6 +2318,11 @@ function showBookingConfirmPopup() {
         generateCaptcha();
         return;
     }
+
+    await checkFirstBookingEligibility(phone);
+    if (firstBookingOfferState.eligible && !firstBookingOfferState.applied && document.getElementById("firstbookPopup")) {
+        return;
+    }
     
     // Calculate total units for service time estimate
     const totalUnits = selectedServices.reduce((sum, s) => sum + (s.units || 0), 0);
@@ -2118,6 +2335,7 @@ function showBookingConfirmPopup() {
     
     // Get total amount
     const total = document.getElementById("total").innerText;
+    const { discount } = getPricingBreakdown();
     
     // Get service names
     const serviceNames = selectedServices.map(s => s.code.replace(/_/g, ' ')).join(', ');
@@ -2147,6 +2365,12 @@ function showBookingConfirmPopup() {
                     <span class="confirm-value confirm-highlight">₹${total}</span>
                 </div>
                 
+                ${discount > 0 ? `
+                <div class="confirm-detail-row">
+                    <span class="confirm-label"><i class="fas fa-ticket-alt"></i> Coupon:</span>
+                    <span class="confirm-value">${FIRSTBOOK_CODE} (-Rs ${discount.toFixed(2)})</span>
+                </div>
+                ` : ""}
                 <div class="confirm-note">
                     <i class="fas fa-info-circle"></i>
                     <span>Team will arrive anytime within the selected arrival window. Actual service time may vary based on vehicle condition.</span>
@@ -2213,7 +2437,7 @@ async function submitBooking() {
     console.log("🔥 submitBooking triggered");
     
     const phone = document.getElementById("userPhone").value.trim();
-    const address = document.getElementById("userAddress").value.trim();
+    const address = getBookingAddressValue();
     const instructions = document.getElementById("userInstructions").value.trim();
     const captchaInput = document.getElementById("captchaInput").value.trim();
 
@@ -2255,9 +2479,7 @@ async function submitBooking() {
     const totalUnits = selectedServices.reduce((sum, s) => sum + (s.units || 0), 0);
     
     // Calculate amounts
-    const subtotal = selectedServices.reduce((sum, s) => sum + s.price, 0);
-    const gst = subtotal * 0.18;
-    const total = subtotal + gst;
+    const { subtotal, gst, discount, total } = getPricingBreakdown();
 
     const payload = {
         booking_id: "BKG" + Date.now(),
@@ -2284,8 +2506,8 @@ booking_date: (() => {
         // Use map selected coordinates if available, otherwise use geolocation
         lat: selectedMapLat || userLocation?.lat || null,
         lng: selectedMapLng || userLocation?.lng || null,
-        applied_coupon: "",
-        coupon_used: 0,
+        applied_coupon: firstBookingOfferState.applied ? FIRSTBOOK_CODE : "",
+        coupon_used: firstBookingOfferState.applied ? discount : 0,
         amount: subtotal.toFixed(2),
         gst_amount: gst.toFixed(2),
         total_amount: total.toFixed(2)
@@ -2314,7 +2536,9 @@ booking_date: (() => {
         showSuccessPopup(payload.booking_id, isOtherCity);
 
         window.__selectedMapAddress = null;
+        window.__selectedMapAddressRaw = null;
         window.__selectedMapCoords = null;
+        resetFirstBookingOffer();
 
         // Reset selections
         window.__selectedSlot = null;
@@ -2404,7 +2628,6 @@ function closeSuccessPopup() {
     if (popup) {
         popup.remove();
     }
-    localStorage.removeItem("locationPref");
     location.reload();
 }
 
@@ -2453,18 +2676,20 @@ document.addEventListener('click', function(e) {
 });
 
 async function init() {
-    if (localStorage.getItem("locationPref") === "map") {
-        localStorage.removeItem("locationPref");
-    }
-
     await fetchAllPartners();
     availableCities = await fetchCities();
 
     const dropdown = document.getElementById("cityDropdown");
     const otherInput = document.getElementById("otherCityInput");
+    const popupCitySelect = document.getElementById("locationPopupCitySelect");
 
     dropdown.innerHTML = availableCities.map(c => `<option value="${c}">${c}</option>`).join("");
     dropdown.innerHTML += `<option value="Other">🏙️ Other City</option>`;
+    if (popupCitySelect) {
+        popupCitySelect.innerHTML = `<option value="">Select city</option>` +
+            availableCities.map(city => `<option value="${city}">${city}</option>`).join("") +
+            `<option value="Other">Other City</option>`;
+    }
     otherInput.placeholder = "Enter your city name";
     moveCitySelectorToTopBar();
     revealAppAfterLocationReady();
@@ -2473,9 +2698,11 @@ async function init() {
 
     dropdown.addEventListener("change", async function(e) {
         if (e.target.value === "Other") {
+            saveConfirmedCity("");
             prepareOtherCitySelection(otherInput.value.trim());
         } else {
             setOtherCityMode(false);
+            saveConfirmedCity(e.target.value);
             await loadServicesForCity(e.target.value);
             clearTransientBookingUi();
         }

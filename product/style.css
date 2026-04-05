@@ -772,6 +772,15 @@ body.city-topbar-mounted #booking-form {
     color: var(--text-secondary);
 }
 
+.total-row.discount {
+    color: #7ef0a4;
+    font-weight: 600;
+}
+
+.total-row.discount i {
+    color: #8cffb0;
+}
+
 .total-row.final {
     font-size: 1.2rem;
     font-weight: 700;
@@ -779,6 +788,154 @@ body.city-topbar-mounted #booking-form {
     border-top: 2px solid var(--border-gold);
     margin-top: 0.5rem;
     padding-top: 1rem;
+}
+
+.firstbook-popup {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(5, 5, 5, 0.72);
+    backdrop-filter: blur(10px);
+}
+
+.firstbook-card {
+    position: relative;
+    width: min(100%, 420px);
+    overflow: hidden;
+    border-radius: 28px;
+    padding: 1.3rem;
+    background:
+        radial-gradient(circle at top, rgba(246, 200, 76, 0.18), transparent 42%),
+        linear-gradient(180deg, rgba(31, 27, 18, 0.98), rgba(16, 16, 16, 0.98));
+    border: 1px solid rgba(246, 200, 76, 0.45);
+    box-shadow: 0 28px 60px rgba(0, 0, 0, 0.42);
+}
+
+.firstbook-sprinkles {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.firstbook-sprinkles span {
+    position: absolute;
+    top: -14%;
+    width: 10px;
+    height: 18px;
+    border-radius: 999px;
+    opacity: 0.85;
+    animation: sprinkle-fall 2.6s linear infinite;
+}
+
+.firstbook-sprinkles span:nth-child(4n + 1) { background: #f6c84c; }
+.firstbook-sprinkles span:nth-child(4n + 2) { background: #ff7a59; }
+.firstbook-sprinkles span:nth-child(4n + 3) { background: #56e39f; }
+.firstbook-sprinkles span:nth-child(4n + 4) { background: #60a5fa; }
+
+.firstbook-header,
+.firstbook-body,
+.firstbook-actions {
+    position: relative;
+    z-index: 1;
+}
+
+.firstbook-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(246, 200, 76, 0.14);
+    color: var(--primary);
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.firstbook-title {
+    margin: 0.9rem 0 0.45rem;
+    color: #fff6d6;
+    font-size: 1.45rem;
+    line-height: 1.15;
+}
+
+.firstbook-copy {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.82);
+    line-height: 1.6;
+}
+
+.firstbook-coupon {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: 1rem 0 1.15rem;
+    padding: 0.95rem 1rem;
+    border-radius: 20px;
+    border: 1px dashed rgba(246, 200, 76, 0.55);
+    background: rgba(246, 200, 76, 0.08);
+}
+
+.firstbook-code {
+    display: block;
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.firstbook-offer {
+    display: block;
+    margin-top: 0.18rem;
+    color: #ffd96a;
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.firstbook-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.firstbook-btn {
+    flex: 1;
+    min-height: 48px;
+    border: 1px solid rgba(246, 200, 76, 0.26);
+    border-radius: 16px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.firstbook-btn:hover {
+    transform: translateY(-1px);
+}
+
+.firstbook-btn.apply {
+    color: #111;
+    background: linear-gradient(135deg, #f6c84c, #ffd95e);
+    box-shadow: 0 16px 30px rgba(246, 200, 76, 0.22);
+}
+
+.firstbook-btn.later {
+    color: #f3f3f3;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+@keyframes sprinkle-fall {
+    0% {
+        transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+    100% {
+        transform: translate3d(18px, 340px, 0) rotate(220deg);
+    }
 }
 
 /* ===== SLOTS SECTION ===== */
@@ -2651,6 +2808,37 @@ body.app-loading > *:not(.app-loader) {
     line-height: 1.7;
 }
 
+.location-popup-form {
+    padding: 0.2rem 1.25rem 0;
+}
+
+.location-popup-form .city-select {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border: 1px solid rgba(246, 200, 76, 0.22);
+    border-radius: 16px;
+    font-size: 0.96rem;
+    color: var(--text-primary);
+    background: rgba(20, 20, 20, 0.95);
+    outline: none;
+    appearance: none;
+}
+
+.location-popup-form #locationPopupOtherCity {
+    margin-top: 0.75rem;
+}
+
+.location-popup-form .city-select:focus {
+    border-color: rgba(246, 200, 76, 0.48);
+    box-shadow: 0 0 0 4px rgba(246, 200, 76, 0.12);
+}
+
+.location-popup-error {
+    margin-top: 0.75rem;
+    color: #ff8d7a;
+    font-size: 0.88rem;
+}
+
 .location-popup-note {
     margin-top: 0.75rem;
     color: var(--text-gold);
@@ -2658,62 +2846,14 @@ body.app-loading > *:not(.app-loader) {
 }
 
 .location-popup-actions {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    display: flex;
     gap: 0.75rem;
     padding-top: 1rem;
     padding-bottom: 1.25rem;
 }
 
-.location-popup-map-btn {
-    background: linear-gradient(180deg, rgba(28, 28, 28, 0.98), rgba(14, 14, 14, 0.98));
-    color: var(--text-gold);
-    border: 1px solid rgba(246, 200, 76, 0.24);
-}
-
-.location-popup-map-btn:hover {
-    transform: translateY(-2px);
-    border-color: rgba(246, 200, 76, 0.42);
-    box-shadow: 0 12px 26px rgba(246, 200, 76, 0.12);
-}
-
-.location-popup-remember {
-    border-top: 1px solid rgba(246, 200, 76, 0.1);
-    margin-top: 0.25rem;
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
-    padding-top: 0.75rem;
-    padding-bottom: 0.25rem;
-}
-
-.location-popup-remember label {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: opacity 0.2s ease;
-}
-
-.location-popup-remember-hint {
-    margin-left: auto;
-    font-size: 0.8rem;
-    opacity: 0.65;
-}
-
-.location-popup-remember label:hover {
-    opacity: 1;
-    color: var(--text-primary);
-}
-
-.location-popup-remember input[type="checkbox"] {
-    cursor: pointer;
-    width: 18px;
-    height: 18px;
-    border-radius: 4px;
-    border: 2px solid var(--border-gold);
-    background: transparent;
-    accent-color: var(--primary);
+.location-popup-actions .confirm-btn {
+    width: 100%;
 }
 
 .map-popup {

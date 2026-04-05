@@ -113,6 +113,10 @@
                         <span><i class="fas fa-file-invoice"></i> GST (18%)</span>
                         <span>₹ <span id="gst">0.00</span></span>
                     </div>
+                    <div class="total-row discount" id="discountRow" style="display: none;">
+                        <span><i class="fas fa-ticket-alt"></i> Firstbook Discount</span>
+                        <span>-Rs <span id="discount">0.00</span></span>
+                    </div>
                     <div class="total-row final">
                         <span><i class="fas fa-credit-card"></i> Total</span>
                         <span>₹ <span id="total">0.00</span></span>
@@ -326,31 +330,31 @@
     </div>
 
     <div id="locationPopup" class="location-popup">
-            <div class="location-popup-content">
+        <div class="location-popup-content">
             <div class="location-popup-header">
-                <div class="location-popup-badge">Smart setup</div>
-                <h3><i class="fas fa-location-crosshairs"></i> Set Your Service Area</h3>
+                <div class="location-popup-badge">City setup</div>
+                <h3><i class="fas fa-city"></i> Select Your City</h3>
             </div>
             <div class="location-popup-body">
-                <p>Set your service area to see the most relevant availability and scheduling options near you.</p>
-                <p class="location-popup-note">Use your current location for the quickest setup, choose your spot on the map, or continue by entering details manually.</p>
+                <p>Choose your city to see the right services, scheduling options, and availability.</p>
+                <p class="location-popup-note">You need to confirm a city before continuing.</p>
             </div>
-            <div class="location-popup-remember">
-                <label>
-                    <input type="checkbox" id="rememberLocationChoice" checked>
-                    <span>Remember my choice</span>
-                    <span class="location-popup-remember-hint">for this device</span>
-                </label>
+            <div class="location-popup-form">
+                <select id="locationPopupCitySelect" class="city-select" aria-label="Select city">
+                    <option value="">Select city</option>
+                </select>
+                <input
+                    type="text"
+                    id="locationPopupOtherCity"
+                    class="city-select"
+                    placeholder="Enter your city name"
+                    style="display:none;"
+                    aria-label="Enter other city">
+                <p id="locationPopupError" class="location-popup-error" style="display:none;">Please select a city to continue.</p>
             </div>
             <div class="location-popup-actions">
-                <button id="allowLocationBtn" class="confirm-btn confirm" type="button">
-                    <i class="fas fa-location-arrow"></i> Use My Location
-                </button>
-                <button id="pickOnMapBtn" class="confirm-btn location-popup-map-btn" type="button">
-                    <i class="fas fa-map-location-dot"></i> Pick on Map
-                </button>
-                <button id="denyLocationBtn" class="confirm-btn cancel" type="button">
-                    <i class="fas fa-times"></i> Enter Manually
+                <button id="confirmCitySelectionBtn" class="confirm-btn confirm" type="button">
+                    <i class="fas fa-check"></i> Continue
                 </button>
             </div>
         </div>
@@ -475,7 +479,7 @@
 
     <a
         class="whatsapp-float"
-        href="https://wa.me/919084669219?text=Hi%20Kwikkwash%2C%20I%20want%20to%20book%20a%20service."
+        href="https://wa.me/919084669219?text=Hi%20!!"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat on WhatsApp"
