@@ -1,6 +1,3 @@
-// ================================
-// CONFIG
-// ================================
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxCV4GTuu4Te3PQ4dlxhyG9pIUic2b2_fxO4e7wDZ2kiZQRkGJ6-9Zl47pKWcYoOzqr/exec";
 const ANALYTICS_URL = "https://script.google.com/macros/s/AKfycbyMFPQ3pMHty3O0U2gpKZHgBT1vNPfIC0xJBYb18ZlVKf7h7UsPaavAX-sRyG_CxiWJ/exec";
 
@@ -10,9 +7,6 @@ let sliderInterval;
 let deferredPrompt;
 let installCheckDone = false;
 
-// ================================
-// HELPER FUNCTIONS
-// ================================
 function initials(name) {
   if (!name) return "KW";
   return name.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
@@ -22,14 +16,11 @@ function stars(count) {
   let s = "";
   const rating = parseInt(count) || 5;
   for (let i = 0; i < 5; i++) {
-    s += i < rating ? "★" : "☆";
+    s += i < rating ? "\u2605" : "\u2606";
   }
   return s;
 }
 
-// ================================
-// PWA DETECTION
-// ================================
 function isRunningAsPWA() {
   return window.matchMedia('(display-mode: standalone)').matches || 
          window.navigator.standalone === true ||
@@ -43,36 +34,29 @@ function isDesktop() {
          !/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
-// ================================
-// INSTALLATION CHECK WITH 4 SECOND WAIT
-// ================================
 function checkPWAStatus() {
   const installBtn = document.getElementById("installBtn");
   const instructionText = document.getElementById("instructionText");
   
   if (!installBtn || !instructionText) return;
   
-  // Case 1: Already running as PWA - hide everything
   if (isRunningAsPWA()) {
     installBtn.style.display = "none";
     instructionText.style.display = "none";
     return;
   }
   
-  // Case 2: Desktop - only show install/open, no instructions
   if (isDesktop()) {
     if (localStorage.getItem("appInstalled") === "true") {
       installBtn.style.display = "inline-block";
       installBtn.innerHTML = "<span>Open App</span>";
       installBtn.onclick = () => window.location.href = "/";
     } else {
-      // Check if installable
       if (deferredPrompt) {
         installBtn.style.display = "inline-block";
         installBtn.innerHTML = "<span>Install App (Recommended)</span>";
         setupInstallHandler();
       } else {
-        // On desktop, if not installable, hide button (no instructions)
         installBtn.style.display = "none";
         instructionText.style.display = "none";
       }
@@ -80,21 +64,18 @@ function checkPWAStatus() {
     return;
   }
   
-  // Case 3: Mobile - full logic
   if (localStorage.getItem("appInstalled") === "true") {
     installBtn.style.display = "inline-block";
     installBtn.innerHTML = "<span>Open App</span>";
     installBtn.onclick = () => window.location.href = "/";
     instructionText.style.display = "none";
   } else {
-    // Check if installable
     if (deferredPrompt) {
       installBtn.style.display = "inline-block";
       installBtn.innerHTML = "<span>Install App (Recommended)</span>";
       setupInstallHandler();
       instructionText.style.display = "none";
     } else {
-      // Not installable - show instruction as last resort
       installBtn.style.display = "none";
       instructionText.style.display = "block";
     }
@@ -107,7 +88,6 @@ function setupInstallHandler() {
   
   installBtn.onclick = async () => {
     if (!deferredPrompt) {
-      // Fallback to instructions if install prompt not available
       const instructionText = document.getElementById("instructionText");
       if (instructionText) {
         instructionText.style.display = "block";
@@ -129,9 +109,6 @@ function setupInstallHandler() {
   };
 }
 
-// ================================
-// SMART LOCATION DETECTION
-// ================================
 async function getLocationSmart() {
   try {
     if (navigator.permissions && navigator.permissions.query) {
@@ -198,9 +175,6 @@ async function getIPLocation() {
   }
 }
 
-// ================================
-// SLIDER FUNCTIONS
-// ================================
 function startSlider() {
   if (cards.length <= 1) return;
   stopSlider();
@@ -220,9 +194,6 @@ function stopSlider() {
   if (sliderInterval) clearInterval(sliderInterval);
 }
 
-// ================================
-// LOAD TESTIMONIALS
-// ================================
 function loadTestimonials() {
   const slider = document.getElementById("testimonialSlider");
   
@@ -323,9 +294,6 @@ function loadTestimonials() {
     });
 }
 
-// ================================
-// HERO TRANSITION
-// ================================
 function setupHeroTransition() {
   const video = document.querySelector(".heroVideo");
   const img = document.querySelector(".heroImg");
@@ -340,9 +308,6 @@ function setupHeroTransition() {
   }, 3000);
 }
 
-// ================================
-// ANALYTICS
-// ================================
 async function sendAnalytics() {
   try {
     if (sessionStorage.getItem("analyticsSent")) {
@@ -401,15 +366,11 @@ function generateSessionId() {
   return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
-// ================================
-// SERVICE WORKER REGISTRATION
-// ================================
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('service-worker.js')
         .then(registration => {
-          // Check for updates every hour
           setInterval(() => {
             registration.update();
           }, 60 * 60 * 1000);
@@ -419,9 +380,6 @@ function registerServiceWorker() {
   }
 }
 
-// ================================
-// CTA BUTTON
-// ================================
 function setupCTAButton() {
   const ctaBtn = document.getElementById("ctaBtn");
   
@@ -434,9 +392,6 @@ function setupCTAButton() {
   });
 }
 
-// ================================
-// MAIN INIT WITH 4 SECOND WAIT
-// ================================
 async function init() {
   try {
     await sendAnalytics();
@@ -447,21 +402,18 @@ async function init() {
   registerServiceWorker();
   setupCTAButton();
   
-  // Listen for beforeinstallprompt
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
     
-    // If check hasn't been done yet, wait for 4 seconds
     if (!installCheckDone) {
       setTimeout(() => {
         checkPWAStatus();
         installCheckDone = true;
-      }, 4000); // 4 second wait
+      }, 4000);
     }
   });
   
-  // Also check after 4 seconds even if no beforeinstallprompt
   setTimeout(() => {
     if (!installCheckDone) {
       checkPWAStatus();
@@ -469,16 +421,12 @@ async function init() {
     }
   }, 4000);
   
-  // Listen for app installed
   window.addEventListener("appinstalled", () => {
     localStorage.setItem("appInstalled", "true");
     checkPWAStatus();
   });
 }
 
-// ================================
-// START
-// ================================
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     init().catch(() => {});

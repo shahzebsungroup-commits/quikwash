@@ -95,44 +95,48 @@ h1 {
   opacity: .8;
 }
 
-/* ================= AI CTA BUTTON ================= */
-.aiBtn {
+.cta-button {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 16px 32px;
   border-radius: 34px;
   cursor: pointer;
   font-size: 16px;
   font-weight: 700;
-  background: #F6C84C;
-  color: #000;
+  background: transparent;
+  color: #F6C84C;
   border: none;
   overflow: visible;
-  animation: blinkFill 5s ease-in-out infinite;
   margin: 5px 0;
   min-width: 220px;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, color 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  isolation: isolate;
 }
 
-.aiBtn:hover {
+.cta-button:hover {
   transform: scale(1.02);
 }
 
-.aiBtn:active {
+.cta-button:active {
   transform: scale(0.98);
 }
 
-.aiBtn span {
+.cta-button span {
   position: relative;
   z-index: 3;
 }
 
-.aiBtn::before {
+.cta-button::before {
   content: "";
   position: absolute;
-  top: -1.5px;
-  left: -1.5px;
-  right: -1.5px;
-  bottom: -1.5px;
+  top: -0.5px;
+  left: -0.5px;
+  right: -0.5px;
+  bottom: -0.5px;
   border-radius: 38px;
   background: linear-gradient(
     120deg,
@@ -149,22 +153,20 @@ h1 {
   filter: drop-shadow(0 2px 6px rgba(255, 80, 80, 0.25))
           drop-shadow(0 6px 14px rgba(0, 200, 255, 0.22))
           drop-shadow(0 12px 28px rgba(138, 43, 226, 0.30));
-  z-index: -1;
+  z-index: 0;
 }
 
-@keyframes blinkFill {
-  0%, 45% {
-    background: #000;
-    color: #F6C84C;
-  }
-  55% {
-    background: #F6C84C;
-    color: #000;
-  }
-  100% {
-    background: #000;
-    color: #F6C84C;
-  }
+.cta-button::after {
+  content: "";
+  position: absolute;
+  inset: 0.5px;
+  border-radius: 32px;
+  background: rgba(0, 0, 0, 0.88);
+  z-index: 1;
+}
+
+.cta-button:hover {
+  color: #fff4c7;
 }
 
 @keyframes aiBorderMove {
@@ -175,12 +177,11 @@ h1 {
 /* ================= INSTALL BUTTON ================= */
 .install-btn {
   margin-top: 15px;
-  animation: none; /* Remove pulse if any */
-  background: #F6C84C;
+  animation: none;
 }
 
 .install-btn span {
-  color: #000;
+  color: #F6C84C;
 }
 
 /* ================= INSTRUCTION TEXT ================= */
@@ -315,11 +316,14 @@ h1 {
   align-items: center;
 }
 
-.avatar {
+.top .avatar {
   background: #F6C84C;
   color: #000;
   width: 48px;
   height: 48px;
+  min-width: 48px;
+  flex: 0 0 48px;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -329,7 +333,7 @@ h1 {
   box-shadow: 0 4px 10px rgba(246, 200, 76, 0.3);
 }
 
-.top div {
+.top > div:last-child {
   flex: 1;
 }
 
@@ -385,7 +389,7 @@ h1 {
     max-width: 320px;
   }
   
-  .aiBtn {
+  .cta-button {
     padding: 14px 26px;
     font-size: 15px;
     min-width: 200px;
@@ -403,9 +407,11 @@ h1 {
     padding: 20px;
   }
 
-  .avatar {
+  .top .avatar {
     width: 44px;
     height: 44px;
+    min-width: 44px;
+    flex-basis: 44px;
     font-size: 16px;
   }
 }
@@ -447,7 +453,7 @@ h1 {
     font-size: 32px;
   }
 
-  .aiBtn {
+  .cta-button {
     padding: 12px 20px;
     font-size: 14px;
     min-width: 180px;
@@ -487,7 +493,7 @@ h1 {
     margin-bottom: 10px;
   }
 
-  .aiBtn {
+  .cta-button {
     padding: 10px 20px;
     margin: 5px 0;
   }
@@ -518,7 +524,7 @@ h1 {
 @media print {
   .heroVideo,
   .testVideo,
-  .aiBtn::before,
+  .cta-button::before,
   .install-btn {
     display: none;
   }
@@ -551,7 +557,7 @@ h1 {
 
 /* ================= TOUCH DEVICE OPTIMIZATIONS ================= */
 @media (hover: none) {
-  .aiBtn:hover {
+  .cta-button:hover {
     transform: none;
   }
 
