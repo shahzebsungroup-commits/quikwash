@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kwikkwash Proclean - Premium Cleaning Services</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="theme-color" content="#F6C84C">
+    <link rel="manifest" href="manifest.json">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script>
+        window.initMap = function() {
+            window.googleMapsReady = true;
+            console.log('Google Maps ready');
+        };
+
+        (function loadGoogleMaps() {
+            const script = document.createElement('script');
+            script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyB82gWcx0dAeta4yTi7ZjmNjAa-CgC1aI0&libraries=places,geometry&callback=initMap&v=weekly';
+            script.async = true;
+            script.defer = true;
+            script.onerror = () => console.error('Google Maps failed to load');
+            document.head.appendChild(script);
+        })();
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="app-loading">
+    <div id="appLoader" class="app-loader" aria-live="polite">
+        <div class="app-loader-orbit">
+            <div class="app-loader-ring ring-one"></div>
+            <div class="app-loader-ring ring-two"></div>
+            <div class="app-loader-core">
+                <svg viewBox="0 0 96 132" class="app-loader-pin" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="loaderPinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#FFE17C"></stop>
+                            <stop offset="55%" stop-color="#F6C84C"></stop>
+                            <stop offset="100%" stop-color="#D99C1B"></stop>
+                        </linearGradient>
+                    </defs>
+                    <path d="M48 8 C73 8 90 26 90 49 C90 79 64 90 48 122 C32 90 6 79 6 49 C6 26 23 8 48 8 Z" fill="url(#loaderPinGradient)"></path>
+                    <path d="M20 23 C11 31 8 42 8 52 C8 75 24 86 40 108 C28 86 20 74 20 58 C20 43 23 32 30 22 Z" fill="rgba(123,77,7,0.26)"></path>
+                    <path d="M48 14 C66 14 79 28 79 46 C79 59 72 67 60 74 C67 61 70 53 70 44 C70 30 60 19 48 14 Z" fill="rgba(255,255,255,0.24)"></path>
+                    <circle cx="48" cy="49" r="16" fill="rgba(11,11,11,0.24)" stroke="rgba(255,239,171,0.95)" stroke-width="4"></circle>
+                    <circle cx="48" cy="49" r="11" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.6"></circle>
+                </svg>
+            </div>
+        </div>
+        <div class="app-loader-copy">
+            <p class="app-loader-title">Preparing your city view</p>
+            <p class="app-loader-subtitle">Loading locations and nearby services...</p>
+        </div>
+    </div>
+
+    <div id="cityTopBar" class="city-topbar"></div>
+
+    <section id="landing" class="hero">
+        <video class="heroVideo" autoplay muted loop playsinline>
+            <source src="assets/hero-bg.mp4" type="video/mp4">
+        </video>
+        <img src="assets/hero-bg.jpg" alt="Kwikkwash" class="heroImg">
+        
+        <div class="heroOverlay">
+            <h1>Kwikkwash Proclean</h1>
+            <p class="tagline">Professional cleaning services at your doorstep</p>
+
+            <div class="features">
+                <div><span>🚗</span> Car Cleaning</div>
+                <div><span>🛋</span> Sofa Cleaning</div>
+                <div><span>✨</span> Premium Quality</div>
+            </div>
+
+            <button class="aiBtn" onclick="openBooking()">
+                <span>Book Now</span>
+            </button>
+
+            <p class="subtext">Get sparkling clean results with our expert team</p>
+        </div>
+    </section>
+
+        <section id="booking-form">
+        <div class="container">
+            <div class="services-panel">
+                <div class="city-section">
+                    <div class="city-selector">
+                        <select id="cityDropdown" class="city-select"></select>
+                        <input type="text" id="otherCityInput" placeholder="Enter your city" style="display:none;">
+                    </div>
+                </div>
+
+                <h2 class="section-header">
+                    <span class="header-icon"></span>
+                    Select Services
+                    <span id="service-count" class="slot-count">0 selected</span>
+                </h2>
+                
+                <div id="servicesList" class="services-grid"></div>
+            </div>
+
+            <div class="booking-panel">
+                <div class="total-box">
+                    <div class="total-row">
+                        <span><i class="fas fa-shopping-bag"></i> Subtotal</span>
+                        <span>₹ <span id="subtotal">0.00</span></span>
+                    </div>
+                    <div class="total-row">
+                        <span><i class="fas fa-file-invoice"></i> GST (18%)</span>
+                        <span>₹ <span id="gst">0.00</span></span>
+                    </div>
+                    <div class="total-row discount" id="discountRow" style="display: none;">
+                        <span><i class="fas fa-ticket-alt"></i> Firstbook Discount</span>
+                        <span>-Rs <span id="discount">0.00</span></span>
+                    </div>
+                    <div class="total-row final">
+                        <span><i class="fas fa-credit-card"></i> Total</span>
+                        <span>₹ <span id="total">0.00</span></span>
+                    </div>
+                </div>
+
+                <div id="slotsSection" class="slots-section">
+                    <h2>
+                        <i class="fas fa-clock"></i>
+                        Select Arrival Window
+                    </h2>
+                    <div id="slotsContainer"></div>
+                </div>
+
+                <div id="userFormContainer" style="display:none;"></div>
+
+                <button id="nextBtn" class="next-btn">
+                    <i class="fas fa-arrow-right"></i>
+                    Continue Booking
+                </button>
+
+                <div class="terms-section" onclick="openTermsPopup()">
+                    <i class="fas fa-file-contract"></i>
+                    By proceeding, you agree to our terms and service policies.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="site-footer" id="about-us">
+        <div class="footer-wrap">
+            <details class="about-toggle">
+                <summary>All About Us</summary>
+                <div class="about-content">
+                    <div class="accordion-inner">
+                        <p>
+                            Welcome to <strong>KWIKKWASH.COM</strong>, your trusted doorstep car washing service.
+                            We make car care convenient, efficient, and eco-conscious by bringing premium cleaning
+                            directly to your location.
+                        </p>
+
+                        <h3>Why Choose Us?</h3>
+                        <div class="about-grid">
+                            <article class="about-card">
+                                <h4>Convenience at Your Doorstep</h4>
+                                <p>
+                                    No need to drive to a car wash. We serve your vehicle at home, office, or any
+                                    preferred location.
+                                </p>
+                            </article>
+
+                            <article class="about-card">
+                                <h4>Eco-Friendly Practices</h4>
+                                <p>
+                                    We use water-efficient methods, biodegradable products, and sustainable practices
+                                    to reduce environmental impact.
+                                </p>
+                            </article>
+
+                            <article class="about-card">
+                                <h4>Expert Team</h4>
+                                <p>
+                                    Our trained professionals use modern tools and proven techniques to deliver a
+                                    detailed, high-quality clean every time.
+                                </p>
+                            </article>
+
+                            <article class="about-card">
+                                <h4>Affordable & Transparent Pricing</h4>
+                                <p>
+                                    Competitive pricing with clear service details. No hidden charges and no last-minute
+                                    surprises.
+                                </p>
+                            </article>
+
+                            <article class="about-card">
+                                <h4>Flexible Scheduling</h4>
+                                <p>
+                                    Book when it suits your routine. From quick exterior cleaning to full detailing,
+                                    we fit into your day, not the other way around.
+                                </p>
+                            </article>
+                        </div>
+
+                        <p>
+                            Whether you need a quick wash or a complete detail, KWIKKWASH.COM has you covered with
+                            dependable doorstep service.
+                        </p>
+
+                        <h3>Our Commitment to Quality</h3>
+                        <p>
+                            From booking to handover, we focus on service quality, consistency, and customer
+                            satisfaction at every step.
+                        </p>
+
+                        <h3>Join Our Growing Family</h3>
+                        <p>
+                            We are more than a car wash service. We are your everyday partner in keeping your vehicle
+                            clean, protected, and road-ready.
+                        </p>
+                    </div>
+                </div>
+            </details>
+
+            <details class="faq-toggle" id="faq">
+                <summary>Frequently Asked Questions</summary>
+                <section class="faq-section">
+                    <div class="accordion-inner">
+                        <div class="faq-list">
+                            <details class="faq-item">
+                                <summary>What should I provide at the time of service?</summary>
+                                <p>
+                                    Customers must provide an alternating current power source and two buckets of water in our container.
+                                </p>
+                            </details>
+
+                            <details class="faq-item">
+                                <summary>What happens if my vehicle gets damaged during the wash?</summary>
+                                <p>
+                                    While we take great care during service, we are not responsible for pre-existing damage.
+                                    If any damage occurs during our cleaning process, we will investigate and resolve the matter,
+                                    and where applicable, compensation will be handled as per our liability policy.
+                                </p>
+                            </details>
+
+                            <details class="faq-item">
+                                <summary>Do you clean the interior of the car as well?</summary>
+                                <p>
+                                    Yes. We provide both exterior and interior cleaning, including vacuuming, dusting, wiping
+                                    surfaces, and cleaning windows. You can also opt for a full detailing package.
+                                </p>
+                            </details>
+
+                            <details class="faq-item">
+                                <summary>Do you offer subscription or membership plans?</summary>
+                                <p>
+                                    Yes, we offer flexible subscription plans for regular customers with discounted rates and
+                                    priority booking for recurring services. Please contact us for plan details.
+                                </p>
+                            </details>
+
+                            <details class="faq-item">
+                                <summary>Can you clean a car that is extremely dirty or muddy?</summary>
+                                <p>
+                                    Yes. Please inform us in advance. Additional charges may apply depending on the level of
+                                    dirt if extra time and effort are required.
+                                </p>
+                            </details>
+
+                            <details class="faq-item">
+                                <summary>Do I need to be present during the service?</summary>
+                                <p>
+                                    Your presence is not mandatory, but someone should be available to provide access and any
+                                    special instructions. If you cannot be there, leave the keys with a trusted person or in
+                                    a designated area.
+                                </p>
+                            </details>
+                        </div>
+                    </div>
+                </section>
+            </details>
+
+            <p class="footer-legal">&copy; 2026 LAVEXO SERVICES PRIVATE LIMITED. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <div id="terms-popup" class="terms-popup">
+        <div class="terms-content">
+            <div class="terms-header">
+                <h3><i class="fas fa-gavel"></i> Terms & Conditions</h3>
+                <button class="terms-close" onclick="closeTermsPopup()">✕</button>
+            </div>
+            <div class="terms-body">
+                <p><strong>Last Updated: March 8, 2026</strong></p>
+                <p>
+                    These services are provided by <strong>LAVEXO SERVICES PRIVATE LIMITED</strong>
+                    (operating brand: KwikkWash). By using this website or booking any service, you
+                    agree to the following terms:
+                </p>
+                
+                <h4>1. No Advance Payment</h4>
+                <ul>
+                    <li>We do not collect advance payment for standard bookings.</li>
+                    <li>Payment is due after completion of the booked service, unless otherwise agreed in writing.</li>
+                </ul>
+
+                <h4>2. Care Standards and Limited Liability</h4>
+                <ul>
+                    <li>Our team handles vehicles and customer property with reasonable care and professional standards.</li>
+                    <li>To the maximum extent permitted by law, total liability for any claim is limited to the service charges paid for the specific booking.</li>
+                    <li>We are not liable for indirect, incidental, special, or consequential losses.</li>
+                </ul>
+
+                <h4>3. Governing Law and Jurisdiction</h4>
+                <ul>
+                    <li>These terms are governed by the laws of India.</li>
+                    <li>For all legal affairs and disputes, courts at Rampur, Uttar Pradesh will have exclusive jurisdiction, subject to applicable appellate/supervisory jurisdiction of the High Court of Judicature at Allahabad.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="infoModal" class="info-modal">
+        <div class="info-modal-content">
+            <div class="info-modal-header">
+                <h3 id="infoModalTitle"></h3>
+                <button class="info-modal-close" onclick="closeInfoModal()">✕</button>
+            </div>
+            <div class="info-modal-body" id="infoModalBody"></div>
+        </div>
+    </div>
+
+    <div id="locationPopup" class="location-popup">
+        <div class="location-popup-content">
+            <div class="location-popup-header">
+                <div class="location-popup-badge">City setup</div>
+                <h3><i class="fas fa-city"></i> Select Your City</h3>
+            </div>
+            <div class="location-popup-body">
+                <p>Choose your city to see the right services, scheduling options, and availability.</p>
+                <p class="location-popup-note">You need to confirm a city before continuing.</p>
+            </div>
+            <div class="location-popup-form">
+                <select id="locationPopupCitySelect" class="city-select" aria-label="Select city">
+                    <option value="">Select city</option>
+                </select>
+                <input
+                    type="text"
+                    id="locationPopupOtherCity"
+                    class="city-select"
+                    placeholder="Enter your city name"
+                    style="display:none;"
+                    aria-label="Enter other city">
+                <p id="locationPopupError" class="location-popup-error" style="display:none;">Please select a city to continue.</p>
+            </div>
+            <div class="location-popup-actions">
+                <button id="confirmCitySelectionBtn" class="confirm-btn confirm" type="button">
+                    <i class="fas fa-check"></i> Continue
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="mapPopup" class="map-popup">
+        <div class="map-popup-content">
+            <div class="map-popup-header">
+                <h3><i class="fas fa-map-pin"></i> Select Location on Map</h3>
+                <div class="map-popup-header-badge"><i class="fas fa-earth-asia"></i></div>
+                <button class="map-popup-close" onclick="closeMapPopup()">✕</button>
+            </div>
+            <div class="map-stage">
+                <div id="mapContainer"></div>
+                <div class="map-center-pin" id="cssPin" aria-hidden="true">
+                    <svg viewBox="0 0 96 132" class="luxury-pin-svg" role="presentation">
+                        <defs>
+                            <linearGradient id="liveLuxuryPinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#FFE17C"></stop>
+                                <stop offset="52%" stop-color="#F6C84C"></stop>
+                                <stop offset="100%" stop-color="#D99C1B"></stop>
+                            </linearGradient>
+                            <linearGradient id="liveLuxuryPinEdge" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="rgba(122,77,0,0.48)"></stop>
+                                <stop offset="100%" stop-color="rgba(255,220,134,0)"></stop>
+                            </linearGradient>
+                        </defs>
+                        <path d="M48 8 C73 8 90 26 90 49 C90 79 64 90 48 122 C32 90 6 79 6 49 C6 26 23 8 48 8 Z" fill="url(#liveLuxuryPinGradient)"></path>
+                        <path d="M20 23 C11 31 8 42 8 52 C8 75 24 86 40 108 C28 86 20 74 20 58 C20 43 23 32 30 22 Z" fill="rgba(123,77,7,0.28)"></path>
+                        <path d="M48 14 C66 14 79 28 79 46 C79 59 72 67 60 74 C67 61 70 53 70 44 C70 30 60 19 48 14 Z" fill="rgba(255,255,255,0.22)"></path>
+                        <ellipse cx="36" cy="30" rx="10" ry="16" fill="rgba(255,255,255,0.14)" transform="rotate(24 36 30)"></ellipse>
+                        <circle cx="48" cy="49" r="16" fill="rgba(11,11,11,0.26)" stroke="rgba(255,239,171,0.95)" stroke-width="4"></circle>
+                        <circle cx="48" cy="49" r="11" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.6"></circle>
+                        <circle cx="48" cy="49" r="7.5" fill="rgba(255,255,255,0.16)"></circle>
+                    </svg>
+                </div>
+                <div id="pinFx" class="pin-fx" aria-hidden="true">
+                    <svg id="pinMotionSvg" viewBox="0 0 120 120" role="presentation">
+                        <defs>
+                            <linearGradient id="pinGoldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#F6C84C"></stop>
+                                <stop offset="100%" stop-color="#FFAA00"></stop>
+                            </linearGradient>
+                        </defs>
+                        <ellipse id="pinShadowEllipse" cx="60" cy="50" rx="15" ry="4.5"></ellipse>
+                        <circle id="pinRippleMain" cx="60" cy="48" r="4.5"></circle>
+                        <circle id="pinRippleOuter" cx="60" cy="48" r="4.5"></circle>
+                        <circle id="pinRippleThird" cx="60" cy="48" r="4.5"></circle>
+                        <g id="pinArrowGroup" transform="translate(0,-64)">
+                            <path d="M60 10 C81 10 95 26 95 47 C95 73 74 84 60 112 C46 84 25 73 25 47 C25 26 39 10 60 10 Z" fill="url(#pinGoldGradient)"></path>
+                            <path d="M35 22 C28 30 26 40 26 49 C26 68 38 80 50 98 C42 80 36 71 36 58 C36 44 39 33 45 24 Z" fill="rgba(123,77,7,0.26)"></path>
+                            <path d="M60 15 C75 15 86 27 86 42 C86 53 80 61 69 67 C75 56 77 50 77 42 C77 30 69 20 60 15 Z" fill="rgba(255,255,255,0.22)"></path>
+                            <circle cx="60" cy="47" r="14" fill="rgba(10,10,10,0.24)" stroke="rgba(255,238,167,0.95)" stroke-width="4"></circle>
+                            <circle cx="60" cy="47" r="9.8" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="1.4"></circle>
+                            <circle cx="60" cy="47" r="6.5" fill="rgba(255,255,255,0.14)"></circle>
+                        </g>
+                    </svg>
+                </div>
+                <div class="map-floating-controls">
+                    <button id="mapCurrentLocation" type="button" class="map-mini-btn" aria-label="Go to current location">
+                        <i class="fas fa-location-crosshairs"></i>
+                    </button>
+                    <button id="mapZoomIn" type="button" class="map-mini-btn" aria-label="Zoom in">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button id="mapZoomOut" type="button" class="map-mini-btn" aria-label="Zoom out">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="map-popup-footer">
+                <button id="mapFooterToggle" type="button" class="map-footer-toggle" aria-expanded="true" aria-label="Collapse map tools">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div id="mapFooterTools" class="map-footer-tools">
+                    <div class="map-search-bar compact">
+                        <input id="mapSearch" type="text" placeholder="Search address or place" autocomplete="off">
+                    </div>
+                    <p class="map-hint"><i class="fas fa-info-circle"></i> <span>Move map, pin at center</span></p>
+                    <div class="map-type-toggle">
+                        <button id="mapTypeRoadmap" type="button" class="map-type-btn active" data-map-type="roadmap">
+                            <i class="fas fa-map"></i> Map
+                        </button>
+                        <button id="mapTypeSatellite" type="button" class="map-type-btn" data-map-type="satellite">
+                            <i class="fas fa-satellite"></i> Satellite
+                        </button>
+                        <button id="mapTypeTerrain" type="button" class="map-type-btn" data-map-type="terrain">
+                            <i class="fas fa-mountain"></i> Terrain
+                        </button>
+                        <button id="mapThemeToggle" type="button" class="map-theme-btn active" data-map-theme="dark">
+                            <i class="fas fa-moon"></i> Dark
+                        </button>
+                    </div>
+                </div>
+                <button id="confirmMapLocation" class="map-confirm-btn">Confirm Location</button>
+            </div>
+        </div>
+    </div>
+    <div id="rangeConfirmPopup" class="confirm-popup">
+        <div class="confirm-box confirm-box-warning">
+            <div class="confirm-header">
+                <h3><i class="fas fa-compass"></i> Update Service Area?</h3>
+            </div>
+            <div class="confirm-body">
+                <div class="range-confirm-icon">
+                    <i class="fas fa-location-crosshairs"></i>
+                </div>
+                <p id="rangeConfirmMessage" class="range-confirm-message"></p>
+                <p class="range-confirm-subtext">We'll keep your address, but services and city availability may need a quick refresh.</p>
+            </div>
+            <div class="confirm-buttons">
+                <button id="rangeCancelBtn" class="confirm-btn cancel" type="button">
+                    <i class="fas fa-arrow-left"></i> Keep Current
+                </button>
+                <button id="rangeProceedBtn" class="confirm-btn confirm" type="button">
+                    <i class="fas fa-check"></i> Update Area
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bookingConfirmPopup" class="confirm-popup"></div>
+
+    <a
+        class="whatsapp-float"
+        href="https://wa.me/919084669219?text=Hi%20!!"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Chat on WhatsApp"
+        title="Chat on WhatsApp"
+    >
+        <i class="fab fa-whatsapp" aria-hidden="true"></i>
+    </a>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
+
