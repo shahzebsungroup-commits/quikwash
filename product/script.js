@@ -696,6 +696,99 @@ function filterServicesByVehicleType(services = [], vehicleType = currentVehicle
     });
 }
 
+function extractServiceRequirements(longDetails = "") {
+    const lines = String(longDetails || "")
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean);
+
+    for (const line of lines) {
+        if (!line.startsWith("!")) continue;
+
+        return line
+            .slice(1)
+            .split(",")
+            .map(item => item.trim())
+            .filter(Boolean);
+    }
+
+    return [];
+}
+
+function showServiceRequirementsPopup(serviceName, requirements = []) {
+    if (!requirements.length) {
+        return Promise.resolve(true);
+    }
+
+    const existingPopup = document.getElementById("serviceRequirementsPopup");
+    if (existingPopup) {
+        existingPopup.remove();
+    }
+
+    return new Promise((resolve) => {
+        const popup = document.createElement("div");
+        popup.id = "serviceRequirementsPopup";
+        popup.className = "confirm-popup show";
+
+        popup.innerHTML = `
+            <div class="confirm-box requirement-confirm-box">
+                <div class="confirm-header">
+                    <h3><i class="fas fa-circle-exclamation"></i> Confirm Availability</h3>
+                </div>
+                <div class="confirm-body requirement-confirm-body">
+                    <p class="requirement-confirm-text">Please confirm availability before booking <strong>${serviceName}</strong>.</p>
+                    <div class="requirement-checklist">
+                        ${requirements.map((requirement, index) => `
+                            <label class="requirement-item" for="requirementCheck${index}">
+                                <input type="checkbox" id="requirementCheck${index}" data-requirement="${requirement}">
+                                <span>${requirement}</span>
+                            </label>
+                        `).join("")}
+                    </div>
+                </div>
+                <div class="confirm-buttons">
+                    <button id="serviceRequirementCancelBtn" class="confirm-btn cancel" type="button">
+                        <i class="fas fa-xmark"></i> Cancel
+                    </button>
+                    <button id="serviceRequirementConfirmBtn" class="confirm-btn confirm" type="button" disabled>
+                        <i class="fas fa-check"></i> OK
+                    </button>
+                </div>
+            </div>
+        `;
+
+        const cleanup = (result) => {
+            popup.remove();
+            resolve(result);
+        };
+
+        const confirmBtn = popup.querySelector("#serviceRequirementConfirmBtn");
+        const cancelBtn = popup.querySelector("#serviceRequirementCancelBtn");
+        const checkboxes = Array.from(popup.querySelectorAll('.requirement-item input[type="checkbox"]'));
+
+        const updateConfirmState = () => {
+            const allChecked = checkboxes.every(input => input.checked);
+            confirmBtn.disabled = !allChecked;
+        };
+
+        checkboxes.forEach(input => input.addEventListener("change", updateConfirmState));
+        cancelBtn.addEventListener("click", () => cleanup(false));
+        confirmBtn.addEventListener("click", () => {
+            if (!confirmBtn.disabled) {
+                cleanup(true);
+            }
+        });
+        popup.addEventListener("click", (event) => {
+            if (event.target === popup) {
+                cleanup(false);
+            }
+        });
+
+        document.body.appendChild(popup);
+        updateConfirmState();
+    });
+}
+
 async function resolveVehicleTypesForCity(city, preferredVehicleType = "") {
     if (!city || city === "Other") {
         populateVehicleTypeOptions([], "");
@@ -1207,6 +1300,7 @@ function renderServices(services) {
         const div = document.createElement("div");
         div.className = `service-card`;
         div.setAttribute('data-code', service.service_code);
+        div.setAttribute('data-requirements', JSON.stringify(extractServiceRequirements(service.long_details)));
         
         const timeInHours = service.units ? (service.units * 10 / 60).toFixed(1) : 0;
 
@@ -1292,8 +1386,22 @@ function renderServices(services) {
     updateServiceCount();
 }
 
-function selectSingleService(card, checkbox) {
+async function selectSingleService(card, checkbox) {
     if (!card || !checkbox) return;
+
+    const serviceName = checkbox.dataset.code || card.dataset.code || "this service";
+    let requirements = [];
+
+    try {
+        requirements = JSON.parse(card.dataset.requirements || "[]");
+    } catch (error) {
+        requirements = [];
+    }
+
+    const confirmed = await showServiceRequirementsPopup(serviceName, requirements);
+    if (!confirmed) {
+        return;
+    }
 
     const nextCode = checkbox.dataset.code;
     const previousCode = selectedServices[0]?.code || "";
