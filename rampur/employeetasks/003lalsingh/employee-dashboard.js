@@ -1,8 +1,8 @@
 ﻿const CONFIG = {
     API_BASE: "https://app.vbo.co.in",
-    EMPLOYEE_CODE: "002",
+    EMPLOYEE_CODE: "003",
     GST_RATE: 18,
-    UPI_ID: "kwikkwash@okhdfcbank",
+    UPI_ID: "6395962806@okbizaxis",
     COMPLETED_DAYS_LIMIT: 7,
     CLIENT: "KWIKKWASH",
     DEFAULT_RATE: 500,
