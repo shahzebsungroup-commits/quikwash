@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>क्‍विक्वॉश - कर्मचारी लैंडिंग</title>
+    <style>
+        /* ========== PREMIUM THEME VARIABLES ========== */
+        :root {
+            --primary: #F6C84C;
+            --primary-dark: #e5b53a;
+            --primary-light: #fadc8c;
+            --primary-glow: rgba(246, 200, 76, 0.5);
+            --secondary: #2a2a2a;
+            --surface: #1a1a1a;
+            --surface-light: #222222;
+            --background: #0a0a0a;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #666666;
+            --success: #4CAF50;
+            --danger: #ff6b6b;
+            --warning: #FFC107;
+            --border: #333333;
+            --border-light: rgba(255, 255, 255, 0.05);
+            
+            /* Premium Shadows */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.4);
+            --shadow-xl: 0 25px 45px rgba(0, 0, 0, 0.5);
+            --shadow-gold: 0 10px 25px rgba(246, 200, 76, 0.2);
+            --shadow-gold-strong: 0 15px 35px rgba(246, 200, 76, 0.3);
+            --shadow-glow: 0 0 20px rgba(246, 200, 76, 0.3);
+            --shadow-inner: inset 0 1px 2px rgba(255, 255, 255, 0.05);
+            
+            /* Glass Effect */
+            --glass-bg: linear-gradient(145deg, rgba(30, 30, 30, 0.9), rgba(15, 15, 15, 0.95));
+            --glass-border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        /* ========== RESET & BASE ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text-primary);
+            padding: 16px 12px;
+            min-height: 100vh;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Premium Background Effect */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(246, 200, 76, 0.03) 0%, transparent 30%),
+                radial-gradient(circle at 80% 70%, rgba(246, 200, 76, 0.03) 0%, transparent 30%),
+                radial-gradient(circle at 40% 80%, rgba(246, 200, 76, 0.02) 0%, transparent 40%),
+                radial-gradient(circle at 60% 20%, rgba(246, 200, 76, 0.02) 0%, transparent 40%);
+            z-index: -1;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 420px;
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ========== PREMIUM PROFILE CARD ========== */
+        .profile-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 36px;
+            padding: 32px 24px;
+            margin-bottom: 20px;
+            border: var(--glass-border);
+            box-shadow: 
+                var(--shadow-xl),
+                var(--shadow-gold),
+                var(--shadow-inner);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated Border */
+        .profile-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 36px;
+            padding: 2px;
+            background: linear-gradient(145deg, transparent 30%, var(--primary), transparent 70%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .welcome-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+
+        .emp-name {
+            font-size: 38px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            line-height: 1.2;
+            word-break: break-word;
+            text-shadow: 0 0 20px rgba(246, 200, 76, 0.3);
+            letter-spacing: -0.5px;
+        }
+
+        .emp-details {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .emp-city, .emp-code {
+            padding: 10px 22px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .emp-city {
+            background: rgba(246, 200, 76, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(246, 200, 76, 0.2);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .emp-code {
+            background: rgba(255,255,255,0.03);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        /* ========== PREMIUM ACTIONS CARD ========== */
+        .actions-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 36px;
+            padding: 32px 24px;
+            border: var(--glass-border);
+            box-shadow: 
+                var(--shadow-xl),
+                var(--shadow-gold),
+                var(--shadow-inner);
+            position: relative;
+            overflow: visible;
+        }
+
+        .action-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 32px;
+            text-align: center;
+            background: linear-gradient(135deg, #ffffff 0%, var(--primary) 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.3px;
+            text-transform: uppercase;
+            position: relative;
+        }
+
+        .action-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            border-radius: 3px;
+        }
+
+        /* Button Grid */
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+            position: relative;
+        }
+
+        /* Button Container for Proper Badge Positioning */
+        .btn-container {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* ========== PERFECTLY SHADOWED BUTTONS ========== */
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            padding: 20px 10px;
+            border: none;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+            background: linear-gradient(145deg, #2c2c2c, #1f1f1f);
+            color: var(--text-primary);
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            
+            /* Perfect Shadow Layer 1 - Depth */
+            box-shadow: 
+                0 20px 30px -15px rgba(0, 0, 0, 0.8),
+                0 10px 15px -8px rgba(0, 0, 0, 0.6),
+                0 0 0 1px rgba(246, 200, 76, 0.1) inset,
+                0 -2px 5px rgba(0, 0, 0, 0.5) inset;
+        }
+
+        /* Inner Glow Effect */
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+            border-radius: 30px 30px 50% 50%;
+            pointer-events: none;
+        }
+
+        /* Shine Effect */
+        .action-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        /* Hover State - Premium Lift with Gold Shadow */
+        .action-btn:hover {
+            transform: translateY(-6px) scale(1.02);
+            background: linear-gradient(145deg, #323232, #242424);
+            
+            /* Perfect Shadow Layer 2 - Hover with Gold */
+            box-shadow: 
+                0 25px 35px -15px rgba(246, 200, 76, 0.4),
+                0 15px 25px -10px rgba(246, 200, 76, 0.3),
+                0 35px 45px -20px #000,
+                0 0 0 2px rgba(246, 200, 76, 0.3) inset,
+                0 -3px 8px rgba(0, 0, 0, 0.6) inset,
+                0 0 20px rgba(246, 200, 76, 0.2);
+        }
+
+        .action-btn:hover::after {
+            opacity: 1;
+        }
+
+        /* Active/Click State - With Vibration Animation */
+        .action-btn:active {
+            transform: scale(0.96);
+            background: linear-gradient(145deg, #242424, #1a1a1a);
+            
+            /* Vibration Animation */
+            animation: vibration 0.2s ease;
+            
+            /* Shadow on Click - Compressed */
+            box-shadow: 
+                0 10px 15px -8px rgba(246, 200, 76, 0.3),
+                0 5px 10px -5px rgba(0, 0, 0, 0.8),
+                0 0 0 2px rgba(246, 200, 76, 0.4) inset,
+                0 -1px 3px rgba(0, 0, 0, 0.5) inset;
+        }
+
+        /* Vibration Keyframes */
+        @keyframes vibration {
+            0% { transform: scale(0.96) translateX(0); }
+            20% { transform: scale(0.96) translateX(-2px); }
+            40% { transform: scale(0.96) translateX(2px); }
+            60% { transform: scale(0.96) translateX(-1px); }
+            80% { transform: scale(0.96) translateX(1px); }
+            100% { transform: scale(0.96) translateX(0); }
+        }
+
+        .btn-icon {
+            font-size: 48px;
+            line-height: 1;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover .btn-icon {
+            transform: scale(1.1) rotate(5deg);
+            filter: drop-shadow(0 15px 20px rgba(246, 200, 76, 0.4));
+        }
+
+        .btn-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: 0.3px;
+        }
+
+        .action-btn:hover .btn-text {
+            color: var(--primary);
+            text-shadow: 0 0 15px rgba(246, 200, 76, 0.4);
+        }
+
+        /* ========== PREMIUM BADGE DESIGN - FIXED POSITIONING ========== */
+        .badge {
+            position: absolute;
+            top: -15px;
+            right: -12px;
+            min-width: 44px;
+            height: 44px;
+            padding: 0 12px;
+            background: linear-gradient(135deg, var(--primary), #fbbf24);
+            color: var(--secondary);
+            font-size: 16px;
+            font-weight: 800;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 
+                0 12px 25px rgba(0, 0, 0, 0.5),
+                0 0 0 4px var(--surface),
+                0 0 0 6px rgba(246, 200, 76, 0.2),
+                0 0 30px rgba(246, 200, 76, 0.4);
+            border: 1px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            line-height: 1;
+            letter-spacing: 0.5px;
+            animation: badgeFloat 3s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        @keyframes badgeFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        /* Pulse Animation for Active Badge */
+        .badge.pulse {
+            animation: badgeFloat 3s infinite ease-in-out, premiumPulse 2s infinite;
+        }
+
+        @keyframes premiumPulse {
+            0% { 
+                box-shadow: 
+                    0 12px 25px rgba(0, 0, 0, 0.5),
+                    0 0 0 4px var(--surface),
+                    0 0 0 6px rgba(246, 200, 76, 0.2),
+                    0 0 30px rgba(246, 200, 76, 0.4);
+            }
+            50% { 
+                box-shadow: 
+                    0 15px 30px rgba(0, 0, 0, 0.6),
+                    0 0 0 4px var(--surface),
+                    0 0 0 10px rgba(246, 200, 76, 0.3),
+                    0 0 45px rgba(246, 200, 76, 0.6);
+                transform: translateY(-6px) scale(1.05);
+            }
+        }
+
+        /* Zero State Badge */
+        .badge.zero {
+            background: linear-gradient(135deg, #4a4a4a, #3a3a3a);
+            color: var(--text-secondary);
+            box-shadow: 
+                0 12px 25px rgba(0, 0, 0, 0.5),
+                0 0 0 4px var(--surface),
+                0 0 0 6px rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: badgeFloat 3s infinite ease-in-out;
+        }
+
+        /* Ensure badge stays above button */
+        .action-btn {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ========== PREMIUM LANGUAGE SELECTOR ========== */
+        .language-selector {
+            background: rgba(20, 20, 20, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: var(--glass-border);
+            border-radius: 60px;
+            padding: 6px;
+            margin-bottom: 20px;
+            display: inline-flex;
+            width: auto;
+            box-shadow: 
+                var(--shadow-lg),
+                var(--shadow-inner);
+        }
+
+        .lang-btn {
+            padding: 12px 28px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lang-btn.active {
+            background: linear-gradient(135deg, var(--primary), #fbbf24);
+            color: var(--secondary);
+            box-shadow: 
+                0 10px 20px rgba(246, 200, 76, 0.3),
+                0 0 0 2px rgba(255,255,255,0.1) inset;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* ========== FOOTER NOTE ========== */
+        .footer-note {
+            text-align: center;
+            margin-top: 24px;
+            color: var(--text-muted);
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            opacity: 0.5;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 380px) {
+            .btn-icon {
+                font-size: 42px;
+            }
+            .btn-text {
+                font-size: 14px;
+            }
+            .badge {
+                min-width: 40px;
+                height: 40px;
+                font-size: 14px;
+                top: -12px;
+                right: -10px;
+            }
+            .emp-name {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Premium Language Selector -->
+        <div class="language-selector">
+            <button class="lang-btn active" onclick="switchLanguage('en')">EN</button>
+            <button class="lang-btn" onclick="switchLanguage('hi')">हि</button>
+        </div>
+
+        <!-- Premium Profile Card -->
+        <div class="profile-card" id="profileCard">
+            <div class="welcome-text" id="welcomeMsg">Welcome back,</div>
+            <div class="emp-name" id="empNameDisplay">Loading...</div>
+            <div class="emp-details">
+                <span class="emp-city" id="empCityDisplay">📍 --</span>
+                <span class="emp-code" id="empCodeDisplay">🔑 --</span>
+            </div>
+        </div>
+
+        <!-- Premium Actions Card -->
+        <div class="actions-card">
+            <div class="action-title" id="actionTitle">⚡ Quick Actions</div>
+            
+            <div class="button-grid">
+                <!-- Attendance Button with Perfect Shadow -->
+                <a href="https://quikwash.in/attendancekwikkwash/003lalsingh" class="action-btn" id="attendanceBtn" target="_blank">
+                    <span class="btn-icon">📅</span>
+                    <span class="btn-text" id="attendanceText">Attendance</span>
+                </a>
+
+                <!-- Tasks Button with Premium Badge - Properly Positioned -->
+                <div style="position: relative; width: 100%;">
+                    <a href="https://quikwash.in/rampur/employeetasks/003lalsingh/" class="action-btn" id="tasksBtn" target="_self">
+                        <span class="btn-icon" id="taskEmoji">🏃</span>
+                        <span class="btn-text" id="tasksText">Tasks</span>
+                    </a>
+                    <span class="badge" id="taskBadge">...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer Note -->
+        <div class="footer-note">KwikkWash • Employee Portal</div>
+    </div>
+
+    <script>
+        // ========== CONFIGURATION ==========
+        const CONFIG = {
+            API_BASE: "https://app.vbo.co.in",
+            EMPLOYEE_CODE: "002",
+            CLIENT: "KWIKKWASH",
+            DEFAULT_CITY: "Rampur",
+            LANGUAGE: 'en'
+        };
+
+        // ========== GLOBAL STATE ==========
+        let currentEmployee = null;
+        let pendingCount = 0;
+
+        // ========== LANGUAGE STRINGS ==========
+        const strings = {
+            en: {
+                welcome: "Welcome back,",
+                employee: "Employee",
+                city: "City",
+                attendance: "Attendance",
+                tasks: "Tasks",
+                actionTitle: "⚡ Quick Actions",
+                loading: "Loading...",
+                error: "Error loading data"
+            },
+            hi: {
+                welcome: "वापस आने का स्वागत है,",
+                employee: "कर्मचारी",
+                city: "शहर",
+                attendance: "उपस्थिति",
+                tasks: "कार्य",
+                actionTitle: "⚡ त्वरित कार्रवाई",
+                loading: "लोड हो रहा है...",
+                error: "डेटा लोड करने में त्रुटि"
+            }
+        };
+
+        // ========== SWITCH LANGUAGE ==========
+        function switchLanguage(lang) {
+            CONFIG.LANGUAGE = lang;
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            if (lang === 'en') {
+                document.querySelector('.lang-btn:first-child').classList.add('active');
+            } else {
+                document.querySelector('.lang-btn:last-child').classList.add('active');
+            }
+            updateUILanguage();
+        }
+
+        function updateUILanguage() {
+            const s = strings[CONFIG.LANGUAGE];
+            document.getElementById('welcomeMsg').innerText = s.welcome;
+            document.getElementById('attendanceText').innerText = s.attendance;
+            document.getElementById('tasksText').innerText = s.tasks;
+            document.getElementById('actionTitle').innerText = s.actionTitle;
+            
+            if (currentEmployee) {
+                document.getElementById('empNameDisplay').innerText = currentEmployee.employee_name || s.employee;
+            } else {
+                document.getElementById('empNameDisplay').innerText = s.loading;
+            }
+        }
+
+        // ========== FETCH EMPLOYEE DATA ==========
+        async function fetchEmployeeData() {
+            try {
+                const response = await fetch(`${CONFIG.API_BASE}/kwikkwash/employees/${CONFIG.EMPLOYEE_CODE}`);
+                const data = await response.json();
+                
+                if (data && !data.error) {
+                    currentEmployee = data;
+                    document.getElementById('empNameDisplay').innerText = data.employee_name || strings[CONFIG.LANGUAGE].employee;
+                    document.getElementById('empCityDisplay').innerHTML = `📍 ${data.city || CONFIG.DEFAULT_CITY}`;
+                    document.getElementById('empCodeDisplay').innerHTML = `🔑 ${CONFIG.EMPLOYEE_CODE}`;
+                } else {
+                    document.getElementById('empNameDisplay').innerText = strings[CONFIG.LANGUAGE].employee;
+                    document.getElementById('empCityDisplay').innerHTML = `📍 ${CONFIG.DEFAULT_CITY}`;
+                    document.getElementById('empCodeDisplay').innerHTML = `🔑 ${CONFIG.EMPLOYEE_CODE}`;
+                }
+            } catch (error) {
+                console.error('Error fetching employee:', error);
+                document.getElementById('empNameDisplay').innerText = strings[CONFIG.LANGUAGE].employee;
+                document.getElementById('empCityDisplay').innerHTML = `📍 ${CONFIG.DEFAULT_CITY}`;
+                document.getElementById('empCodeDisplay').innerHTML = `🔑 ${CONFIG.EMPLOYEE_CODE}`;
+            }
+        }
+
+        // ========== FETCH PENDING TASKS COUNT ==========
+        async function fetchPendingCount() {
+            try {
+                let city = CONFIG.DEFAULT_CITY;
+                if (currentEmployee && currentEmployee.city) {
+                    city = currentEmployee.city;
+                }
+                
+                const response = await fetch(`${CONFIG.API_BASE}/kwikkwash/bookings?city=${encodeURIComponent(city)}`);
+                const data = await response.json();
+                
+                let bookings = [];
+                if (Array.isArray(data)) {
+                    bookings = data;
+                } else if (data?.data && Array.isArray(data.data)) {
+                    bookings = data.data;
+                } else if (data?.bookings && Array.isArray(data.bookings)) {
+                    bookings = data.bookings;
+                }
+
+                const pendingBookings = bookings.filter(b => 
+                    b && (b.status === 'pending' || b.status === 'Pending' || b.status === 'PENDING') && 
+                    (!b.assigned_employee_code || b.assigned_employee_code === '' || b.assigned_employee_code === null)
+                );
+
+                pendingCount = pendingBookings.length;
+                
+                const badge = document.getElementById('taskBadge');
+                const emoji = document.getElementById('taskEmoji');
+                
+                badge.innerText = pendingCount;
+                
+                if (pendingCount === 0) {
+                    emoji.innerText = '😴';
+                    badge.classList.add('zero');
+                    badge.classList.remove('pulse');
+                } else {
+                    emoji.innerText = '🏃';
+                    badge.classList.remove('zero');
+                    badge.classList.add('pulse');
+                }
+
+            } catch (error) {
+                console.error('Error fetching pending count:', error);
+                document.getElementById('taskBadge').innerText = '?';
+                document.getElementById('taskEmoji').innerText = '❓';
+            }
+        }
+
+        // ========== INITIAL LOAD ==========
+        async function initialize() {
+            await fetchEmployeeData();
+            await fetchPendingCount();
+            setInterval(fetchPendingCount, 30000);
+        }
+
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>
