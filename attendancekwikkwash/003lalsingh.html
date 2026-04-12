@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>हाजिरी / Attendance - KwikkWash</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
+    
+    <style>
+        /* =========================================
+           KwikkWash Business Management Platform
+           Professional Client Interface v1.0
+           ========================================= */
+
+        /* CSS Variables - Easy Theming */
+        :root {
+            --primary: #F6C84C;
+            --primary-dark: #e5b53a;
+            --primary-light: #fadc8c;
+            --secondary: #2a2a2a;
+            --surface: #1a1a1a;
+            --background: #0a0a0a;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #666666;
+            --success: #4CAF50;
+            --danger: #ff6b6b;
+            --warning: #FFC107;
+            --border: #333333;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            --shadow-gold: 0 4px 20px rgba(246, 200, 76, 0.15);
+        }
+
+        /* Reset & Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text-primary);
+            padding: 12px;
+            min-height: 100vh;
+            font-size: 13px;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 450px;
+            margin: 0 auto;
+        }
+
+        /* Language Selector */
+        .language-selector {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 4px;
+            margin-bottom: 16px;
+            display: inline-flex;
+            width: auto;
+        }
+
+        .lang-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .lang-btn.active {
+            background: var(--primary);
+            color: var(--secondary);
+        }
+
+        /* Profile Card */
+        .profile-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .welcome-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .emp-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            line-height: 1.2;
+        }
+
+        .emp-details {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .emp-city {
+            background: rgba(246, 200, 76, 0.1);
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 13px;
+            color: var(--primary);
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border: 1px solid rgba(246, 200, 76, 0.2);
+        }
+
+        .emp-code {
+            background: var(--background);
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            border: 1px solid var(--border);
+        }
+
+        /* Info Box */
+        .info-box {
+            background: var(--background);
+            border-left: 4px solid var(--primary);
+            padding: 12px;
+            border-radius: 12px;
+            margin: 12px 0 4px 0;
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-icon {
+            background: var(--primary);
+            color: var(--secondary);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Action Card */
+        .action-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .action-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .location-status {
+            background: var(--background);
+            padding: 12px;
+            border-radius: 40px;
+            margin: 8px 0;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .location-ok {
+            color: var(--success);
+        }
+
+        .location-not-ok {
+            color: var(--danger);
+        }
+
+        .mark-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--primary);
+            color: var(--secondary);
+        }
+
+        .mark-btn:active {
+            transform: scale(0.98);
+            background: var(--primary-dark);
+        }
+
+        .mark-btn:disabled {
+            background: var(--border);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .status-message {
+            background: var(--background);
+            padding: 12px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-align: center;
+            min-height: 48px;
+            border: 1px solid var(--border);
+        }
+
+        /* Summary Card */
+        .summary-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .summary-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .summary-value.full { color: var(--success); }
+        .summary-value.late { color: var(--warning); }
+        .summary-value.half { color: #e67e22; }
+        .summary-value.off { color: var(--text-muted); }
+
+        /* Filter Card */
+        .filter-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .filter-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .date-inputs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-direction: column;
+        }
+
+        .date-field {
+            flex: 1;
+        }
+
+        .date-field label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .date-field input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            font-size: 14px;
+            background: var(--background);
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .date-field input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(246, 200, 76, 0.1);
+        }
+
+        .apply-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: var(--secondary);
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .apply-btn:active {
+            transform: scale(0.98);
+            background: var(--primary-dark);
+        }
+
+        /* Table Card */
+        .table-card {
+            background: var(--surface);
+            border-radius: 20px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: none;
+        }
+
+        .table-card.show {
+            display: block;
+        }
+
+        .table-header {
+            background: var(--background);
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-header h3 {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 300px;
+        }
+
+        th {
+            background: var(--background);
+            padding: 12px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .today-highlight {
+            background: rgba(246, 200, 76, 0.1);
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-full { background: rgba(76, 175, 80, 0.1); color: var(--success); border: 1px solid rgba(76, 175, 80, 0.2); }
+        .status-late { background: rgba(255, 193, 7, 0.1); color: var(--warning); border: 1px solid rgba(255, 193, 7, 0.2); }
+        .status-half { background: rgba(230, 126, 34, 0.1); color: #e67e22; border: 1px solid rgba(230, 126, 34, 0.2); }
+        .status-off { background: rgba(102, 102, 102, 0.1); color: var(--text-muted); border: 1px solid var(--border); }
+        .status-pending { background: rgba(246, 200, 76, 0.1); color: var(--primary); border: 1px solid rgba(246, 200, 76, 0.2); }
+
+        .empty-message {
+            text-align: center;
+            padding: 30px !important;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* Toast Container */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 12px;
+            left: 12px;
+            z-index: 1000;
+            max-width: 400px;
+            margin: 0 auto;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 12px 20px;
+            margin-bottom: 8px;
+            box-shadow: var(--shadow);
+            animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--success);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--danger);
+        }
+
+        .toast.info {
+            border-left: 4px solid var(--primary);
+        }
+
+        .toast-message {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0 4px;
+        }
+
+        .toast-close:hover {
+            color: var(--text-primary);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Confirm Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-dialog {
+            max-width: 320px;
+            margin: 20px;
+            background: var(--surface);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-btn.confirm {
+            background: var(--primary);
+            color: var(--secondary);
+        }
+
+        .modal-btn.cancel {
+            background: var(--border);
+            color: var(--text-primary);
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .modal-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--surface);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        /* Hindi text support */
+        [lang="hi"] {
+            font-family: 'Nirmala UI', 'Segoe UI', Roboto, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Language Selector -->
+        <div class="language-selector">
+            <button class="lang-btn" onclick="setLanguage('hinglish')">Hinglish</button>
+            <button class="lang-btn" onclick="setLanguage('hindi')">हिंदी</button>
+            <button class="lang-btn" onclick="setLanguage('english')">English</button>
+        </div>
+
+        <!-- Profile Card -->
+        <div class="profile-card">
+            <div class="welcome-text" id="welcomeText">🙏 Namaste,</div>
+            <div class="emp-name" id="empNameDisplay">Employee Name</div>
+            <div class="emp-details">
+                <span class="emp-city" id="empCityDisplay">
+                    <span>📍</span> City
+                </span>
+                <span class="emp-code" id="empCodeDisplay">EMP001</span>
+            </div>
+            
+            <div class="info-box" id="infoBox">
+                <span class="info-icon">i</span>
+                <span id="infoText">Press button below</span>
+            </div>
+        </div>
+
+        <!-- Action Card -->
+        <div class="action-card">
+            <div class="action-title" id="todayAttendanceTitle">📍 Today's Attendance</div>
+            <div class="location-status" id="locationDisplay">
+                <span>⏳</span> <span id="locationText">Getting location...</span>
+            </div>
+            <button class="mark-btn" id="attendanceBtn" onclick="handleAttendance()">Duty IN</button>
+            <div class="status-message" id="statusMessage">Press button to mark</div>
+        </div>
+
+        <!-- Summary Card -->
+        <div class="summary-card">
+            <div class="summary-title" id="summaryTitle">📊 Monthly Summary</div>
+            <div class="summary-grid" id="summaryStats">
+                <div class="summary-item">
+                    <div class="summary-label" id="fullLabel">Full Day</div>
+                    <div class="summary-value full" id="fullCount">0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label" id="lateLabel">Late</div>
+                    <div class="summary-value late" id="lateCount">0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label" id="halfLabel">Half Day</div>
+                    <div class="summary-value half" id="halfCount">0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label" id="offLabel">Off Day</div>
+                    <div class="summary-value off" id="offCount">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Card -->
+        <div class="filter-card">
+            <div class="filter-title" id="filterTitle">📅 Select Date Range</div>
+            <div class="date-inputs">
+                <div class="date-field">
+                    <label id="fromLabel">From</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="date-field">
+                    <label id="toLabel">To</label>
+                    <input type="date" id="endDate">
+                </div>
+            </div>
+            <button class="apply-btn" onclick="toggleAttendanceTable()" id="viewBtn">View</button>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="table-card" id="attendanceTableCard">
+            <div class="table-header">
+                <h3 id="tableTitle">📋 Attendance Record</h3>
+            </div>
+            <div class="table-wrapper">
+                <table id="attendanceTable">
+                    <thead>
+                        <tr>
+                            <th id="dateHeader">Date</th>
+                            <th id="inHeader">In</th>
+                            <th id="outHeader">Out</th>
+                            <th id="statusHeader">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="4" class="empty-message" id="emptyMessage">No records found</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Confirm Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 id="modalTitle">Confirm</h3>
+            </div>
+            <div class="modal-body" id="modalMessage">
+                Do you want to mark attendance?
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel" onclick="hideConfirm()" id="cancelBtn">No</button>
+                <button class="modal-btn confirm" onclick="confirmAttendance()" id="confirmBtn">Yes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== CONFIGURATION ==========
+        const API_BASE = "https://app.vbo.co.in";
+        const EMPLOYEE_CODE = "003";
+        
+        // Language System - Clean values, no mixing
+        const TEXT = {
+            hinglish: {
+                welcome: "🙏 Namaste,",
+                info: "Press button below",
+                locationFetch: "Getting location...",
+                locationOk: "✅ You are at correct location",
+                locationNotOk: "❌ You are outside allowed area",
+                locationError: "⚠️ Location not found",
+                markAttendance: "Mark Attendance",
+                dutyIn: "Duty IN",
+                dutyOut: "Duty OUT",
+                completed: "Completed",
+                loading: "Loading...",
+                confirm: "Do you want to mark attendance?",
+                confirmTitle: "Confirm",
+                confirmYes: "Yes",
+                confirmNo: "No",
+                todayTitle: "📍 Today's Attendance",
+                summaryTitle: "📊 Monthly Summary",
+                filterTitle: "📅 Select Date Range",
+                fromLabel: "From",
+                toLabel: "To",
+                viewBtn: "View",
+                tableTitle: "📋 Attendance Record",
+                dateHeader: "Date",
+                inHeader: "In",
+                outHeader: "Out",
+                statusHeader: "Status",
+                emptyMessage: "No records found",
+                fullLabel: "Full Day",
+                lateLabel: "Late",
+                halfLabel: "Half Day",
+                offLabel: "Off Day",
+                fullDay: "Full Day",
+                lateDay: "Late",
+                halfDay: "Half Day",
+                offDay: "Off Day",
+                pending: "Pending",
+                success: "✅ Attendance marked",
+                error: "❌ Something went wrong",
+                locationRequired: "Please enable location",
+                noRecord: "No records found",
+                pressButton: "Press button to mark"
+            },
+            hindi: {
+                welcome: "🙏 नमस्ते,",
+                info: "नीचे बटन दबाएं",
+                locationFetch: "लोकेशन ली जा रही है...",
+                locationOk: "✅ आप सही जगह हैं",
+                locationNotOk: "❌ आप एरिया से बाहर हैं",
+                locationError: "⚠️ लोकेशन नहीं मिली",
+                markAttendance: "हाजिरी मार्क करें",
+                dutyIn: "ड्यूटी इन",
+                dutyOut: "ड्यूटी आउट",
+                completed: "पूरी हो चुकी",
+                loading: "लोड हो रहा है...",
+                confirm: "क्या आप हाजिरी मार्क करना चाहते हैं?",
+                confirmTitle: "पुष्टि करें",
+                confirmYes: "हाँ",
+                confirmNo: "नहीं",
+                todayTitle: "📍 आज की हाजिरी",
+                summaryTitle: "📊 इस महीने का सारांश",
+                filterTitle: "📅 तारीख चुनें",
+                fromLabel: "कब से",
+                toLabel: "कब तक",
+                viewBtn: "देखें",
+                tableTitle: "📋 हाजिरी रिकॉर्ड",
+                dateHeader: "तारीख",
+                inHeader: "In",
+                outHeader: "Out",
+                statusHeader: "स्थिति",
+                emptyMessage: "कोई रिकॉर्ड नहीं",
+                fullLabel: "पूरा दिन",
+                lateLabel: "लेट",
+                halfLabel: "आधा दिन",
+                offLabel: "छुट्टी",
+                fullDay: "पूरा दिन",
+                lateDay: "लेट",
+                halfDay: "आधा दिन",
+                offDay: "छुट्टी",
+                pending: "चालू",
+                success: "✅ हाजिरी मार्क हो गई",
+                error: "❌ कुछ गड़बड़ हुई",
+                locationRequired: "लोकेशन ऑन करें",
+                noRecord: "कोई रिकॉर्ड नहीं",
+                pressButton: "बटन दबाएं"
+            },
+            english: {
+                welcome: "🙏 Welcome,",
+                info: "Press button below",
+                locationFetch: "Getting location...",
+                locationOk: "✅ You are at correct location",
+                locationNotOk: "❌ You are outside allowed area",
+                locationError: "⚠️ Location not found",
+                markAttendance: "Mark Attendance",
+                dutyIn: "Duty IN",
+                dutyOut: "Duty OUT",
+                completed: "Completed",
+                loading: "Loading...",
+                confirm: "Do you want to mark attendance?",
+                confirmTitle: "Confirm",
+                confirmYes: "Yes",
+                confirmNo: "No",
+                todayTitle: "📍 Today's Attendance",
+                summaryTitle: "📊 Monthly Summary",
+                filterTitle: "📅 Select Date Range",
+                fromLabel: "From",
+                toLabel: "To",
+                viewBtn: "View",
+                tableTitle: "📋 Attendance Record",
+                dateHeader: "Date",
+                inHeader: "In",
+                outHeader: "Out",
+                statusHeader: "Status",
+                emptyMessage: "No records found",
+                fullLabel: "Full Day",
+                lateLabel: "Late",
+                halfLabel: "Half Day",
+                offLabel: "Off Day",
+                fullDay: "Full Day",
+                lateDay: "Late",
+                halfDay: "Half Day",
+                offDay: "Off Day",
+                pending: "Pending",
+                success: "✅ Attendance marked",
+                error: "❌ Something went wrong",
+                locationRequired: "Please enable location",
+                noRecord: "No records found",
+                pressButton: "Press button to mark"
+            }
+        };
+
+        let employeeData = null;
+        let currentLang = localStorage.getItem('lang') || 'hinglish';
+        let lastLocation = null;
+        let pendingAttendance = null;
+
+        // ========== LANGUAGE FUNCTIONS ==========
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('lang', lang);
+            
+            // Update active button
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.lang-btn')[lang === 'hinglish' ? 0 : lang === 'hindi' ? 1 : 2].classList.add('active');
+            
+            // Update all text
+            updateUIText();
+            
+            // Update button state based on current attendance
+            updateSmartButton();
+        }
+
+        function updateUIText() {
+            const t = TEXT[currentLang];
+            
+            // Profile card
+            document.getElementById('welcomeText').textContent = t.welcome;
+            document.getElementById('infoText').textContent = t.info;
+            
+            // Action card
+            document.getElementById('todayAttendanceTitle').textContent = t.todayTitle;
+            document.getElementById('statusMessage').innerHTML = t.pressButton;
+            
+            // Summary card
+            document.getElementById('summaryTitle').textContent = t.summaryTitle;
+            document.getElementById('fullLabel').textContent = t.fullLabel;
+            document.getElementById('lateLabel').textContent = t.lateLabel;
+            document.getElementById('halfLabel').textContent = t.halfLabel;
+            document.getElementById('offLabel').textContent = t.offLabel;
+            
+            // Filter card
+            document.getElementById('filterTitle').textContent = t.filterTitle;
+            document.getElementById('fromLabel').textContent = t.fromLabel;
+            document.getElementById('toLabel').textContent = t.toLabel;
+            document.getElementById('viewBtn').textContent = t.viewBtn;
+            
+            // Table card
+            document.getElementById('tableTitle').textContent = t.tableTitle;
+            document.getElementById('dateHeader').textContent = t.dateHeader;
+            document.getElementById('inHeader').textContent = t.inHeader;
+            document.getElementById('outHeader').textContent = t.outHeader;
+            document.getElementById('statusHeader').textContent = t.statusHeader;
+            document.getElementById('emptyMessage').textContent = t.emptyMessage;
+            
+            // Modal
+            document.getElementById('modalTitle').textContent = t.confirmTitle;
+            document.getElementById('modalMessage').textContent = t.confirm;
+            document.getElementById('cancelBtn').textContent = t.confirmNo;
+            document.getElementById('confirmBtn').textContent = t.confirmYes;
+            
+            // Update location text if needed
+            const locationSpan = document.getElementById('locationText');
+            const statusEl = document.getElementById('locationDisplay');
+            if (locationSpan) {
+                if (statusEl.innerHTML.includes('✅')) {
+                    locationSpan.textContent = t.locationOk.replace('✅ ', '');
+                } else if (statusEl.innerHTML.includes('❌')) {
+                    locationSpan.textContent = t.locationNotOk.replace('❌ ', '');
+                } else if (statusEl.innerHTML.includes('⚠️')) {
+                    locationSpan.textContent = t.locationError.replace('⚠️ ', '');
+                } else {
+                    locationSpan.textContent = t.locationFetch;
+                }
+            }
+        }
+
+        // ========== TOAST SYSTEM ==========
+        function toast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="toast-message">${message}</div>
+                <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 3000);
+        }
+
+        // ========== CONFIRM MODAL ==========
+        function showConfirm(message, onConfirm) {
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('confirmModal').style.display = 'flex';
+            pendingAttendance = onConfirm;
+        }
+
+        function hideConfirm() {
+            document.getElementById('confirmModal').style.display = 'none';
+            pendingAttendance = null;
+        }
+
+        function confirmAttendance() {
+            if (pendingAttendance) {
+                pendingAttendance();
+            }
+            hideConfirm();
+        }
+
+        // ========== UTILITY FUNCTIONS ==========
+        function formatDateToDisplay(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return dateStr;
+            
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
+
+        function formatTimeOnly(dateTimeStr) {
+            if (!dateTimeStr) return '-';
+            const date = new Date(dateTimeStr);
+            if (isNaN(date.getTime())) return '-';
+            
+            let hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            return `${hours}:${minutes} ${ampm}`;
+        }
+
+        function setDefaultDates() {
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            
+            document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+        }
+
+        async function getLocation() {
+            // Return cached location if available (less than 1 minute old)
+            if (lastLocation && (Date.now() - lastLocation.timestamp) < 60000) {
+                return lastLocation;
+            }
+            
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject(new Error('Geolocation not supported'));
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(
+                    pos => {
+                        lastLocation = {
+                            lat: pos.coords.latitude,
+                            lng: pos.coords.longitude,
+                            timestamp: Date.now()
+                        };
+                        resolve(lastLocation);
+                    },
+                    err => reject(err)
+                );
+            });
+        }
+
+        function getAttendanceStatus(inTime, outTime) {
+            const t = TEXT[currentLang];
+            
+            if (!inTime) return { text: t.offDay, class: 'off' };
+            if (!outTime) return { text: t.pending, class: 'pending' };
+            
+            const diff = (new Date(outTime) - new Date(inTime)) / (1000 * 60 * 60);
+            
+            if (diff >= 9) return { text: t.fullDay, class: 'full' };
+            if (diff >= 7) return { text: t.lateDay, class: 'late' };
+            return { text: t.halfDay, class: 'half' };
+        }
+
+        // ========== MAIN FUNCTIONS ==========
+        async function loadEmployeeDetails() {
+            try {
+                const res = await fetch(`${API_BASE}/kwikkwash/employees/${EMPLOYEE_CODE}`);
+                return await res.json();
+            } catch (e) {
+                console.error(e);
+                toast(TEXT[currentLang].error, 'error');
+                return null;
+            }
+        }
+
+        async function checkLocationAndUpdateUI() {
+            try {
+                const loc = await getLocation();
+                const dist = calculateDistance(
+                    loc.lat, loc.lng,
+                    employeeData.allowed_lat, employeeData.allowed_lng
+                );
+                
+                const locationDisplay = document.getElementById('locationDisplay');
+                const attendanceBtn = document.getElementById('attendanceBtn');
+                const t = TEXT[currentLang];
+                
+                if (dist <= employeeData.allowed_range) {
+                    locationDisplay.innerHTML = `<span>✅</span> <span id="locationText">${t.locationOk.replace('✅ ', '')}</span>`;
+                    locationDisplay.style.background = 'rgba(76, 175, 80, 0.1)';
+                    locationDisplay.style.color = 'var(--success)';
+                    locationDisplay.style.border = '1px solid rgba(76, 175, 80, 0.2)';
+                    attendanceBtn.disabled = false;
+                    return true;
+                } else {
+                    locationDisplay.innerHTML = `<span>❌</span> <span id="locationText">${t.locationNotOk.replace('❌ ', '')}</span>`;
+                    locationDisplay.style.background = 'rgba(255, 107, 107, 0.1)';
+                    locationDisplay.style.color = 'var(--danger)';
+                    locationDisplay.style.border = '1px solid rgba(255, 107, 107, 0.2)';
+                    attendanceBtn.disabled = true;
+                    return false;
+                }
+            } catch (e) {
+                const t = TEXT[currentLang];
+                document.getElementById('locationDisplay').innerHTML = `<span>⚠️</span> <span id="locationText">${t.locationError}</span>`;
+                document.getElementById('attendanceBtn').disabled = true;
+                return false;
+            }
+        }
+
+        async function handleAttendance() {
+            showConfirm(TEXT[currentLang].confirm, async () => {
+                const btn = document.getElementById('attendanceBtn');
+                const statusEl = document.getElementById('statusMessage');
+                const t = TEXT[currentLang];
+                
+                try {
+                    btn.disabled = true;
+                    btn.textContent = t.loading;
+                    
+                    statusEl.innerHTML = t.locationFetch;
+                    
+                    const loc = await getLocation();
+                    const dist = calculateDistance(
+                        loc.lat, loc.lng,
+                        employeeData.allowed_lat, employeeData.allowed_lng
+                    );
+                    
+                    if (dist > employeeData.allowed_range) {
+                        statusEl.innerHTML = `❌ ${t.locationNotOk}`;
+                        btn.disabled = false;
+                        await updateSmartButton(); // Restore correct button text
+                        return;
+                    }
+                    
+                    const today = new Date().toISOString().split('T')[0];
+                    const res = await fetch(`${API_BASE}/kwikkwash/attendance?employee_code=${EMPLOYEE_CODE}&start_date=${today}&end_date=${today}`);
+                    const data = await res.json();
+                    
+                    let record = data.length ? data[0] : null;
+                    
+                    if (!record) {
+                        await fetch(`${API_BASE}/kwikkwash/attendance`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                employee_code: EMPLOYEE_CODE,
+                                attendance_date: today,
+                                in_time: new Date().toISOString(),
+                                in_lat: loc.lat,
+                                in_lng: loc.lng
+                            })
+                        });
+                        statusEl.innerHTML = `✅ ${t.success}`;
+                        toast(t.success, 'success');
+                        
+                    } else if (!record.out_time) {
+                        await fetch(`${API_BASE}/kwikkwash/attendance`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                employee_code: EMPLOYEE_CODE,
+                                attendance_date: today,
+                                in_time: record.in_time,
+                                out_time: new Date().toISOString(),
+                                in_lat: record.in_lat,
+                                in_lng: record.in_lng,
+                                out_lat: loc.lat,
+                                out_lng: loc.lng
+                            })
+                        });
+                        statusEl.innerHTML = `✅ ${t.success}`;
+                        toast(t.success, 'success');
+                        
+                    } else {
+                        statusEl.innerHTML = `⚠️ ${t.completed}`;
+                        toast(t.completed, 'info');
+                    }
+                    
+                    await loadAttendanceSummary();
+                    await updateSmartButton();
+                    
+                } catch (e) {
+                    statusEl.innerHTML = `❌ ${t.locationRequired}`;
+                    toast(t.locationRequired, 'error');
+                    await updateSmartButton();
+                }
+            });
+        }
+
+        async function updateSmartButton() {
+            const btn = document.getElementById('attendanceBtn');
+            const t = TEXT[currentLang];
+            
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const res = await fetch(`${API_BASE}/kwikkwash/attendance?employee_code=${EMPLOYEE_CODE}&start_date=${today}&end_date=${today}`);
+                const data = await res.json();
+                
+                let record = data.length ? data[0] : null;
+                
+                if (!record) {
+                    btn.textContent = t.dutyIn;
+                } else if (!record.out_time) {
+                    btn.textContent = t.dutyOut;
+                } else {
+                    btn.textContent = t.completed;
+                    btn.disabled = true;
+                }
+            } catch (e) {
+                btn.textContent = t.markAttendance;
+            }
+        }
+
+        async function loadAttendanceSummary() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            
+            try {
+                const res = await fetch(`${API_BASE}/kwikkwash/attendance?employee_code=${EMPLOYEE_CODE}&start_date=${start}&end_date=${end}`);
+                const data = await res.json();
+                
+                let summary = { full: 0, late: 0, half: 0, off: 0 };
+                
+                const map = {};
+                data.forEach(r => map[r.attendance_date] = r);
+                
+                let dates = [];
+                let d = new Date(start);
+                while (d <= new Date(end)) {
+                    dates.push(d.toISOString().split('T')[0]);
+                    d.setDate(d.getDate() + 1);
+                }
+                
+                dates.forEach(date => {
+                    const rec = map[date];
+                    const status = getAttendanceStatus(rec?.in_time, rec?.out_time);
+                    if (status.class === 'full') summary.full++;
+                    else if (status.class === 'late') summary.late++;
+                    else if (status.class === 'half') summary.half++;
+                    else summary.off++;
+                });
+                
+                document.getElementById('fullCount').textContent = summary.full;
+                document.getElementById('lateCount').textContent = summary.late;
+                document.getElementById('halfCount').textContent = summary.half;
+                document.getElementById('offCount').textContent = summary.off;
+                
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function toggleAttendanceTable() {
+            const tableCard = document.getElementById('attendanceTableCard');
+            
+            if (tableCard.classList.contains('show')) {
+                tableCard.classList.remove('show');
+            } else {
+                tableCard.classList.add('show');
+                loadAttendanceTable(); // This will now handle the scroll after loading
+            }
+        }
+
+        async function loadAttendanceTable() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            const tbody = document.getElementById('tableBody');
+            const t = TEXT[currentLang];
+            
+            tbody.innerHTML = `<tr><td colspan="4" class="loading">⏳ ${t.loading}</td></tr>`;
+            
+            try {
+                const res = await fetch(`${API_BASE}/kwikkwash/attendance?employee_code=${EMPLOYEE_CODE}&start_date=${start}&end_date=${end}`);
+                const data = await res.json();
+                
+                const map = {};
+                data.forEach(r => map[r.attendance_date] = r);
+                
+                let dates = [];
+                let d = new Date(start);
+                while (d <= new Date(end)) {
+                    dates.push(d.toISOString().split('T')[0]);
+                    d.setDate(d.getDate() + 1);
+                }
+                
+                dates.reverse();
+                
+                const today = new Date().toISOString().split('T')[0];
+                let html = '';
+                
+                dates.forEach(date => {
+                    const rec = map[date];
+                    const inTime = rec?.in_time || '';
+                    const outTime = rec?.out_time || '';
+                    const status = getAttendanceStatus(inTime, outTime);
+                    
+                    const rowClass = (date === today) ? 'today-highlight' : '';
+                    
+                    html += `
+                        <tr class="${rowClass}">
+                            <td>${formatDateToDisplay(date)}</td>
+                            <td>${formatTimeOnly(inTime)}</td>
+                            <td>${formatTimeOnly(outTime)}</td>
+                            <td><span class="status-badge status-${status.class}">${status.text}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                if (html === '') {
+                    html = `<tr><td colspan="4" class="empty-message">${t.emptyMessage}</td></tr>`;
+                }
+                
+                tbody.innerHTML = html;
+                
+                // Scroll to table after data is loaded
+                setTimeout(() => {
+                    document.getElementById('attendanceTableCard').scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                    // Adjust scroll offset slightly
+                    window.scrollBy(0, -10);
+                }, 150);
+                
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="4" class="empty-message">${t.error}</td></tr>`;
+                toast(t.error, 'error');
+            }
+        }
+
+        // ========== INITIALIZATION ==========
+        window.onload = async () => {
+            // Set language and ensure active button state
+            setLanguage(currentLang);
+            
+            // Set default status message
+            document.getElementById('statusMessage').innerHTML = TEXT[currentLang].pressButton;
+            
+            employeeData = await loadEmployeeDetails();
+            if (!employeeData) {
+                document.getElementById('empNameDisplay').textContent = 'Employee not found';
+                return;
+            }
+            
+            document.getElementById('empNameDisplay').textContent = employeeData.employee_name || 'Employee';
+            document.getElementById('empCityDisplay').innerHTML = `<span>📍</span> ${employeeData.city || 'City'}`;
+            document.getElementById('empCodeDisplay').textContent = EMPLOYEE_CODE;
+            
+            setDefaultDates();
+            await checkLocationAndUpdateUI();
+            await loadAttendanceSummary();
+            await updateSmartButton();
+            
+            setInterval(checkLocationAndUpdateUI, 60000);
+        };
+    </script>
+</body>
+</html>
