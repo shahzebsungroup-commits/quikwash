@@ -16,6 +16,7 @@ let selectedPaymentMode = null;
 let currentRejectBooking = null;
 let confirmResolve = null;
 let activeSection = 'running';
+let historyVisible = false;
 
 let allPendingBookings = [];
 let allCompletedBookings = [];
@@ -136,6 +137,7 @@ function unlockAction(actionKey, buttonEl = null) {
 
 document.addEventListener('DOMContentLoaded', async () => {
     setupSectionAccordion();
+    setupHistoryToggle();
 
     await loadEmployeeData();
     await loadAllTasks();
@@ -145,6 +147,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     setInterval(loadAllTasks, 30000);
 });
+
+function setupHistoryToggle() {
+    const historyButton = document.getElementById('historyToggleBtn');
+    if (!historyButton) return;
+
+    historyButton.addEventListener('click', async () => {
+        historyVisible = !historyVisible;
+
+        document.querySelectorAll('.history-only').forEach((element) => {
+            element.style.display = historyVisible ? 'block' : 'none';
+        });
+
+        historyButton.classList.toggle('active', historyVisible);
+        historyButton.setAttribute('aria-expanded', historyVisible ? 'true' : 'false');
+        historyButton.setAttribute('aria-label', historyVisible ? 'Hide history' : 'Show history');
+        historyButton.title = historyVisible ? 'Hide history' : 'Show history';
+
+        if (!historyVisible) {
+            if (activeSection === 'completed' || activeSection === 'cancelled') {
+                expandSection('running', false);
+            }
+            return;
+        }
+
+        await Promise.all([loadCompletedTasks(), loadCancelledTasks()]);
+    });
+}
 
 function setStatusCount(status, count) {
     const ids = STATUS_COUNT_IDS[status];
@@ -340,12 +369,19 @@ async function loadEmployeeData() {
 }
 
 async function loadAllTasks() {
-    await Promise.all([
+    const loaders = [
         loadRunningTask(),
-        loadPendingTasks(),
-        loadCompletedTasks(),
-        loadCancelledTasks()
-    ]);
+        loadPendingTasks()
+    ];
+
+    if (historyVisible) {
+        loaders.push(loadCompletedTasks(), loadCancelledTasks());
+    } else {
+        setStatusCount('completed', 0);
+        setStatusCount('cancelled', 0);
+    }
+
+    await Promise.all(loaders);
 }
 
 async function loadRunningTask() {

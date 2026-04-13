@@ -185,6 +185,46 @@
             white-space: nowrap;
         }
 
+        .history-toggle {
+            width: 38px;
+            height: 38px;
+            border: 1px solid rgba(255,255,255,0.35);
+            background: rgba(255,255,255,0.14);
+            color: white;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.15s ease, transform 0.15s ease;
+        }
+
+        .history-toggle:hover,
+        .history-toggle:focus-visible {
+            background: rgba(255,255,255,0.24);
+            outline: none;
+            transform: translateY(-1px);
+        }
+
+        .history-toggle.active {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .history-toggle svg {
+            width: 17px;
+            height: 17px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .history-only {
+            display: none;
+        }
+
         .section {
             background: white;
             border: 2px solid #dbe2ea;
@@ -895,6 +935,13 @@
                        id="globalSearch" 
                        placeholder="Search by name, phone, booking ID, service..." 
                        autocomplete="off">
+                <button class="history-toggle" id="historyToggleBtn" type="button" aria-expanded="false" aria-label="Show history" title="Show history">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M3 12a9 9 0 1 0 3-6.7"></path>
+                        <path d="M3 4v5h5"></path>
+                        <path d="M12 7v5l3 2"></path>
+                    </svg>
+                </button>
                 <span class="employee-badge" id="cityInfo"></span>
             </div>
         </div>
@@ -914,14 +961,14 @@
                 </div>
                 <p>Ye naya task hai, yahin se pick karna hai.</p>
             </div>
-            <div class="guide-card completed-guide" data-section="completed" role="button" tabindex="0">
+            <div class="guide-card completed-guide history-only" data-section="completed" role="button" tabindex="0">
                 <div class="guide-top">
                     <div class="guide-title">3. COMPLETED</div>
                     <span class="guide-count" id="completedGuideCount">0</span>
                 </div>
                 <p>Jo task aap complete kar chuke hain.</p>
             </div>
-            <div class="guide-card cancelled-guide" data-section="cancelled" role="button" tabindex="0">
+            <div class="guide-card cancelled-guide history-only" data-section="cancelled" role="button" tabindex="0">
                 <div class="guide-top">
                     <div class="guide-title">4. CANCELLED</div>
                     <span class="guide-count" id="cancelledGuideCount">0</span>
@@ -960,7 +1007,7 @@
             </div>
         </div>
 
-        <div class="section status-section completed-section collapsed" id="completedSection" data-section="completed">
+        <div class="section status-section completed-section collapsed history-only" id="completedSection" data-section="completed">
             <button class="section-title" type="button" data-toggle-section="completed" aria-expanded="false" aria-controls="completedContent">
                 <span class="section-label">COMPLETED TASKS - Pura Ho Gaya</span>
                 <span class="section-title-right">
@@ -976,7 +1023,7 @@
             </div>
         </div>
 
-        <div class="section status-section cancelled-section collapsed" id="cancelledSection" data-section="cancelled">
+        <div class="section status-section cancelled-section collapsed history-only" id="cancelledSection" data-section="cancelled">
             <button class="section-title" type="button" data-toggle-section="cancelled" aria-expanded="false" aria-controls="cancelledContent">
                 <span class="section-label">CANCELLED TASKS - Radd Ho Gaya</span>
                 <span class="section-title-right">
