@@ -1,5 +1,5 @@
 // Simple service worker with offline support
-const CACHE_NAME = 'kwikkwash-v11';
+const CACHE_NAME = 'kwikkwash-v12';
 const OFFLINE_URL = 'offline.html';
 
 const FILES_TO_CACHE = [
@@ -8,8 +8,8 @@ const FILES_TO_CACHE = [
   './looks.css',
   './javascript.js',
   './offline.html',
-  'https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/washingvd.mp4',
-  'https://raw.githubusercontent.com/shahzebsungroup-commits/quikwash/main/washing.jpeg'
+  './washingvd.mp4',
+  './washing.jpeg'
 ];
 
 self.addEventListener('install', (event) => {

@@ -388,7 +388,7 @@ function setupCTAButton() {
   }
   
   ctaBtn.addEventListener("click", () => {
-    window.location.href = "https://quikwash.in/product/";
+    window.location.href = "/product/";
   });
 }
 
