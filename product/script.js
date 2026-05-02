@@ -119,18 +119,18 @@ function formatTime(time) {
 
 function getIcon(service) {
     const s = service.toLowerCase();
-    if (s.includes("car")) return "🚗";
-    if (s.includes("bike") || s.includes("motor")) return "🏍️";
-    if (s.includes("sofa")) return "🛋";
-    if (s.includes("clean")) return "🧼";
-    if (s.includes("wash")) return "💦";
-    if (s.includes("interior")) return "🧽";
-    if (s.includes("exterior")) return "🚙";
-    if (s.includes("polish") || s.includes("wax")) return "✨";
-    if (s.includes("vacuum")) return "🧹";
-    if (s.includes("detailing")) return "🔧";
-    if (s.includes("paint")) return "🎨";
-    return "⚙️";
+    if (s.includes("car")) return "\u{1F697}";
+    if (s.includes("bike") || s.includes("motor")) return "\u{1F3CD}\uFE0F";
+    if (s.includes("sofa")) return "\u{1F6CB}";
+    if (s.includes("clean")) return "\u{1F9FC}";
+    if (s.includes("wash")) return "\u{1F4A6}";
+    if (s.includes("interior")) return "\u{1F9FD}";
+    if (s.includes("exterior")) return "\u{1F699}";
+    if (s.includes("polish") || s.includes("wax")) return "\u2728";
+    if (s.includes("vacuum")) return "\u{1F9F9}";
+    if (s.includes("detailing")) return "\u{1F527}";
+    if (s.includes("paint")) return "\u{1F3A8}";
+    return "\u2699\uFE0F";
 }
 
 function showToast(msg) {
@@ -168,7 +168,7 @@ function getServiceIconMarkup(service) {
         return getIcon(service);
     }
 
-    return "🚘";
+    return "\u{1F698}";
 }
 
 function normalizePhoneNumber(phone) {
@@ -326,31 +326,41 @@ function openBooking() {
     const distance = targetY - startY;
     if (Math.abs(distance) < 8) return;
 
-    const duration = Math.min(2800, Math.max(1900, Math.abs(distance) * 1.15));
-    let startTime = null;
+    const duration = Math.min(3000, Math.max(2200, Math.abs(distance) * 1.02));
+    const kickDistance = Math.sign(distance) * Math.min(Math.max(Math.abs(distance) * 0.12, 72), Math.abs(distance));
+    const animationStartY = startY + kickDistance;
+    const animationDistance = targetY - animationStartY;
+    const startTime = performance.now();
+    const rootStyle = document.documentElement.style;
+    const bodyStyle = document.body ? document.body.style : null;
+    const previousRootScrollBehavior = rootStyle.scrollBehavior;
+    const previousBodyScrollBehavior = bodyStyle ? bodyStyle.scrollBehavior : "";
 
     if (bookingScrollAnimationId) {
         cancelAnimationFrame(bookingScrollAnimationId);
         bookingScrollAnimationId = null;
     }
 
-    const easeFastStartSlowEnd = (t) => 1 - Math.pow(1 - t, 2.35);
+    rootStyle.scrollBehavior = "auto";
+    if (bodyStyle) bodyStyle.scrollBehavior = "auto";
+
+    window.scrollTo(0, animationStartY);
+
+    const easePremiumScroll = (t) => 1 - Math.pow(1 - t, 2.2);
 
     const animateScroll = (currentTime) => {
-        if (startTime === null) {
-            startTime = currentTime;
-        }
-
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        const eased = easeFastStartSlowEnd(progress);
+        const eased = easePremiumScroll(progress);
 
-        window.scrollTo(0, startY + distance * eased);
+        window.scrollTo(0, animationStartY + animationDistance * eased);
 
         if (progress < 1) {
             bookingScrollAnimationId = requestAnimationFrame(animateScroll);
         } else {
             bookingScrollAnimationId = null;
+            rootStyle.scrollBehavior = previousRootScrollBehavior;
+            if (bodyStyle) bodyStyle.scrollBehavior = previousBodyScrollBehavior;
         }
     };
 
@@ -363,7 +373,7 @@ function showSlotFullPopup() {
 
     popup.innerHTML = `
         <div class="slot-popup-content">
-            <div class="slot-popup-icon">⚠️</div>
+            <div class="slot-popup-icon">&#9888;&#65039;</div>
             <h3>Slot Unavailable</h3>
             <p>This time slot is fully booked.<br>Please choose another slot.</p>
             <button onclick="this.closest('.slot-popup').remove()">OK</button>
@@ -1321,7 +1331,7 @@ function renderServices(services) {
                     
                     <div>
                         <div class="service-name">${service.service_code.replace(/_/g, ' ')}</div>
-                        <div class="service-price">₹${service.price}</div>
+                        <div class="service-price">&#8377;${service.price}</div>
                         
                         ${service.units ? `
                             <div class="service-duration">
@@ -1676,7 +1686,7 @@ function renderSlotCards(slots, dayType) {
                 data-disabled="${isFull ? 'true' : 'false'}"
                 onclick="selectSlot(this)">
                 
-                <div class="slot-check">✓</div>
+                <div class="slot-check">&#10003;</div>
                 <div class="slot-label">Arrival Window</div>
                 <div class="slot-time">${formatTime(slot.start_time)}</div>
                 <div class="slot-to-text">to</div>
@@ -1803,7 +1813,7 @@ function showUserFormOnPage() {
                 <textarea id="userAddress" rows="3" 
                           class="form-input" placeholder="Enter your complete address">${defaultAddress}</textarea>
                 <button id="mapSelectBtn" type="button" class="map-select-btn">
-                    <i class="fas fa-map-marker-alt"></i> 📍 Set on Map (Optional)
+                    <i class="fas fa-map-marker-alt"></i> Set on Map (Optional)
                 </button>
             </div>
 
@@ -2331,11 +2341,15 @@ function playMapPinDropFlip() {
 function setMapFooterCollapsed(collapsed) {
     const tools = document.getElementById("mapFooterTools");
     const toggle = document.getElementById("mapFooterToggle");
+    const controls = document.querySelector(".map-floating-controls");
     if (!tools || !toggle) return;
 
     tools.classList.toggle("collapsed", collapsed);
     toggle.classList.toggle("collapsed", collapsed);
     toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    if (controls) {
+        controls.classList.toggle("footer-collapsed", collapsed);
+    }
 }
 
 function scheduleMapFooterAutoCollapse() {
@@ -2739,7 +2753,7 @@ async function showBookingConfirmPopup() {
                 </div>
                 <div class="confirm-detail-row">
                     <span class="confirm-label"><i class="fas fa-rupee-sign"></i> Total Amount:</span>
-                    <span class="confirm-value confirm-highlight">₹${total}</span>
+                    <span class="confirm-value confirm-highlight">&#8377;${total}</span>
                 </div>
                 
                 ${discount > 0 ? `
@@ -2811,7 +2825,7 @@ async function downloadPopup() {
 }
 
 async function submitBooking() {
-    console.log("🔥 submitBooking triggered");
+    console.log("submitBooking triggered");
     
     const phone = document.getElementById("userPhone").value.trim();
     const address = getBookingAddressValue();
@@ -2983,7 +2997,7 @@ function showSuccessPopup(bookingId, isOtherCity) {
                 <p style="font-size:13px;color:#aaa;">
                     Our team will arrive anytime within this window. Actual service time depends on the scope of work.
                 </p>
-                <p style="margin-top:8px;"><strong>Payable Amount:</strong> ₹${total}</p>
+                <p style="margin-top:8px;"><strong>Payable Amount:</strong> &#8377;${total}</p>
             </div>
 
             <div style="display: flex; gap: 10px; justify-content: center;">
@@ -3062,7 +3076,7 @@ async function init() {
     const popupCitySelect = document.getElementById("locationPopupCitySelect");
 
     dropdown.innerHTML = availableCities.map(c => `<option value="${c}">${c}</option>`).join("");
-    dropdown.innerHTML += `<option value="Other">🏙️ Other City</option>`;
+    dropdown.innerHTML += `<option value="Other">Other City</option>`;
     populateVehicleTypeOptions([], "");
     if (popupCitySelect) {
         popupCitySelect.innerHTML = `<option value="">Select city</option>` +
@@ -3204,6 +3218,8 @@ window.showBookingConfirmPopup = showBookingConfirmPopup;
 window.closeConfirmPopup = closeConfirmPopup;
 window.closeRangeConfirmPopup = closeRangeConfirmPopup;
 window.proceedToBooking = proceedToBooking;
+
+
 
 
 
