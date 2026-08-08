@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KwikkWash Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(145deg, #0f0f0f 0%, #1a1a1a 100%);
+            color: #fff;
+            padding: 1rem;
+            line-height: 1.45;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="1" stitchTiles="stitch"/></filter><rect width="200" height="200" filter="url(%23noise)" opacity="0.05"/></svg>');
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .app {
+            width: min(1180px, 100%);
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            color: #FFC107;
+            border: 1px solid rgba(255, 193, 7, 0.22);
+            background: rgba(255, 193, 7, 0.1);
+            border-radius: 999px;
+            padding: 0.32rem 0.75rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin-top: 0.45rem;
+            font-size: clamp(1.5rem, 4vw, 2.2rem);
+            line-height: 1.05;
+            font-weight: 800;
+        }
+
+        .sub {
+            margin-top: 0.25rem;
+            color: rgba(255, 255, 255, 0.62);
+            font-size: 0.9rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        button,
+        select,
+        input {
+            font-family: inherit;
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 999px;
+            padding: 0.72rem 1rem;
+            background: linear-gradient(135deg, #FFC107, #e6a800);
+            color: #0f0f0f;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 10px 28px rgba(255, 193, 7, 0.18);
+        }
+
+        .btn:disabled {
+            opacity: 0.55;
+            cursor: wait;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: minmax(180px, 1fr) 170px;
+            gap: 0.65rem;
+            margin: 1rem 0;
+        }
+
+        .field {
+            min-height: 44px;
+            width: 100%;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.045);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 0.72rem 0.9rem;
+            outline: none;
+        }
+
+        select.field {
+            color: #fff;
+        }
+
+        select.field option {
+            color: #111;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 0.65rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat {
+            border: 1px solid rgba(255, 193, 7, 0.12);
+            background: rgba(255, 255, 255, 0.035);
+            border-radius: 16px;
+            padding: 0.8rem;
+        }
+
+        .stat span {
+            display: block;
+            color: rgba(255, 255, 255, 0.52);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat strong {
+            display: block;
+            margin-top: 0.2rem;
+            font-size: 1.45rem;
+            color: #FFC107;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid rgba(255, 193, 7, 0.12);
+            background: rgba(20, 20, 20, 0.62);
+            border-radius: 20px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.36);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        th,
+        td {
+            padding: 0.85rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+            vertical-align: middle;
+            font-size: 0.85rem;
+        }
+
+        th {
+            color: rgba(255, 255, 255, 0.56);
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: rgba(255, 255, 255, 0.025);
+            position: sticky;
+            top: 0;
+        }
+
+        tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .lead-id {
+            color: #FFC107;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .mobile {
+            color: #fff;
+            font-weight: 800;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .call-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            margin-left: 0.45rem;
+            border-radius: 50%;
+            color: #0f0f0f;
+            background: #FFC107;
+            text-decoration: none;
+        }
+
+        .address {
+            max-width: 260px;
+            color: rgba(255, 255, 255, 0.74);
+        }
+
+        .status-select,
+        .remark-input {
+            min-height: 38px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.055);
+            color: #fff;
+            padding: 0.55rem 0.65rem;
+            width: 100%;
+            outline: none;
+        }
+
+        .status-select option {
+            color: #111;
+        }
+
+        .save-btn {
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            background: rgba(255, 193, 7, 0.12);
+            color: #FFC107;
+            border-radius: 999px;
+            padding: 0.55rem 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .save-btn:disabled {
+            opacity: 0.55;
+            cursor: wait;
+        }
+
+        .empty,
+        .toast {
+            color: rgba(255, 255, 255, 0.66);
+            text-align: center;
+            padding: 1.4rem;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 1rem;
+            transform: translateX(-50%);
+            min-width: min(360px, calc(100vw - 2rem));
+            border-radius: 999px;
+            background: rgba(15, 15, 15, 0.92);
+            border: 1px solid rgba(255, 193, 7, 0.18);
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
+            display: none;
+            z-index: 5;
+        }
+
+        .toast.active {
+            display: block;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 0.75rem;
+            }
+
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .actions,
+            .btn {
+                width: 100%;
+            }
+
+            .filters {
+                grid-template-columns: 1fr;
+            }
+
+            .summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            th,
+            td {
+                padding: 0.72rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="app">
+        <div class="topbar">
+            <div>
+                <div class="eyebrow"><i class="fas fa-headset"></i> Back Office</div>
+                <h1>KwikkWash Leads</h1>
+                <p class="sub">Call customers, update status, and add remarks.</p>
+            </div>
+            <div class="actions">
+                <button class="btn" id="downloadCsvBtn"><i class="fas fa-download" style="margin-right: 6px;"></i> Download CSV</button>
+                <button class="btn" id="refreshBtn"><i class="fas fa-rotate-right" style="margin-right: 6px;"></i> Refresh</button>
+            </div>
+        </div>
+
+        <div class="filters">
+            <input class="field" id="searchInput" type="search" placeholder="Search ID, mobile, address, remark">
+            <select class="field" id="statusFilter">
+                <option value="">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Called">Called</option>
+                <option value="Confirmed">Confirmed</option>
+                <option value="Not Interested">Not Interested</option>
+                <option value="No Answer">No Answer</option>
+                <option value="Done">Done</option>
+            </select>
+        </div>
+
+        <section class="summary">
+            <div class="stat"><span>Visitors</span><strong id="visitorCount">0</strong></div>
+            <div class="stat"><span>Total</span><strong id="totalCount">0</strong></div>
+            <div class="stat"><span>Pending</span><strong id="pendingCount">0</strong></div>
+            <div class="stat"><span>Called</span><strong id="calledCount">0</strong></div>
+            <div class="stat"><span>Confirmed</span><strong id="confirmedCount">0</strong></div>
+        </section>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Inquiry ID</th>
+                        <th>Time</th>
+                        <th>Mobile</th>
+                        <th>City</th>
+                        <th>Address</th>
+                        <th>Status</th>
+                        <th>Remark</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="leadRows">
+                    <tr><td colspan="8" class="empty">Loading leads...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        (function() {
+            const CONFIG = {
+                API_URL: "https://script.google.com/macros/s/AKfycbxaU4NhAoqmXvuM9BUhW-TY25BIF8T5NCpL5CNsClcE4ZnPifJ0dp4WxK9PiUCB0kag/exec",
+                CITY: "Moradabad"
+            };
+
+            const STATUS_OPTIONS = ['Pending', 'Called', 'Confirmed', 'Not Interested', 'No Answer', 'Done'];
+            const rowsEl = document.getElementById('leadRows');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+            const searchInput = document.getElementById('searchInput');
+            const statusFilter = document.getElementById('statusFilter');
+            const toast = document.getElementById('toast');
+            let leads = [];
+            let visitorStats = {
+                totalVisitors: 0
+            };
+
+            function showToast(message) {
+                toast.textContent = message;
+                toast.classList.add('active');
+                setTimeout(() => toast.classList.remove('active'), 2200);
+            }
+
+            function escapeHtml(value) {
+                return String(value || '').replace(/[&<>"']/g, (char) => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[char]));
+            }
+
+            function jsonpRequest(params) {
+                return new Promise((resolve, reject) => {
+                    const callbackName = `kwikkwashCallback_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+                    const script = document.createElement('script');
+                    const url = new URL(CONFIG.API_URL);
+
+                    Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
+                    url.searchParams.set('callback', callbackName);
+
+                    window[callbackName] = (data) => {
+                        delete window[callbackName];
+                        script.remove();
+                        resolve(data);
+                    };
+
+                    script.onerror = () => {
+                        delete window[callbackName];
+                        script.remove();
+                        reject(new Error('Network request failed'));
+                    };
+
+                    script.src = url.toString();
+                    document.body.appendChild(script);
+                });
+            }
+
+            function updateStats(items) {
+                document.getElementById('visitorCount').textContent = visitorStats.totalVisitors || 0;
+                document.getElementById('totalCount').textContent = items.length;
+                document.getElementById('pendingCount').textContent = items.filter(item => item.status === 'Pending').length;
+                document.getElementById('calledCount').textContent = items.filter(item => item.status === 'Called').length;
+                document.getElementById('confirmedCount').textContent = items.filter(item => item.status === 'Confirmed').length;
+            }
+
+            function getFilteredLeads() {
+                const search = searchInput.value.trim().toLowerCase();
+                const status = statusFilter.value;
+
+                return leads.filter((lead) => {
+                    const matchesStatus = !status || lead.status === status;
+                    const haystack = [
+                        lead.inquiryId,
+                        lead.mobile,
+                        lead.city,
+                        lead.address,
+                        lead.status,
+                        lead.remark
+                    ].join(' ').toLowerCase();
+                    return matchesStatus && (!search || haystack.includes(search));
+                });
+            }
+
+            function renderRows() {
+                const filtered = getFilteredLeads();
+                updateStats(leads);
+
+                if (!filtered.length) {
+                    rowsEl.innerHTML = '<tr><td colspan="8" class="empty">No leads found.</td></tr>';
+                    return;
+                }
+
+                rowsEl.innerHTML = filtered.map((lead) => {
+                    const statusOptions = STATUS_OPTIONS.map((status) => (
+                        `<option value="${escapeHtml(status)}" ${lead.status === status ? 'selected' : ''}>${escapeHtml(status)}</option>`
+                    )).join('');
+
+                    return `
+                        <tr data-id="${escapeHtml(lead.inquiryId)}">
+                            <td class="lead-id">${escapeHtml(lead.inquiryId)}</td>
+                            <td>${escapeHtml(lead.timestamp)}</td>
+                            <td>
+                                <a class="mobile" href="tel:${escapeHtml(lead.mobile)}">${escapeHtml(lead.mobile)}</a>
+                                <a class="call-btn" href="tel:${escapeHtml(lead.mobile)}" aria-label="Call ${escapeHtml(lead.mobile)}"><i class="fas fa-phone-alt"></i></a>
+                            </td>
+                            <td>${escapeHtml(lead.city || CONFIG.CITY)}</td>
+                            <td class="address">${escapeHtml(lead.address)}</td>
+                            <td><select class="status-select">${statusOptions}</select></td>
+                            <td><input class="remark-input" type="text" value="${escapeHtml(lead.remark)}" placeholder="Add remark"></td>
+                            <td><button class="save-btn">Save</button></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            function csvValue(value) {
+                const text = String(value || '');
+                return `"${text.replace(/"/g, '""')}"`;
+            }
+
+            function downloadFilteredCsv() {
+                const filtered = getFilteredLeads();
+
+                if (!filtered.length) {
+                    showToast('No filtered leads to download.');
+                    return;
+                }
+
+                const headers = ['Inquiry ID', 'Timestamp', 'Mobile', 'City', 'Address', 'Status', 'Remark'];
+                const rows = filtered.map((lead) => [
+                    lead.inquiryId,
+                    lead.timestamp,
+                    lead.mobile,
+                    lead.city || CONFIG.CITY,
+                    lead.address,
+                    lead.status,
+                    lead.remark
+                ]);
+                const csv = [headers, ...rows].map(row => row.map(csvValue).join(',')).join('\r\n');
+                const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const statusName = statusFilter.value ? statusFilter.value.replace(/\s+/g, '-') : 'all';
+                const dateStamp = new Date().toISOString().slice(0, 10);
+
+                link.href = URL.createObjectURL(blob);
+                link.download = `kwikkwash-leads-${statusName}-${dateStamp}.csv`;
+                document.body.appendChild(link);
+                link.click();
+                URL.revokeObjectURL(link.href);
+                link.remove();
+                showToast(`${filtered.length} leads downloaded.`);
+            }
+
+            async function loadLeads() {
+                refreshBtn.disabled = true;
+                rowsEl.innerHTML = '<tr><td colspan="8" class="empty">Loading leads...</td></tr>';
+
+                try {
+                    console.log('Loading KwikkWash leads');
+                    const result = await jsonpRequest({ action: 'list' });
+                    console.log('Lead list response:', result);
+
+                    if (!result || result.success === false) {
+                        throw new Error(result && result.error ? result.error : 'Unable to load leads');
+                    }
+
+                    leads = result.leads || [];
+                    visitorStats = result.visitorStats || { totalVisitors: 0 };
+                    renderRows();
+                } catch (error) {
+                    console.error('Dashboard load error:', error);
+                    rowsEl.innerHTML = '<tr><td colspan="8" class="empty">Unable to load leads. Please refresh.</td></tr>';
+                    showToast('Unable to load leads.');
+                } finally {
+                    refreshBtn.disabled = false;
+                }
+            }
+
+            async function saveLead(row) {
+                const inquiryId = row.dataset.id;
+                const status = row.querySelector('.status-select').value;
+                const remark = row.querySelector('.remark-input').value.trim();
+                const button = row.querySelector('.save-btn');
+
+                button.disabled = true;
+                button.textContent = 'Saving...';
+
+                try {
+                    console.log('Updating lead:', { inquiryId, status, remark });
+                    const result = await jsonpRequest({
+                        action: 'update',
+                        inquiryId,
+                        status,
+                        remark
+                    });
+                    console.log('Lead update response:', result);
+
+                    if (!result || result.success === false) {
+                        throw new Error(result && result.error ? result.error : 'Unable to update lead');
+                    }
+
+                    leads = leads.map((lead) => (
+                        lead.inquiryId === inquiryId ? { ...lead, status, remark } : lead
+                    ));
+                    renderRows();
+                    showToast('Lead updated.');
+                } catch (error) {
+                    console.error('Dashboard update error:', error);
+                    showToast('Unable to update lead.');
+                } finally {
+                    button.disabled = false;
+                    button.textContent = 'Save';
+                }
+            }
+
+            rowsEl.addEventListener('click', (event) => {
+                const button = event.target.closest('.save-btn');
+                if (!button) return;
+                saveLead(button.closest('tr'));
+            });
+
+            refreshBtn.addEventListener('click', loadLeads);
+            downloadCsvBtn.addEventListener('click', downloadFilteredCsv);
+            searchInput.addEventListener('input', renderRows);
+            statusFilter.addEventListener('change', renderRows);
+            loadLeads();
+        })();
+    </script>
+</body>
+</html>

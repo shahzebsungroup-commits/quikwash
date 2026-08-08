@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1073,8 +1073,8 @@
         <div class="contact-block">
             <h3><i class="fas fa-headset" style="color: #FFC107; margin-right: 8px;"></i> Need Help?</h3>
             <div class="contact-links">
-                <a href="tel:9084669219"><i class="fas fa-phone-alt"></i> Call</a>
-                <a href="https://wa.me/919084669219" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                <a href="tel:9217209305"><i class="fas fa-phone-alt"></i> Call</a>
+                <a href="https://wa.me/919217209305" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
             </div>
         </div>
 
@@ -1348,11 +1348,74 @@
             });
 
             // ===== FORM LOGIC =====
+            const CONFIG = {
+                API_URL: "https://script.google.com/macros/s/AKfycbxaU4NhAoqmXvuM9BUhW-TY25BIF8T5NCpL5CNsClcE4ZnPifJ0dp4WxK9PiUCB0kag/exec",
+                CITY: "Moradabad"
+            };
+
             const form = document.getElementById('bookingForm');
             const phoneInput = document.getElementById('phone');
+            const cityInput = document.getElementById('city');
             const addressInput = document.getElementById('address');
+            const submitBtn = form.querySelector('.btn-primary');
             const modal = document.getElementById('successModal');
             const closeModalBtn = document.getElementById('closeModalBtn');
+            const modalIcon = modal.querySelector('.modal i');
+            const modalTitle = modal.querySelector('.modal h2');
+            const modalMessages = modal.querySelectorAll('.modal p');
+            const modalDate = modal.querySelector('.date-highlight');
+            const defaultSubmitText = submitBtn.innerHTML;
+
+            cityInput.value = CONFIG.CITY;
+
+            function getOrCreateVisitorId() {
+                const storageKey = 'kwikkwash_moradabad_visitor_id';
+                let visitorId = localStorage.getItem(storageKey);
+
+                if (!visitorId) {
+                    visitorId = `KWV-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+                    localStorage.setItem(storageKey, visitorId);
+                }
+
+                return visitorId;
+            }
+
+            function trackUniqueVisitor() {
+                try {
+                    const countedKey = 'kwikkwash_moradabad_visitor_counted_v2';
+                    if (localStorage.getItem(countedKey) === 'yes') return;
+
+                    const callbackName = `kwikkwashVisit_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+                    const script = document.createElement('script');
+                    const url = new URL(CONFIG.API_URL);
+                    url.searchParams.set('action', 'visit');
+                    url.searchParams.set('visitorId', getOrCreateVisitorId());
+                    url.searchParams.set('page', 'landing');
+                    url.searchParams.set('ua', navigator.userAgent.slice(0, 180));
+                    url.searchParams.set('callback', callbackName);
+
+                    window[callbackName] = function(response) {
+                        if (response && response.success && Object.prototype.hasOwnProperty.call(response, 'counted')) {
+                            localStorage.setItem(countedKey, 'yes');
+                            console.log('Visitor tracking response:', response);
+                        }
+                        delete window[callbackName];
+                        script.remove();
+                    };
+
+                    script.onerror = function() {
+                        delete window[callbackName];
+                        script.remove();
+                    };
+
+                    script.src = url.toString();
+                    document.body.appendChild(script);
+                } catch (error) {
+                    console.warn('Visitor tracking skipped:', error);
+                }
+            }
+
+            trackUniqueVisitor();
 
             phoneInput.addEventListener('input', function(e) {
                 this.value = this.value.replace(/\D/g, '').slice(0, 10);
@@ -1367,8 +1430,14 @@
                 if (e.target === this) closeModal();
             });
 
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
+            function setSubmitState(isSubmitting) {
+                submitBtn.disabled = isSubmitting;
+                submitBtn.innerHTML = isSubmitting ? 'Submitting...' : defaultSubmitText;
+                submitBtn.style.cursor = isSubmitting ? 'wait' : '';
+                submitBtn.style.opacity = isSubmitting ? '0.8' : '';
+            }
+
+            function validateForm() {
                 const phone = phoneInput.value.trim();
                 const address = addressInput.value.trim();
                 let isValid = true;
@@ -1383,8 +1452,76 @@
                     addressInput.style.borderColor = '#FFC107';
                     isValid = false;
                 }
-                if (!isValid) return;
+
+                return isValid;
+            }
+
+            function showModal(type, message) {
+                const isSuccess = type === 'success';
+                modalIcon.className = isSuccess ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+                modalTitle.textContent = isSuccess ? 'Thank You!' : 'Unable to Submit';
+                modalMessages[0].textContent = message;
+                if (modalMessages[1]) modalMessages[1].style.display = 'none';
+                if (modalDate) modalDate.style.display = 'none';
                 modal.classList.add('active');
+            }
+
+            function getPayload() {
+                return {
+                    mobile: phoneInput.value.trim(),
+                    city: CONFIG.CITY,
+                    address: addressInput.value.trim()
+                };
+            }
+
+            async function submitPreBooking(payload) {
+                console.log('Submitting KwikkWash pre-booking:', payload);
+
+                const response = await fetch(CONFIG.API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
+                    body: JSON.stringify(payload),
+                    redirect: 'follow'
+                });
+
+                const responseText = await response.text();
+                console.log('Google Apps Script response:', response.status, responseText);
+
+                let result = {};
+                if (responseText) {
+                    try {
+                        result = JSON.parse(responseText);
+                    } catch (parseError) {
+                        console.warn('Unable to parse GAS response as JSON:', parseError);
+                    }
+                }
+
+                if (!response.ok || result.success === false) {
+                    throw new Error(result.error || result.message || 'Submission failed');
+                }
+
+                return result;
+            }
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                if (!validateForm()) return;
+
+                setSubmitState(true);
+
+                try {
+                    await submitPreBooking(getPayload());
+                    form.reset();
+                    cityInput.value = CONFIG.CITY;
+                    showModal('success', 'Thank you for showing your interest, we will call you to confirm time slot very soon!');
+                } catch (error) {
+                    console.error('KwikkWash pre-booking submission error:', error);
+                    showModal('error', 'Unable to submit your request. Please try again.');
+                } finally {
+                    setSubmitState(false);
+                }
             });
         })();
     </script>
