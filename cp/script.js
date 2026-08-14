@@ -1,12 +1,19 @@
 // ==================== CONFIG ====================
 const BASE_URL = 'https://app.vbo.co.in';
 let currentDB = 'user';
-let currentTable = 'services';
+let currentTable = 'bookings';
 let editId = null;
 let editItemData = null;
 let deleteItemData = null;  // 👈 NEW: Store item to delete
 let allTableData = [];
 let filteredData = [];
+let activeStatusFilter = 'all';
+let activeDateFrom = '';
+let activeDateTo = '';
+let activeCityFilter = 'all';
+let activeEmployeeFilter = 'all';
+let employeeLookup = {};
+let partnerLookup = {};
 
 // ==================== TABLE CONFIGURATION ====================
 const tableConfig = {
@@ -122,7 +129,7 @@ const tableConfig = {
         employees: {
             name: 'Team Members',
             url: `${BASE_URL}/kwikkwash/employees?city=`,
-            columns: ['id', 'employee_code', 'employee_name', 'phone', 'partner_code', 'joining_date', 'ref_by', 'background', 'allowed_lat', 'allowed_lng', 'allowed_range', 'salary', 'active', 'skills'],
+            columns: ['id', 'employee_code', 'employee_name', 'phone', 'city', 'partner_code', 'joining_date', 'ref_by', 'background', 'allowed_lat', 'allowed_lng', 'allowed_range', 'salary', 'active', 'skills'],
             idField: 'employee_code',
             idType: 'single',
             getDropdowns: async () => {
@@ -223,7 +230,7 @@ const tableConfig = {
                     <label class="required">Team Member</label>
                     <select id="employee_code" required>
                         <option value="">Select Team Member</option>
-                        ${dropdowns.employees?.map(e => `<option value="${e.employee_code}">${e.employee_code} - ${e.employee_name}</option>`).join('')}
+                        ${dropdowns.employees?.map(e => `<option value="${e.employee_code}">${e.employee_code} - ${e.employee_name} (${e.city || 'No city'})</option>`).join('')}
                     </select>
                 </div>
                 <div class="form-group">
@@ -262,7 +269,7 @@ const tableConfig = {
                     <label class="required">Team Member</label>
                     <select id="employee_code" required>
                         <option value="">Select Team Member</option>
-                        ${dropdowns.employees?.map(e => `<option value="${e.employee_code}">${e.employee_code} - ${e.employee_name}</option>`).join('')}
+                        ${dropdowns.employees?.map(e => `<option value="${e.employee_code}">${e.employee_code} - ${e.employee_name} (${e.city || 'No city'})</option>`).join('')}
                     </select>
                 </div>
                 <div class="form-group">
@@ -552,7 +559,9 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==================== UPDATE TABLE SELECTOR ====================
 function updateTableSelector() {
     const selector = document.getElementById('tableSelector');
-    const tables = Object.keys(tableConfig[currentDB]);
+    const tables = currentDB === 'user'
+        ? ['bookings']
+        : Object.keys(tableConfig[currentDB]);
     
     selector.innerHTML = '';
     tables.forEach((table, index) => {
@@ -573,6 +582,291 @@ function updateTableSelector() {
     loadData();
 }
 
+// ==================== VIEW HELPERS ====================
+function isDenseView() {
+    return ['bookings', 'employees', 'jobs', 'partner_services', 'attendance'].includes(currentTable);
+}
+
+function getStatusValue(item) {
+    if (item.status) return String(item.status).toLowerCase();
+    if (item.active !== undefined && item.active !== null) return item.active == 1 ? 'active' : 'inactive';
+    return 'unknown';
+}
+
+function getDateValue(item) {
+    return item.booking_date || item.attendance_date || item.created_at || item.assigned_at || item.duty_in_time || '';
+}
+
+function normalizeBooking(item) {
+    return {
+        ...item,
+        customer_label: item.customer_name || item.phone || '-',
+        service_label: item.service_code || item.services || '-',
+        amount_label: item.total_amount || item.amount || 0,
+        slot_label: item.slot || item.booking_time || '-'
+    };
+}
+
+async function loadEmployeeLookup() {
+    try {
+        const res = await fetch(`${BASE_URL}/kwikkwash/employees/all`);
+        const employees = await res.json();
+        employeeLookup = {};
+        if (Array.isArray(employees)) {
+            employees.forEach(emp => {
+                employeeLookup[emp.employee_code] = emp;
+            });
+        }
+    } catch (error) {
+        employeeLookup = {};
+    }
+}
+
+async function loadPartnerLookup() {
+    try {
+        const res = await fetch(`${BASE_URL}/kwikkwash/partners/all`);
+        const partners = await res.json();
+        partnerLookup = {};
+        if (Array.isArray(partners)) {
+            partners.forEach(partner => {
+                partnerLookup[partner.partner_code] = partner;
+            });
+        }
+    } catch (error) {
+        partnerLookup = {};
+    }
+}
+
+async function enrichDataForCurrentView(data) {
+    if (!Array.isArray(data)) return [];
+
+    if (currentTable === 'bookings') {
+        return data.map(normalizeBooking);
+    }
+
+    if (currentTable === 'jobs' || currentTable === 'attendance') {
+        await loadEmployeeLookup();
+        return data.map(item => {
+            const emp = employeeLookup[item.employee_code] || {};
+            return {
+                ...item,
+                employee_name: emp.employee_name || item.employee_name || '-',
+                employee_city: emp.city || item.employee_city || '-'
+            };
+        });
+    }
+
+    if (currentTable === 'partner_services') {
+        await loadPartnerLookup();
+        return data.map(item => {
+            const partner = partnerLookup[item.partner_code] || {};
+            return {
+                ...item,
+                city: partner.city || item.city || '-',
+                partner_name: partner.franchise_name || partner.owner_name || '-'
+            };
+        });
+    }
+
+    return data;
+}
+
+function resetViewFilters() {
+    activeStatusFilter = 'all';
+    activeDateFrom = '';
+    activeDateTo = '';
+    activeCityFilter = 'all';
+    activeEmployeeFilter = 'all';
+}
+
+function applyViewFilters() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+
+    filteredData = allTableData.filter(item => {
+        if (activeStatusFilter !== 'all' && getStatusValue(item) !== activeStatusFilter) return false;
+
+        if (activeCityFilter !== 'all') {
+            const city = String(item.city || item.employee_city || '').toLowerCase();
+            if (city !== activeCityFilter.toLowerCase()) return false;
+        }
+
+        if (activeEmployeeFilter !== 'all') {
+            if (String(item.employee_code || '') !== activeEmployeeFilter) return false;
+        }
+
+        const dateValue = String(getDateValue(item)).slice(0, 10);
+        if (activeDateFrom && (!dateValue || dateValue < activeDateFrom)) return false;
+        if (activeDateTo && (!dateValue || dateValue > activeDateTo)) return false;
+
+        if (!searchTerm) return true;
+        return Object.values(item).some(value => {
+            if (value === null || value === undefined) return false;
+            return value.toString().toLowerCase().includes(searchTerm);
+        });
+    });
+
+    renderFilterBar();
+    renderFilteredTableV2();
+    updateSummary(filteredData);
+    document.getElementById('recordCount').textContent =
+        `${filteredData.length} of ${allTableData.length} records`;
+}
+
+function renderFilterBar() {
+    const existing = document.getElementById('viewFilters');
+    if (existing) existing.remove();
+
+    const card = document.querySelector('.data-card');
+    if (!card || !isDenseView()) return;
+
+    const statuses = Array.from(new Set(allTableData.map(getStatusValue))).filter(Boolean);
+    const cities = Array.from(new Set(allTableData.map(item => item.city || item.employee_city).filter(Boolean))).sort();
+    const employees = Array.from(new Map(
+        allTableData
+            .filter(item => item.employee_code)
+            .map(item => [
+                item.employee_code,
+                `${item.employee_code} - ${item.employee_name || 'Unknown'}${item.employee_city ? ` (${item.employee_city})` : ''}`
+            ])
+    ).entries());
+    const hasDateValues = allTableData.some(item => String(getDateValue(item) || '').trim());
+    const dateLabel = currentTable === 'bookings'
+        ? 'Booking date'
+        : currentTable === 'attendance'
+            ? 'Attendance date'
+            : 'Date';
+
+    const counts = { all: allTableData.length };
+    statuses.forEach(status => {
+        counts[status] = allTableData.filter(item => getStatusValue(item) === status).length;
+    });
+
+    const tabs = ['all', ...statuses].map(status => `
+        <button class="filter-tab ${activeStatusFilter === status ? 'active' : ''}" data-status="${status}">
+            ${status.replace(/_/g, ' ')} <span>${counts[status] || 0}</span>
+        </button>
+    `).join('');
+
+    const cityControl = cities.length ? `
+        <select id="cityViewFilter" class="compact-select">
+            <option value="all">All cities</option>
+            ${cities.map(city => `<option value="${city}" ${activeCityFilter === city ? 'selected' : ''}>${city}</option>`).join('')}
+        </select>
+    ` : '';
+    const employeeControl = (currentTable === 'attendance' || currentTable === 'jobs') && employees.length ? `
+        <select id="employeeViewFilter" class="compact-select">
+            <option value="all">All employees</option>
+            ${employees.map(([code, label]) => `<option value="${code}" ${activeEmployeeFilter === code ? 'selected' : ''}>${label}</option>`).join('')}
+        </select>
+    ` : '';
+    const dateControls = hasDateValues ? `
+        <label>${dateLabel}</label>
+        <input type="date" id="dateFromFilter" value="${activeDateFrom}" title="From date">
+        <span>to</span>
+        <input type="date" id="dateToFilter" value="${activeDateTo}" title="To date">
+    ` : '';
+
+    const bar = document.createElement('div');
+    bar.id = 'viewFilters';
+    bar.className = 'view-filters';
+    bar.innerHTML = `
+        <div class="filter-tabs">${tabs}</div>
+        <div class="filter-controls">
+            ${cityControl}
+            ${employeeControl}
+            ${dateControls}
+            <button class="btn-secondary compact-btn" id="clearViewFilters">Clear</button>
+            <button class="btn-primary compact-btn" id="downloadCsvBtn">CSV</button>
+        </div>
+    `;
+
+    card.insertBefore(bar, card.querySelector('.card-body'));
+
+    bar.querySelectorAll('.filter-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            activeStatusFilter = btn.dataset.status;
+            applyViewFilters();
+        });
+    });
+
+    const citySelect = document.getElementById('cityViewFilter');
+    if (citySelect) citySelect.addEventListener('change', e => {
+        activeCityFilter = e.target.value;
+        applyViewFilters();
+    });
+
+    const employeeSelect = document.getElementById('employeeViewFilter');
+    if (employeeSelect) employeeSelect.addEventListener('change', e => {
+        activeEmployeeFilter = e.target.value;
+        applyViewFilters();
+    });
+
+    const dateFromFilter = document.getElementById('dateFromFilter');
+    if (dateFromFilter) dateFromFilter.addEventListener('change', e => {
+        activeDateFrom = e.target.value;
+        applyViewFilters();
+    });
+    if (dateFromFilter && dateFromFilter.showPicker) {
+        dateFromFilter.addEventListener('focus', () => dateFromFilter.showPicker());
+    }
+
+    const dateToFilter = document.getElementById('dateToFilter');
+    if (dateToFilter) dateToFilter.addEventListener('change', e => {
+        activeDateTo = e.target.value;
+        applyViewFilters();
+    });
+    if (dateToFilter && dateToFilter.showPicker) {
+        dateToFilter.addEventListener('focus', () => dateToFilter.showPicker());
+    }
+
+    document.getElementById('clearViewFilters').addEventListener('click', () => {
+        resetViewFilters();
+        document.getElementById('searchInput').value = '';
+        applyViewFilters();
+    });
+
+    document.getElementById('downloadCsvBtn').addEventListener('click', downloadFilteredCsv);
+}
+
+function downloadFilteredCsv() {
+    const config = tableConfig[currentDB][currentTable];
+    const columns = getRenderColumns(config);
+    const escapeCsv = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
+    const rows = [
+        columns.map(escapeCsv).join(','),
+        ...filteredData.map(item => columns.map(col => escapeCsv(item[col])).join(','))
+    ];
+
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `kwikkwash-${currentTable}-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function getRenderColumns(config) {
+    if (currentTable === 'bookings') {
+        return ['booking_id', 'phone', 'city', 'service_code', 'booking_date', 'slot', 'total_amount', 'payment_status', 'status'];
+    }
+    if (currentTable === 'employees') {
+        return ['employee_code', 'employee_name', 'phone', 'city', 'salary', 'active', 'skills'];
+    }
+    if (currentTable === 'jobs') {
+        return ['id', 'employee_code', 'employee_name', 'employee_city', 'booking_id', 'status', 'service_code', 'job_address', 'created_at'];
+    }
+    if (currentTable === 'attendance') {
+        return ['id', 'employee_code', 'employee_name', 'employee_city', 'attendance_date', 'in_time', 'out_time'];
+    }
+    if (currentTable === 'partner_services') {
+        return ['id', 'partner_code', 'partner_name', 'city', 'service_code', 'units', 'price', 'coupon_code', 'coupon_count', 'active'];
+    }
+    return config.columns;
+}
+
 // ==================== LOAD DATA ====================
 async function loadData() {
     const container = document.getElementById('tableContainer');
@@ -590,9 +884,11 @@ async function loadData() {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
         allTableData = await response.json();
+        allTableData = await enrichDataForCurrentView(allTableData);
+        resetViewFilters();
         filteredData = [...allTableData];
-        renderFilteredTable();
-        updateSummary(filteredData);
+        document.body.classList.toggle('sidebar-compact', isDenseView());
+        applyViewFilters();
         document.getElementById('tableTitle').textContent = config.name;
     } catch (error) {
         showToast('error', `Failed to load data: ${error.message}`);
@@ -605,23 +901,7 @@ async function loadData() {
 
 // ==================== SEARCH FUNCTION ====================
 function handleSearch() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-    
-    if (!searchTerm) {
-        filteredData = [...allTableData];
-    } else {
-        filteredData = allTableData.filter(item => {
-            return Object.values(item).some(value => {
-                if (value === null || value === undefined) return false;
-                return value.toString().toLowerCase().includes(searchTerm);
-            });
-        });
-    }
-    
-    renderFilteredTable();
-    updateSummary(filteredData);
-    document.getElementById('recordCount').textContent = 
-        `${filteredData.length} of ${allTableData.length} records`;
+    applyViewFilters();
 }
 
 // ==================== RENDER TABLE ====================
@@ -724,6 +1004,89 @@ function renderFilteredTable() {
         </td></tr>`;
     });
     
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+function renderFilteredTableV2() {
+    const container = document.getElementById('tableContainer');
+    const config = tableConfig[currentDB][currentTable];
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+
+    if (!filteredData || filteredData.length === 0) {
+        container.innerHTML = `<div class="empty-state">
+            <span style="font-size: 48px;">No</span>
+            <p>No matching records found</p>
+        </div>`;
+        return;
+    }
+
+    const columns = getRenderColumns(config);
+    const labels = columns.map(col => {
+        let label = col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        if (col === 'employee_city') label = 'City';
+        if (col === 'partner_name') label = 'Partner';
+        if (col === 'total_amount') label = 'Amount';
+        if (currentTable === 'partner_services' && col === 'service_code') label = 'Service';
+        return label;
+    });
+
+    const formatValue = (item, col) => {
+        const value = item[col];
+        if (col === 'active') {
+            return value == 1
+                ? '<span class="status-badge status-active">Active</span>'
+                : '<span class="status-badge status-inactive">Inactive</span>';
+        }
+        if (col === 'status' || col === 'payment_status') {
+            const status = value ? String(value).toLowerCase() : 'pending';
+            return `<span class="status-badge status-${status}">${status.replace(/_/g, ' ')}</span>`;
+        }
+        if (col.includes('price') || col === 'salary' || col === 'total_amount' || col === 'amount') {
+            const amount = Number(value || 0);
+            return amount ? `Rs ${amount.toLocaleString('en-IN')}` : '-';
+        }
+        if ((col === 'attendance_date' || col === 'booking_date') && value) {
+            return String(value).slice(0, 10);
+        }
+        if ((col === 'created_at' || col === 'assigned_at' || col === 'duty_in_time') && value) {
+            return String(value).slice(0, 16).replace('T', ' ');
+        }
+        if ((col === 'in_time' || col === 'out_time') && value) {
+            return String(value).slice(0, 16).replace('T', ' ');
+        }
+        if (col === 'units' && value) {
+            return `${value} units`;
+        }
+        if (value === null || value === undefined || value === '') return '-';
+        const text = String(value);
+        return text.length > 48 ? `${text.slice(0, 48)}...` : text;
+    };
+
+    let html = '<table class="compact-data-table"><thead><tr>';
+    labels.forEach(label => {
+        html += `<th>${label}</th>`;
+    });
+    html += '<th>Actions</th></tr></thead><tbody>';
+
+    filteredData.forEach(item => {
+        const itemStr = JSON.stringify(item).replace(/'/g, "&apos;");
+        html += '<tr>';
+        columns.forEach((col, index) => {
+            const rawValue = item[col];
+            let displayValue = formatValue(item, col);
+            if (searchTerm && String(displayValue).toLowerCase().includes(searchTerm)) {
+                const regex = new RegExp(`(${searchTerm})`, 'gi');
+                displayValue = String(displayValue).replace(regex, '<span class="search-highlight">$1</span>');
+            }
+            html += `<td data-label="${labels[index]}" title="${String(rawValue ?? '').replace(/"/g, '&quot;')}">${displayValue}</td>`;
+        });
+        html += `<td class="action-cell" data-label="Actions">
+            <button class="btn-icon" onclick='openEditModal(${itemStr})' title="Edit">✎</button>
+            <button class="btn-icon delete" onclick='openDeleteModal(${itemStr})' title="Delete">🗑</button>
+        </td></tr>`;
+    });
+
     html += '</tbody></table>';
     container.innerHTML = html;
 }

@@ -587,6 +587,163 @@ tr:hover td {
     color: var(--danger);
 }
 
+/* Dense list UX */
+body.sidebar-compact .main-content {
+    gap: 14px;
+}
+
+body.sidebar-compact .sidebar {
+    width: 158px;
+}
+
+body.sidebar-compact .sidebar-section {
+    padding: 12px;
+}
+
+body.sidebar-compact .section-title,
+body.sidebar-compact .quick-stats,
+body.sidebar-compact .nav-icon {
+    display: none;
+}
+
+body.sidebar-compact .db-nav-item,
+body.sidebar-compact .table-nav button {
+    justify-content: flex-start;
+    padding: 10px;
+    text-align: left;
+    font-size: 12px;
+}
+
+.view-filters {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    gap: 12px;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+}
+
+.filter-tab {
+    border: 1px solid var(--border);
+    background: var(--background);
+    color: var(--text-secondary);
+    border-radius: 999px;
+    padding: 8px 12px;
+    cursor: pointer;
+    text-transform: capitalize;
+    white-space: nowrap;
+}
+
+.filter-tab span {
+    margin-left: 6px;
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.filter-tab.active {
+    background: var(--primary);
+    color: var(--secondary);
+    border-color: var(--primary);
+}
+
+.filter-tab.active span {
+    color: var(--secondary);
+}
+
+.filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-controls label,
+.filter-controls span {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.filter-controls input,
+.compact-select {
+    height: 36px;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-primary);
+    padding: 0 10px;
+}
+
+.filter-controls input[type="date"] {
+    min-width: 136px;
+    color-scheme: dark;
+    cursor: pointer;
+}
+
+.compact-btn {
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 10px;
+}
+
+.compact-data-table {
+    table-layout: fixed;
+}
+
+.compact-data-table th,
+.compact-data-table td {
+    padding: 10px 12px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    vertical-align: top;
+}
+
+.compact-data-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.compact-data-table .action-cell {
+    min-width: 88px;
+}
+
+.compact-data-table .btn-icon {
+    width: 32px;
+    min-width: 32px;
+    padding: 0;
+    border-radius: 10px;
+    font-size: 15px;
+}
+
+.status-pending,
+.status-assigned,
+.status-in_progress {
+    background: rgba(255, 193, 7, 0.1);
+    color: var(--warning);
+    border: 1px solid rgba(255, 193, 7, 0.2);
+}
+
+.status-done,
+.status-completed,
+.status-paid {
+    background: rgba(76, 175, 80, 0.1);
+    color: var(--success);
+    border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.status-cancelled,
+.status-canceled,
+.status-failed {
+    background: rgba(255, 107, 107, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+}
+
 /* Loading State */
 .loading-state {
     text-align: center;
@@ -801,19 +958,176 @@ tr:hover td {
 
 @media (max-width: 768px) {
     .header-content {
-        flex-direction: column;
-        gap: 12px;
-        text-align: center;
+        padding: 10px 12px;
+        gap: 10px;
     }
     
     .logo-area {
-        flex-direction: column;
+        gap: 8px;
+    }
+
+    .logo-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 24px;
+    }
+
+    .logo-text h1 {
+        font-size: 17px;
+    }
+
+    .logo-badge,
+    .platform-status {
+        display: none;
+    }
+
+    .main-content {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    body.sidebar-compact .sidebar,
+    .sidebar {
+        width: 100%;
+    }
+
+    .sidebar {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .sidebar-section {
+        padding: 10px;
+        margin-bottom: 0;
+        border-radius: 12px;
+    }
+
+    .section-title,
+    .quick-stats {
+        display: none;
+    }
+
+    .db-nav,
+    .table-nav {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        overflow-x: auto;
+    }
+
+    .db-nav-item,
+    body.sidebar-compact .db-nav-item,
+    .table-nav button,
+    body.sidebar-compact .table-nav button {
+        min-width: max-content;
+        justify-content: center;
+        text-align: center;
+        padding: 9px 12px;
+        font-size: 12px;
+    }
+
+    .nav-icon {
+        display: none;
+    }
+
+    .action-bar {
+        margin-bottom: 10px;
+        gap: 8px;
+    }
+
+    .search-wrapper input {
+        height: 42px;
+    }
+
+    #addBtn {
+        height: 42px;
+        padding: 0 12px;
+        font-size: 12px;
+    }
+
+    .card-header {
+        padding: 12px;
+        align-items: flex-start;
     }
     
-    .card-header {
-        flex-direction: column;
+    .card-body {
+        padding: 10px;
+    }
+
+    .view-filters {
+        padding: 10px;
+    }
+
+    .filter-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: end;
+    }
+
+    .filter-controls label,
+    .filter-controls span {
+        display: none;
+    }
+
+    .filter-controls input,
+    .filter-controls input[type="date"],
+    .compact-select,
+    .compact-btn {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .compact-data-table,
+    .compact-data-table thead,
+    .compact-data-table tbody,
+    .compact-data-table th,
+    .compact-data-table td,
+    .compact-data-table tr {
+        display: block;
+        width: 100%;
+    }
+
+    .compact-data-table thead {
+        display: none;
+    }
+
+    .compact-data-table tr {
+        background: var(--background);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 10px;
+        padding: 8px;
+    }
+
+    .compact-data-table td {
+        border: 0;
+        padding: 7px 4px;
+        display: grid;
+        grid-template-columns: 112px minmax(0, 1fr);
         gap: 8px;
-        text-align: center;
+        align-items: start;
+        font-size: 13px;
+    }
+
+    .compact-data-table td::before {
+        content: attr(data-label);
+        color: var(--text-muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .compact-data-table .action-cell {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .compact-data-table .action-cell::before {
+        margin-right: auto;
+        align-self: center;
     }
 }
 /* Add to your style.css */
