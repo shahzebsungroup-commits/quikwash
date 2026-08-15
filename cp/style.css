@@ -1,5 +1,5 @@
 /* =========================================
-   KwikkWash Business Management Platform
+   KwikkWash Rampur Operations Console
    Professional Client Interface v1.0
    ========================================= */
 
@@ -1317,5 +1317,569 @@ select[multiple]:disabled {
     
     #deleteModal .modal-footer button {
         width: 100%;
+    }
+}
+
+/* =========================================
+   Rampur Operations Polish
+   ========================================= */
+:root {
+    --primary: #f4c441;
+    --primary-dark: #d9a91f;
+    --secondary: #181818;
+    --surface: #171717;
+    --surface-raised: #202020;
+    --background: #0c0d0f;
+    --text-primary: #f7f7f2;
+    --text-secondary: #c4c1b8;
+    --text-muted: #85827a;
+    --border: #303030;
+    --border-soft: #242424;
+    --focus-ring: rgba(244, 196, 65, 0.16);
+    --shadow: 0 18px 60px rgba(0, 0, 0, 0.34);
+}
+
+body {
+    background:
+        linear-gradient(180deg, rgba(244, 196, 65, 0.05), transparent 260px),
+        var(--background);
+    letter-spacing: 0;
+}
+
+.app-header {
+    background: rgba(18, 18, 18, 0.96);
+    backdrop-filter: blur(14px);
+}
+
+.header-content {
+    padding: 10px 22px;
+}
+
+.logo-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0;
+}
+
+.logo-text h1 {
+    line-height: 1.1;
+}
+
+.logo-badge {
+    border-radius: 999px;
+    color: var(--text-secondary);
+    background: transparent;
+    padding: 0;
+}
+
+.user-profile {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.main-content {
+    width: 100%;
+    padding: 18px 22px 28px;
+    gap: 18px;
+}
+
+.sidebar {
+    width: 236px;
+}
+
+.sidebar-section,
+.data-card {
+    border-radius: 8px;
+    background: rgba(23, 23, 23, 0.94);
+    border-color: var(--border-soft);
+}
+
+.sidebar-section {
+    padding: 14px;
+    margin-bottom: 12px;
+}
+
+.section-title,
+.eyebrow {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
+.db-nav-item,
+.table-nav button {
+    border-radius: 7px;
+    border-color: transparent;
+    background: transparent;
+}
+
+.db-nav-item:hover,
+.table-nav button:hover {
+    background: rgba(244, 196, 65, 0.08);
+}
+
+.db-nav-item.active,
+.table-nav button.active {
+    box-shadow: inset 3px 0 0 var(--primary);
+    background: rgba(244, 196, 65, 0.12);
+    color: var(--primary);
+}
+
+.db-nav-item.active .nav-icon {
+    color: var(--secondary);
+}
+
+.nav-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-raised);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.db-nav-item.active .nav-icon {
+    background: var(--primary);
+}
+
+.stats-card {
+    border-radius: 7px;
+    background: #101010;
+    border: 1px solid var(--border-soft);
+}
+
+.workspace-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 18px;
+    margin-bottom: 16px;
+    padding: 6px 2px 0;
+}
+
+.workspace-header h2 {
+    margin-top: 3px;
+    font-size: 26px;
+    line-height: 1.15;
+}
+
+.workspace-header p:last-child {
+    margin-top: 5px;
+    color: var(--text-secondary);
+}
+
+.workspace-meta {
+    min-width: 118px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.workspace-meta span {
+    display: block;
+    color: var(--text-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.workspace-meta strong {
+    display: block;
+    margin-top: 2px;
+    font-size: 16px;
+}
+
+.action-bar {
+    margin-bottom: 14px;
+    gap: 10px;
+}
+
+.search-wrapper input {
+    height: 42px;
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.search-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+}
+
+.clear-btn {
+    border-radius: 6px;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-delete {
+    height: 42px;
+    border-radius: 8px;
+}
+
+.btn-symbol {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    background: rgba(0, 0, 0, 0.15);
+    font-weight: 800;
+}
+
+.card-header {
+    padding: 14px 16px;
+}
+
+.card-header h2 {
+    margin-top: 2px;
+}
+
+.record-badge {
+    border-radius: 7px;
+    border: 1px solid var(--border-soft);
+}
+
+.card-body {
+    padding: 0;
+}
+
+.table-responsive {
+    border-radius: 0;
+}
+
+table {
+    font-size: 13px;
+}
+
+th {
+    padding: 11px 12px;
+    background: #101010;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+td {
+    padding: 11px 12px;
+}
+
+.view-filters {
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.018);
+}
+
+.filter-tab,
+.compact-select,
+.filter-controls input,
+.compact-btn {
+    border-radius: 7px;
+}
+
+.filter-tab {
+    padding: 7px 10px;
+}
+
+.filter-tab.active {
+    color: var(--secondary);
+}
+
+.status-badge {
+    border-radius: 6px;
+    text-transform: capitalize;
+}
+
+.status-confirmed {
+    background: rgba(76, 144, 255, 0.1);
+    color: #7aa7ff;
+    border: 1px solid rgba(76, 144, 255, 0.2);
+}
+
+.action-cell {
+    gap: 6px;
+}
+
+.btn-icon {
+    width: auto;
+    min-width: 52px;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.btn-icon.delete:hover {
+    background: rgba(255, 107, 107, 0.08);
+}
+
+.modal {
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(8px);
+}
+
+.modal-dialog {
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+}
+
+.modal-body {
+    padding: 18px;
+}
+
+.modal-footer,
+.modal-header {
+    padding: 14px 18px;
+}
+
+.modal-close {
+    border-radius: 7px;
+    font-weight: 800;
+}
+
+.form-group {
+    margin-bottom: 14px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea,
+select[multiple] {
+    border-radius: 7px;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus,
+.search-wrapper input:focus {
+    box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+#deleteModal .warning-icon {
+    border-radius: 10px;
+    font-size: 34px;
+    font-weight: 900;
+}
+
+@media (max-width: 1024px) {
+    .workspace-header {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 10px;
+    }
+
+    .workspace-header {
+        flex-direction: column;
+        margin-bottom: 10px;
+    }
+
+    .workspace-header h2 {
+        font-size: 21px;
+    }
+
+    .workspace-meta {
+        width: 100%;
+    }
+
+    .card-body {
+        padding: 10px;
+    }
+
+    .compact-data-table tr {
+        border-radius: 8px;
+    }
+
+    .compact-data-table .action-cell {
+        justify-content: flex-start;
+    }
+}
+
+/* Drawer menu: keep the table as the primary workspace */
+.main-content {
+    display: block;
+    max-width: none;
+}
+
+.content-area {
+    width: 100%;
+}
+
+.menu-toggle {
+    width: 38px;
+    height: 36px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-raised);
+    color: var(--text-primary);
+    cursor: pointer;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.menu-toggle span {
+    width: 17px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+}
+
+.menu-toggle:hover,
+body.sidebar-open .menu-toggle {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.sidebar {
+    position: fixed;
+    top: 70px;
+    left: 18px;
+    bottom: 18px;
+    width: 256px;
+    z-index: 900;
+    overflow-y: auto;
+    transform: translateX(calc(-100% - 28px));
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.22s ease, opacity 0.22s ease;
+}
+
+body.sidebar-open .sidebar {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 850;
+    border: 0;
+    background: rgba(0, 0, 0, 0.42);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+body.sidebar-open .sidebar-overlay {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+body.sidebar-compact .main-content {
+    gap: 0;
+}
+
+body.sidebar-compact .sidebar {
+    width: 256px;
+}
+
+body.sidebar-compact .section-title,
+body.sidebar-compact .quick-stats {
+    display: block;
+}
+
+body.sidebar-compact .nav-icon {
+    display: inline-flex;
+}
+
+body.sidebar-compact .db-nav-item,
+body.sidebar-compact .table-nav button {
+    padding: 12px 16px;
+    font-size: 14px;
+}
+
+.btn-icon {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 8px;
+}
+
+.btn-icon svg {
+    width: 15px;
+    height: 15px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    pointer-events: none;
+}
+
+.compact-data-table .btn-icon {
+    width: 32px;
+    min-width: 32px;
+    padding: 0;
+}
+
+@media (max-width: 768px) {
+    .header-actions {
+        gap: 8px;
+    }
+
+    .sidebar {
+        top: 62px;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        width: auto;
+        transform: translateX(calc(-100% - 20px));
+    }
+
+    body.sidebar-compact .sidebar,
+    body.sidebar-open .sidebar {
+        width: auto;
+    }
+
+    body.sidebar-compact .section-title,
+    body.sidebar-compact .quick-stats,
+    .sidebar .section-title,
+    .sidebar .quick-stats {
+        display: block;
+    }
+
+    body.sidebar-compact .nav-icon {
+        display: inline-flex;
+    }
+
+    .sidebar .db-nav,
+    .sidebar .table-nav {
+        flex-direction: column;
+        overflow-x: visible;
+    }
+
+    .sidebar .db-nav-item,
+    body.sidebar-compact .db-nav-item,
+    .sidebar .table-nav button,
+    body.sidebar-compact .table-nav button {
+        justify-content: flex-start;
+        text-align: left;
+        min-width: 0;
     }
 }

@@ -4,7 +4,7 @@ let currentDB = 'user';
 let currentTable = 'bookings';
 let editId = null;
 let editItemData = null;
-let deleteItemData = null;  // 👈 NEW: Store item to delete
+let deleteItemData = null;
 let allTableData = [];
 let filteredData = [];
 let activeStatusFilter = 'all';
@@ -14,6 +14,49 @@ let activeCityFilter = 'all';
 let activeEmployeeFilter = 'all';
 let employeeLookup = {};
 let partnerLookup = {};
+
+const viewCopy = {
+    bookings: {
+        title: 'Booking Desk',
+        subtitle: 'Track requests, assignments, payments, and service status from one place.',
+        addLabel: 'Add Booking'
+    },
+    employees: {
+        title: 'Team Roster',
+        subtitle: 'Manage team member details, service skills, salary, and active status.',
+        addLabel: 'Add Team Member'
+    },
+    attendance: {
+        title: 'Attendance',
+        subtitle: 'Review team attendance by date, city, and employee.',
+        addLabel: 'Add Attendance'
+    },
+    jobs: {
+        title: 'Assignments',
+        subtitle: 'Monitor job ownership, progress, service address, and completion status.',
+        addLabel: 'Add Assignment'
+    },
+    partners: {
+        title: 'Partners',
+        subtitle: 'Maintain partner branches, service areas, and franchise details.',
+        addLabel: 'Add Partner'
+    },
+    partner_services: {
+        title: 'Partner Services',
+        subtitle: 'Control service menu, pricing, coupons, and availability by partner.',
+        addLabel: 'Add Service'
+    },
+    services: {
+        title: 'Services',
+        subtitle: 'Maintain the shared KwikkWash service catalogue.',
+        addLabel: 'Add Service'
+    }
+};
+
+const actionIcons = {
+    edit: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg>`,
+    delete: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v5"></path><path d="M14 11v5"></path></svg>`
+};
 
 // ==================== TABLE CONFIGURATION ====================
 const tableConfig = {
@@ -46,7 +89,7 @@ const tableConfig = {
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="required">Price (₹)</label>
+                    <label class="required">Price (Rs)</label>
                     <input type="number" id="price" step="0.01" value="0" required>
                 </div>
                 <div class="form-group">
@@ -189,7 +232,7 @@ const tableConfig = {
                     <input type="number" id="allowed_range" step="0.1" placeholder="e.g., 5" required>
                 </div>
                 <div class="form-group">
-                    <label class="required">Salary (₹)</label>
+                    <label class="required">Salary (Rs)</label>
                     <input type="number" id="salary" step="0.01" placeholder="e.g., 25000" required>
                 </div>
                 <div class="form-group">
@@ -431,7 +474,7 @@ const tableConfig = {
                 </div>
 
                 <div class="form-group">
-                    <label class="required">Price (₹)</label>
+                    <label class="required">Price (Rs)</label>
                     <input type="number" id="price" step="0.01" value="0" required>
                 </div>
 
@@ -500,7 +543,7 @@ async function updateSkillsByPartner(partnerCode) {
                 <tr>
                     <td><input type="checkbox" value="${item.service_code}" ${checked ? 'checked' : ''} onchange="updateSkillsValue()"></td>
                     <td>${item.service_code}</td>
-                    <td>₹${item.price || 0}</td>
+                    <td>Rs ${item.price || 0}</td>
                     <td>${item.active == 1 ? 'Active' : 'Inactive'}</td>
                 </tr>
             `;
@@ -528,12 +571,27 @@ function updateSkillsValue() {
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const closeSidebar = () => {
+        document.body.classList.remove('sidebar-open');
+        menuToggle?.setAttribute('aria-expanded', 'false');
+    };
+    const toggleSidebar = () => {
+        const isOpen = document.body.classList.toggle('sidebar-open');
+        menuToggle?.setAttribute('aria-expanded', String(isOpen));
+    };
+
+    menuToggle?.addEventListener('click', toggleSidebar);
+    sidebarOverlay?.addEventListener('click', closeSidebar);
+
     document.querySelectorAll('.db-nav-item').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.db-nav-item').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentDB = btn.dataset.db;
             updateTableSelector();
+            closeSidebar();
         });
     });
     
@@ -548,7 +606,6 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.focus();
     });
     
-    // 👇 NEW: Delete modal close button
     document.getElementById('closeDeleteModal').addEventListener('click', closeDeleteModal);
     document.getElementById('cancelDelete').addEventListener('click', closeDeleteModal);
     document.getElementById('confirmDelete').addEventListener('click', confirmDelete);
@@ -572,14 +629,31 @@ function updateTableSelector() {
             document.querySelectorAll('#tableSelector button').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentTable = table;
+            updateViewChrome();
             loadData();
+            document.body.classList.remove('sidebar-open');
+            document.getElementById('menuToggle')?.setAttribute('aria-expanded', 'false');
         };
         selector.appendChild(btn);
     });
     
     currentTable = tables[0];
-    document.getElementById('tableTitle').textContent = tableConfig[currentDB][currentTable].name;
+    updateViewChrome();
     loadData();
+}
+
+function updateViewChrome() {
+    const config = tableConfig[currentDB][currentTable];
+    const copy = viewCopy[currentTable] || {
+        title: config.name,
+        subtitle: 'Manage operational records for this workspace.',
+        addLabel: `Add ${config.name}`
+    };
+
+    document.getElementById('workspaceTitle').textContent = copy.title;
+    document.getElementById('workspaceSubtitle').textContent = copy.subtitle;
+    document.getElementById('tableTitle').textContent = config.name;
+    document.getElementById('addBtnLabel').textContent = copy.addLabel;
 }
 
 // ==================== VIEW HELPERS ====================
@@ -888,12 +962,12 @@ async function loadData() {
         resetViewFilters();
         filteredData = [...allTableData];
         document.body.classList.toggle('sidebar-compact', isDenseView());
+        updateViewChrome();
         applyViewFilters();
-        document.getElementById('tableTitle').textContent = config.name;
     } catch (error) {
         showToast('error', `Failed to load data: ${error.message}`);
         container.innerHTML = `<div class="empty-state">
-            <span style="font-size: 48px;">📊</span>
+            <span style="font-size: 28px; font-weight: 700;">Load failed</span>
             <p>Unable to load data. Please try again.</p>
         </div>`;
     }
@@ -912,7 +986,7 @@ function renderFilteredTable() {
     
     if (!filteredData || filteredData.length === 0) {
         container.innerHTML = `<div class="empty-state">
-            <span style="font-size: 48px;">🔍</span>
+            <span style="font-size: 28px; font-weight: 700;">No results</span>
             <p>No matching records found</p>
         </div>`;
         return;
@@ -948,7 +1022,7 @@ function renderFilteredTable() {
                     '<span class="status-badge status-active">Active</span>' : 
                     '<span class="status-badge status-inactive">Inactive</span>';
             } else if (col.includes('price') || col === 'salary') {
-                displayValue = value ? `₹${value.toLocaleString()}` : '-';
+                displayValue = value ? `Rs ${value.toLocaleString('en-IN')}` : '-';
             } else if (col === 'partner_code') {
                 displayValue = value || '-';
             } else if (col === 'skills' && value) {
@@ -999,8 +1073,8 @@ function renderFilteredTable() {
         
         const itemStr = JSON.stringify(item).replace(/'/g, "&apos;");
         html += `<td class="action-cell">
-            <button class="btn-icon" onclick='openEditModal(${itemStr})' title="Edit">✏️</button>
-            <button class="btn-icon delete" onclick='openDeleteModal(${itemStr})' title="Delete">🗑️</button>
+            <button class="btn-icon" onclick='openEditModal(${itemStr})' title="Edit" aria-label="Edit">${actionIcons.edit}</button>
+            <button class="btn-icon delete" onclick='openDeleteModal(${itemStr})' title="Delete" aria-label="Delete">${actionIcons.delete}</button>
         </td></tr>`;
     });
     
@@ -1015,7 +1089,7 @@ function renderFilteredTableV2() {
 
     if (!filteredData || filteredData.length === 0) {
         container.innerHTML = `<div class="empty-state">
-            <span style="font-size: 48px;">No</span>
+            <span style="font-size: 28px; font-weight: 700;">No results</span>
             <p>No matching records found</p>
         </div>`;
         return;
@@ -1082,8 +1156,8 @@ function renderFilteredTableV2() {
             html += `<td data-label="${labels[index]}" title="${String(rawValue ?? '').replace(/"/g, '&quot;')}">${displayValue}</td>`;
         });
         html += `<td class="action-cell" data-label="Actions">
-            <button class="btn-icon" onclick='openEditModal(${itemStr})' title="Edit">✎</button>
-            <button class="btn-icon delete" onclick='openDeleteModal(${itemStr})' title="Delete">🗑</button>
+            <button class="btn-icon" onclick='openEditModal(${itemStr})' title="Edit" aria-label="Edit">${actionIcons.edit}</button>
+            <button class="btn-icon delete" onclick='openDeleteModal(${itemStr})' title="Delete" aria-label="Delete">${actionIcons.delete}</button>
         </td></tr>`;
     });
 
@@ -1093,20 +1167,54 @@ function renderFilteredTableV2() {
 
 // ==================== UPDATE SUMMARY ====================
 function updateSummary(data) {
+    const primaryLabel = document.getElementById('primaryMetricLabel');
+    const secondaryLabel = document.getElementById('secondaryMetricLabel');
+    const setDefaultMetricLabels = () => {
+        if (currentTable === 'attendance') {
+            primaryLabel.textContent = 'Checked In';
+            secondaryLabel.textContent = 'Missing Out';
+        } else if (['bookings', 'jobs'].includes(currentTable)) {
+            primaryLabel.textContent = 'Open';
+            secondaryLabel.textContent = 'Closed';
+        } else {
+            primaryLabel.textContent = 'Active';
+            secondaryLabel.textContent = 'Inactive';
+        }
+    };
+
     if (!data || data.length === 0) {
         document.getElementById('totalCount').textContent = '0';
         document.getElementById('activeCount').textContent = '0';
         document.getElementById('inactiveCount').textContent = '0';
+        setDefaultMetricLabels();
         return;
     }
     
     const total = data.length;
-    const active = data.filter(item => item.active === 1).length;
-    const inactive = total - active;
+    let primary = 0;
+    let secondary = 0;
+
+    if (data.some(item => item.status !== undefined)) {
+        const closedStatuses = ['completed', 'done', 'cancelled', 'canceled', 'failed'];
+        primaryLabel.textContent = 'Open';
+        secondaryLabel.textContent = 'Closed';
+        secondary = data.filter(item => closedStatuses.includes(getStatusValue(item))).length;
+        primary = total - secondary;
+    } else if (currentTable === 'attendance') {
+        primaryLabel.textContent = 'Checked In';
+        secondaryLabel.textContent = 'Missing Out';
+        primary = data.filter(item => item.in_time).length;
+        secondary = data.filter(item => !item.out_time).length;
+    } else {
+        primaryLabel.textContent = 'Active';
+        secondaryLabel.textContent = 'Inactive';
+        primary = data.filter(item => item.active == 1).length;
+        secondary = total - primary;
+    }
     
     document.getElementById('totalCount').textContent = total;
-    document.getElementById('activeCount').textContent = active;
-    document.getElementById('inactiveCount').textContent = inactive;
+    document.getElementById('activeCount').textContent = primary;
+    document.getElementById('inactiveCount').textContent = secondary;
     document.getElementById('recordCount').textContent = `${total} records`;
 }
 
@@ -1146,7 +1254,6 @@ async function openEditModal(item) {
     document.getElementById('modalForm').innerHTML = config.addForm(dropdowns);
     
     setTimeout(async () => {
-        // 👇 FIX 1: Set ID field value
         const idField = document.getElementById('id');
         if (idField) {
             idField.value = item.id;
@@ -1207,7 +1314,6 @@ async function saveItem() {
     if (editId && config.idField === 'employee_code') {
         data.employee_code = editId;
     } 
-    // 👇 FIX 2: FORCE ID for all single ID tables
     else if (editId && config.idType === 'single') {
         data.id = editId;   // FORCE ID (important)
     }
@@ -1245,7 +1351,6 @@ async function saveItem() {
 
 // ==================== DELETE FUNCTIONS ====================
 
-// 👇 NEW: Open delete confirmation modal
 function openDeleteModal(item) {
     deleteItemData = item;
     
@@ -1265,13 +1370,11 @@ function openDeleteModal(item) {
     document.getElementById('deleteModal').style.display = 'block';
 }
 
-// 👇 NEW: Close delete modal
 function closeDeleteModal() {
     document.getElementById('deleteModal').style.display = 'none';
     deleteItemData = null;
 }
 
-// 👇 NEW: Confirm delete and make API call
 async function confirmDelete() {
     if (!deleteItemData) return;
     
@@ -1313,7 +1416,6 @@ async function confirmDelete() {
     }
 }
 
-// 👇 UPDATE: Remove old deleteItem function and use new modal flow
 // (deleteItem function removed - now using openDeleteModal)
 
 // ==================== TOAST ====================
