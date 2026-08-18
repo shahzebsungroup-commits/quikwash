@@ -21,37 +21,37 @@ let partnerLookup = {};
 const viewCopy = {
     bookings: {
         title: 'Branch Bookings',
-        subtitle: 'Read-only Moradabad bookings from the Rampur head office system.',
+        subtitle: 'Moradabad bookings.',
         addLabel: 'Add Booking'
     },
     employees: {
         title: 'Moradabad Team',
-        subtitle: 'Read-only branch team, skills, salary, and active status.',
+        subtitle: 'Branch team, skills, salary, and active status.',
         addLabel: 'Add Team Member'
     },
     attendance: {
         title: 'Attendance',
-        subtitle: 'Review Moradabad team attendance by date and employee.',
+        subtitle: 'Review Branch team attendance by date and employee.',
         addLabel: 'Add Attendance'
     },
     jobs: {
         title: 'Assignments',
-        subtitle: 'Monitor Moradabad job ownership, progress, and completion status.',
+        subtitle: 'Monitor branch job ownership, progress, and completion status.',
         addLabel: 'Add Assignment'
     },
     partners: {
         title: 'Branch Profile',
-        subtitle: 'Read-only Moradabad partner profile from Rampur head office.',
+        subtitle: 'Partner profile.',
         addLabel: 'Add Partner'
     },
     partner_services: {
         title: 'Branch Services',
-        subtitle: 'Read-only Moradabad service menu, pricing, coupons, and availability.',
+        subtitle: 'Branch service menu, pricing, coupons, and availability.',
         addLabel: 'Add Service'
     },
     services: {
         title: 'Services',
-        subtitle: 'Read-only Moradabad service catalogue.',
+        subtitle: 'Branch service catalogue.',
         addLabel: 'Add Service'
     }
 };
