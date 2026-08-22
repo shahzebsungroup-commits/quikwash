@@ -4175,3 +4175,13 @@ body.app-loading > *:not(.app-loader) {
 }
 
 
+.map-popup-footer {
+    display: flex;
+    gap: 10px;
+}
+
+.map-popup-footer #enterManuallyBtn,
+.map-popup-footer #confirmMapLocation {
+    flex: 1;
+    width: auto;
+}
