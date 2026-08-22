@@ -4174,27 +4174,4 @@ body.app-loading > *:not(.app-loader) {
     }
 }
 
-/* Enter Manually button */
-#enterManuallyBtn {
-    width: 100%;
-    min-height: 46px;
-    margin-bottom: 10px;
-    border: 1px solid rgba(255, 200, 40, 0.55);
-    border-radius: 10px;
-    background: rgba(255, 193, 7, 0.08);
-    color: #ffd54f;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.25s ease;
-}
 
-#enterManuallyBtn:hover {
-    background: rgba(255, 193, 7, 0.18);
-    border-color: #ffd54f;
-    box-shadow: 0 0 14px rgba(255, 193, 7, 0.25);
-}
-
-#enterManuallyBtn:active {
-    transform: scale(0.98);
-}
