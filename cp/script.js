@@ -825,10 +825,10 @@ function renderFilterBar() {
             ? 'Attendance date'
             : 'Date';
 
-    const counts = { all: allTableData.length };
-    statuses.forEach(status => {
-        counts[status] = allTableData.filter(item => getStatusValue(item) === status).length;
-    });
+const counts = { all: filteredData.length };
+statuses.forEach(status => {
+    counts[status] = filteredData.filter(item => getStatusValue(item) === status).length;
+});
 
     const tabs = ['all', ...statuses].map(status => `
         <button class="filter-tab ${activeStatusFilter === status ? 'active' : ''}" data-status="${status}">
@@ -1122,6 +1122,27 @@ function renderFilteredTableV2() {
 
     const formatValue = (item, col) => {
         const value = item[col];
+
+if (col === 'booking_id') {
+    const created = item.created_at
+        ? new Date(item.created_at.replace(' ', 'T') + '+00:00')
+            .toLocaleString('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                day: '2-digit',
+                month: 'short',
+                year: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            })
+        : '';
+
+    return created
+        ? `${value} | ${created}`
+        : value;
+} 
+
+
         if (col === 'active') {
             return value == 1
                 ? '<span class="status-badge status-active">Active</span>'
