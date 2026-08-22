@@ -126,6 +126,43 @@
         </main>
     </div>
 
+<div id="modal" class="modal">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3 id="modalTitle">Add Record</h3>
+            <button class="modal-close" onclick="closeModal()" aria-label="Close modal">x</button>
+        </div>
+        <div class="modal-body">
+            <form id="modalForm" onsubmit="event.preventDefault()"></form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" onclick="closeModal()" class="btn-secondary">Cancel</button>
+            <button type="button" onclick="saveItem()" class="btn-primary">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<div id="deleteModal" class="modal">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3>Confirm Delete</h3>
+            <button class="modal-close" id="closeDeleteModal" aria-label="Close delete confirmation">x</button>
+        </div>
+        <div class="modal-body">
+            <div class="warning-icon">!</div>
+            <p class="delete-message">Delete this record?</p>
+            <span class="delete-item-name" id="deleteItemName"></span>
+            <p class="warning-text">This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" id="cancelDelete">Cancel</button>
+            <button type="button" class="btn-delete" id="confirmDelete">
+                <span>Delete Permanently</span>
+            </button>
+        </div>
+    </div>
+</div>
+
     <script src="script.js"></script>
 </body>
 </html>

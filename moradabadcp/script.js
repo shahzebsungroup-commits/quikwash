@@ -2,7 +2,7 @@
 const BASE_URL = 'https://app.vbo.co.in';
 const BRANCH_CITY = 'Moradabad';
 const BRANCH_CITY_QUERY = encodeURIComponent(BRANCH_CITY);
-const READ_ONLY = true;
+const READ_ONLY = false;
 let currentDB = 'user';
 let currentTable = 'bookings';
 let editId = null;
@@ -57,6 +57,10 @@ const viewCopy = {
 };
 
 // ==================== TABLE CONFIGURATION ====================
+const actionIcons = {
+    edit: `<svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg>`,
+    delete: `<svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v5"></path><path d="M14 11v5"></path></svg>`
+};
 const tableConfig = {
     user: {
         services: {
@@ -117,13 +121,16 @@ const tableConfig = {
                 return { services, employees };
             },
             addForm: (dropdowns) => `
-                <div class="form-group">
-                    <label class="required">Booking ID</label>
-                    <input type="text" id="booking_id" required>
-                </div>
+<div class="form-group">
+    <label class="required">Booking ID</label>
+    <input type="text" id="booking_id" readonly>
+</div>
                 <div class="form-group">
                     <label class="required">Customer Name</label>
-                    <input type="text" id="customer_name" required>
+                    ${editId
+    ? `<input type="text" id="customer_name" readonly>`
+    : `<input type="text" id="customer_name" required>`
+}
                 </div>
                 <div class="form-group">
                     <label class="required">Phone</label>
@@ -132,21 +139,30 @@ const tableConfig = {
                 </div>
                 <div class="form-group">
                     <label class="required">City</label>
-                    <input type="text" id="city" required>
+                    ${editId
+    ? `<input type="text" id="city" readonly>`
+    : `<input type="text" id="city" required>`
+}
                 </div>
                 <div class="form-group">
                     <label class="required">Service</label>
-                    <select id="service_code" required>
-                        <option value="">Select Service</option>
-                        ${dropdowns.services?.map(s => `<option value="${s.service_code}">${s.service_code} - ${s.service_name}</option>`).join('')}
-                    </select>
+${editId
+    ? `<input type="text" id="service_code" readonly>`
+    : `<select id="service_code" required>
+        <option value="">Select Service</option>
+        ${dropdowns.services?.map(s => `<option value="${s.service_code}">${s.service_code} - ${s.service_name}</option>`).join('') || ''}
+    </select>`
+}
                 </div>
                 <div class="form-group">
                     <label class="required">Assigned Employee</label>
-                    <select id="assigned_employee_code" required>
-                        <option value="">Select Employee</option>
-                        ${dropdowns.employees?.map(e => `<option value="${e.employee_code}">${e.employee_code} - ${e.employee_name}</option>`).join('')}
-                    </select>
+${editId
+    ? `<input type="text" id="assigned_employee_code" readonly>`
+    : `<select id="assigned_employee_code" required>
+        <option value="">Select Employee</option>
+        ${dropdowns.employees?.map(e => `<option value="${e.employee_code}">${e.employee_code} - ${e.employee_name}</option>`).join('') || ''}
+    </select>`
+}
                 </div>
                 <div class="form-group">
                     <label class="required">Booking Date</label>
@@ -824,10 +840,40 @@ function renderFilterBar() {
             ? 'Attendance date'
             : 'Date';
 
-    const counts = { all: allTableData.length };
-    statuses.forEach(status => {
-        counts[status] = allTableData.filter(item => getStatusValue(item) === status).length;
-    });
+const countBaseData = allTableData.filter(item => {
+    if (activeCityFilter !== 'all') {
+        const city = String(item.city || item.employee_city || '').toLowerCase();
+        if (city !== activeCityFilter.toLowerCase()) return false;
+    }
+
+    if (activeEmployeeFilter !== 'all') {
+        if (String(item.employee_code || '') !== activeEmployeeFilter) return false;
+    }
+
+    const dateValue = String(getDateValue(item)).slice(0, 10);
+
+    if (activeDateFrom && (!dateValue || dateValue < activeDateFrom)) return false;
+    if (activeDateTo && (!dateValue || dateValue > activeDateTo)) return false;
+
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+
+    if (searchTerm) {
+        return Object.values(item).some(value => {
+            if (value === null || value === undefined) return false;
+            return value.toString().toLowerCase().includes(searchTerm);
+        });
+    }
+
+    return true;
+});
+
+const counts = { all: countBaseData.length };
+
+statuses.forEach(status => {
+    counts[status] = countBaseData.filter(
+        item => getStatusValue(item) === status
+    ).length;
+});
 
     const tabs = ['all', ...statuses].map(status => `
         <button class="filter-tab ${activeStatusFilter === status ? 'active' : ''}" data-status="${status}">
@@ -1115,8 +1161,26 @@ function renderFilteredTableV2() {
         return label;
     });
 
-    const formatValue = (item, col) => {
-        const value = item[col];
+const formatValue = (item, col) => {
+    const value = item[col];
+
+    if (col === 'booking_id' && value) {
+        const createdAt = item.created_at;
+        if (createdAt) {
+            const date = new Date(createdAt.replace(' ', 'T') + 'Z');
+            const formatted = date.toLocaleString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+                timeZone: 'Asia/Kolkata'
+            });
+
+            return `${value} | ${formatted}`;
+        }
+        return value;
+    }
         if (col === 'active') {
             return value == 1
                 ? '<span class="status-badge status-active">Active</span>'
@@ -1151,7 +1215,7 @@ function renderFilteredTableV2() {
     labels.forEach(label => {
         html += `<th>${label}</th>`;
     });
-    html += '</tr></thead><tbody>';
+    html += '<th>Actions</th></tr></thead><tbody>';
 
     filteredData.forEach(item => {
         html += '<tr>';
@@ -1164,7 +1228,12 @@ function renderFilteredTableV2() {
             }
             html += `<td data-label="${labels[index]}" title="${String(rawValue ?? '').replace(/"/g, '&quot;')}">${displayValue}</td>`;
         });
-        html += '</tr>';
+        const itemStr = JSON.stringify(item).replace(/'/g, "&apos;");
+
+html += `<td class="action-cell" data-label="Actions">
+    <button class="btn-icon" onclick='openEditModal(${itemStr})' title="Edit" aria-label="Edit">${actionIcons.edit}</button>
+    <button class="btn-icon delete" onclick='openDeleteModal(${itemStr})' title="Delete" aria-label="Delete">${actionIcons.delete}</button>
+</td></tr>`;
     });
 
     html += '</tbody></table>';
@@ -1332,6 +1401,10 @@ async function saveItem() {
         return;
     }
     
+if (data.status === 'pending') {
+    data.assigned_employee_code = '';
+}
+
     if (editId && config.idField === 'employee_code') {
         data.employee_code = editId;
     } 
