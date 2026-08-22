@@ -4180,14 +4180,15 @@ body.app-loading > *:not(.app-loader) {
     flex-direction: row !important;
     gap: 8px;
     align-items: center;
-    padding: 10px 12px;
+    justify-content: center;
+    padding: 8px 12px;
 }
 
 .map-popup-footer #enterManuallyBtn,
 .map-popup-footer #confirmMapLocation {
-    flex: 1;
-    width: auto !important;
-    min-height: 48px;
+    flex: 0 0 180px;
+    width: 180px !important;
+    min-height: 44px;
     margin: 0;
     border-radius: 10px;
 }
