@@ -4178,10 +4178,13 @@ body.app-loading > *:not(.app-loader) {
 .map-popup-footer {
     display: flex;
     flex-direction: row !important;
+    flex-basis: 100%;
     justify-content: center;
     align-items: center;
     gap: 8px;
     padding: 8px 12px 12px;
+    width: 100%;
+    clear: both;
 }
 
 .map-popup-footer #enterManuallyBtn,
