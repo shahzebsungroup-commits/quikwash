@@ -4176,22 +4176,46 @@ body.app-loading > *:not(.app-loader) {
 
 
 .map-popup-footer {
-    display: flex;
-    flex-direction: row !important;
-    flex-basis: 100%;
-    justify-content: center;
+    display: grid !important;
+    grid-template-columns: 1fr auto auto 1fr !important;
+    grid-template-rows: auto auto !important;
+    justify-items: center;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px 12px;
+    column-gap: 8px;
+    row-gap: 6px;
+    padding: 8px 12px 12px !important;
     width: 100%;
-    clear: both;
+    box-sizing: border-box;
 }
 
-.map-popup-footer #enterManuallyBtn,
+/* Top row: search + hint + map/satellite/terrain/dark */
+.map-popup-footer #mapFooterTools {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+    width: 100%;
+}
+
+/* Toggle ko tools ke upar/side mein floating hi rakho */
+.map-popup-footer #mapFooterToggle {
+    position: absolute;
+    left: 12px;
+    top: 8px;
+    z-index: 5;
+}
+
+/* Bottom row: exactly 2 buttons */
 .map-popup-footer #confirmMapLocation {
-    flex: 0 0 180px;
+    grid-column: 2 !important;
+    grid-row: 2 !important;
     width: 180px !important;
     min-height: 44px;
-    margin: 0;
-    border-radius: 10px;
+    margin: 0 !important;
+}
+
+.map-popup-footer #enterManuallyBtn {
+    grid-column: 3 !important;
+    grid-row: 2 !important;
+    width: 180px !important;
+    min-height: 44px;
+    margin: 0 !important;
 }
