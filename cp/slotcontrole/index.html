@@ -1,1 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KwikkWash | Slot Control</title>
+    <meta name="robots" content="noindex,nofollow,noarchive">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-shell">
+        <header class="topbar">
+            <div class="brand">
+                <div class="brand-mark">KW</div>
+                <div>
+                    <h1>Slot Control</h1>
+                    <p>KwikkWash Operations</p>
+                </div>
+            </div>
+            <div class="server-state" id="serverState">
+                <span></span>
+                <strong>Ready</strong>
+            </div>
+        </header>
 
+        <main class="workspace">
+            <section class="controls">
+                <div class="field">
+                    <label for="citySelect">City</label>
+                    <select id="citySelect">
+                        <option value="RAMPUR">RAMPUR</option>
+                        <option value="MORADABAD">MORADABAD</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="daySelect">Day</label>
+                    <select id="daySelect">
+                        <option value="all">Today + Tomorrow</option>
+                        <option value="today">Today</option>
+                        <option value="tomorrow">Tomorrow</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="refreshBtn" type="button">Refresh</button>
+            </section>
+
+            <section class="summary-grid">
+                <button class="metric-card" id="totalCard" type="button">
+                    <span>Total Slots</span>
+                    <strong id="totalSlots">0</strong>
+                </button>
+                <button class="metric-card" id="heldCard" type="button">
+                    <span>Held</span>
+                    <strong id="heldSlots">0</strong>
+                </button>
+                <button class="metric-card" id="availableCard" type="button">
+                    <span>Available</span>
+                    <strong id="availableSlots">0</strong>
+                </button>
+            </section>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <div>
+                        <p>Live Slots</p>
+                        <h2 id="tableTitle">RAMPUR slots</h2>
+                    </div>
+                    <div class="last-sync" id="lastSync">Not loaded</div>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>City</th>
+                                <th>Day Type</th>
+                                <th>Slot Name</th>
+                                <th>Slot Order</th>
+                                <th>Status</th>
+                                <th>Effective Units</th>
+                                <th>Hold</th>
+                                <th>Hold Reason</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="slotTableBody">
+                            <tr>
+                                <td colspan="9" class="empty">Loading slots...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
