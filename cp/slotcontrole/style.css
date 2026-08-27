@@ -468,3 +468,305 @@ tbody tr:hover {
         white-space: normal;
     }
 }
+
+/* Dense embedded operations layout */
+body {
+    height: 100dvh;
+    overflow: hidden;
+}
+
+.app-shell {
+    height: 100dvh;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.topbar {
+    flex: 0 0 auto;
+    min-height: 44px;
+    gap: 12px;
+    padding: 6px 12px;
+}
+
+.brand {
+    gap: 9px;
+}
+
+.brand-mark {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+}
+
+.brand h1 {
+    font-size: 16px;
+}
+
+.brand p {
+    margin-top: 1px;
+    font-size: 11px;
+}
+
+.workspace {
+    width: min(1540px, calc(100% - 12px));
+    min-height: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 6px auto;
+    overflow: hidden;
+}
+
+.controls {
+    flex: 0 0 auto;
+    gap: 8px;
+    padding: 8px;
+}
+
+.field {
+    gap: 4px;
+    min-width: 175px;
+}
+
+label,
+.summary-grid span,
+th {
+    font-size: 10px;
+}
+
+select,
+input,
+.btn {
+    min-height: 34px;
+    border-radius: 6px;
+}
+
+select,
+input {
+    padding: 6px 9px;
+}
+
+.btn {
+    padding: 7px 12px;
+}
+
+.summary-grid {
+    flex: 0 0 auto;
+    gap: 8px;
+    margin: 0;
+}
+
+.metric-card {
+    min-height: 50px;
+    padding: 7px 11px;
+}
+
+.summary-grid span {
+    margin-bottom: 2px;
+}
+
+.summary-grid strong {
+    font-size: 18px;
+}
+
+.panel {
+    min-height: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-head {
+    flex: 0 0 auto;
+    gap: 10px;
+    padding: 8px 12px;
+}
+
+.panel-head p {
+    margin-bottom: 2px;
+    font-size: 10px;
+}
+
+.panel-head h2 {
+    font-size: 15px;
+}
+
+.last-sync {
+    font-size: 11px;
+}
+
+.table-wrap {
+    min-height: 0;
+    flex: 1 1 auto;
+    max-height: none;
+}
+
+table {
+    min-width: 1020px;
+}
+
+th,
+td {
+    padding: 6px 9px;
+}
+
+.status-pill {
+    min-height: 21px;
+    padding: 2px 7px;
+}
+
+.hold-select {
+    min-width: 108px;
+}
+
+.reason-input {
+    min-width: 210px;
+}
+
+.row-message {
+    min-height: 12px;
+    margin-top: 1px;
+    font-size: 10px;
+}
+
+.empty {
+    padding: 20px;
+}
+
+.toast {
+    right: 12px;
+    bottom: 12px;
+    padding: 10px 12px;
+}
+
+@media (max-width: 780px) {
+    .topbar {
+        min-height: 38px;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 8px;
+    }
+
+    .brand-mark {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .brand h1 {
+        font-size: 14px;
+    }
+
+    .brand p {
+        display: none;
+    }
+
+    .workspace {
+        width: calc(100% - 6px);
+        gap: 5px;
+        margin: 3px auto;
+    }
+
+    .controls {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+        align-items: end;
+        gap: 5px;
+        padding: 6px;
+    }
+
+    .field {
+        min-width: 0;
+    }
+
+    .summary-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 5px;
+    }
+
+    .metric-card {
+        min-height: 42px;
+        padding: 5px 7px;
+    }
+
+    .summary-grid strong {
+        font-size: 16px;
+    }
+
+    .panel-head {
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 8px;
+    }
+
+    .panel-head h2 {
+        font-size: 14px;
+    }
+
+    .last-sync {
+        max-width: 132px;
+        text-align: right;
+        white-space: normal;
+        font-size: 10px;
+    }
+
+    table {
+        min-width: 890px;
+    }
+
+    th,
+    td {
+        padding: 5px 7px;
+    }
+
+    select,
+    input,
+    .btn {
+        min-height: 31px;
+    }
+
+    .reason-input {
+        min-width: 180px;
+    }
+}
+
+@media (max-width: 520px) {
+    body {
+        font-size: 12px;
+    }
+
+    .server-state {
+        font-size: 11px;
+    }
+
+    .controls {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    #refreshBtn {
+        grid-column: 1 / -1;
+    }
+
+    label,
+    .summary-grid span,
+    th {
+        font-size: 9px;
+    }
+
+    table {
+        min-width: 830px;
+    }
+
+    .hold-select {
+        min-width: 96px;
+    }
+
+    .reason-input {
+        min-width: 155px;
+    }
+}
