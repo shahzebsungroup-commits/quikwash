@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+<title>KWIKKWASH Control Panel</title>
+<meta name="robots" content="noindex,nofollow,noarchive">
+<link rel="canonical" href="https://kwikkwash.com/wc/" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --accent: #F6C84C;
+  --accent-dark: #d4a93e;
+  --bg: #000000;
+  --bg-light: #111111;
+  --card: rgba(255,255,255,.05);
+  --card-hover: rgba(255,255,255,.08);
+  --border: rgba(246,200,76,.25);
+  --border-light: rgba(246,200,76,.15);
+  --text: #ffffff;
+  --text-muted: #aaaaaa;
+  --success: #4CAF50;
+  --warning: #ff9800;
+  --danger: #f44336;
+  --radius: 12px;
+  --radius-sm: 6px;
+  --shadow: 0 2px 10px rgba(0,0,0,0.4);
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-width: 260px;
+}
+
+/* ===== MOBILE-FIRST RESET ===== */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  font-family: 'Poppins', system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.4;
+  font-size: 14px;
+}
+
+/* ===== COMPACT HEADER ===== */
+.header {
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.98);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 1px 5px rgba(0,0,0,0.3);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  font-size: 18px;
+  color: var(--accent);
+  background: rgba(246, 200, 76, 0.1);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  font-size: 1rem;
+  font-weight: 700;
+  background: linear-gradient(45deg, var(--accent), #ffaa00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
+}
+
+.menu-toggle {
+  background: var(--card);
+  border: 1px solid var(--border-light);
+  color: var(--text);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.menu-toggle:hover {
+  background: var(--card-hover);
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+
+/* ===== HAMBURGER MENU SIDEBAR (ALL SCREENS) ===== */
+.sidebar {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: var(--sidebar-width);
+  height: calc(100vh - 60px);
+  background: rgba(0, 0, 0, 0.98);
+  border-right: 1px solid var(--border);
+  z-index: 999;
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  backdrop-filter: blur(10px);
+}
+
+.sidebar.active {
+  transform: translateX(0);
+}
+
+.sidebar-header {
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.sidebar-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Compact Controls List */
+.controls-list {
+  padding: 16px 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+  gap: 12px;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.control-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--accent);
+  transform: scaleY(0);
+  transition: transform 0.2s ease;
+}
+
+.control-item:hover {
+  background: var(--card-hover);
+  border-color: var(--accent);
+  transform: translateX(3px);
+}
+
+.control-item.active {
+  background: linear-gradient(145deg, rgba(246, 200, 76, 0.15), rgba(246, 200, 76, 0.05));
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(246, 200, 76, 0.1);
+}
+
+.control-item.active::before {
+  transform: scaleY(1);
+}
+
+.control-icon {
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(246, 200, 76, 0.1);
+  border-radius: 8px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.control-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-active {
+  background: var(--success);
+}
+
+.dot-soon {
+  background: var(--warning);
+}
+
+/* ===== MAIN CONTENT ===== */
+.main-content {
+  margin-top: 60px;
+  min-height: calc(100vh - 60px);
+  position: relative;
+  transition: padding-left 0.3s ease;
+}
+
+/* When sidebar is open on desktop */
+.main-content.sidebar-open {
+  padding-left: var(--sidebar-width);
+}
+
+/* Compact Welcome State */
+.welcome-state {
+  min-height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 24px 16px;
+  animation: fadeIn 0.4s ease;
+}
+
+.welcome-icon {
+  font-size: 48px;
+  color: var(--accent);
+  margin-bottom: 20px;
+  background: rgba(246, 200, 76, 0.1);
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.welcome-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--accent);
+  background: linear-gradient(45deg, var(--accent), #ffaa00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.welcome-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  max-width: 100%;
+  margin-bottom: 30px;
+  line-height: 1.5;
+  padding: 0 10px;
+}
+
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.quick-action {
+  background: var(--card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-weight: 500;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+.quick-action:hover {
+  background: var(--card-hover);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(246, 200, 76, 0.1);
+}
+
+.quick-action i {
+  color: var(--accent);
+  font-size: 1rem;
+}
+
+/* ===== PAGE CONTENT ===== */
+.page-content {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg);
+  z-index: 100;
+  overflow: auto;
+  display: none;
+}
+
+.page-content.active {
+  display: block;
+}
+
+/* When sidebar is open on desktop, adjust page content */
+.main-content.sidebar-open .page-content.active {
+  left: var(--sidebar-width);
+}
+
+/* Compact Page Header */
+.page-header {
+  position: sticky;
+  top: 0;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
+}
+
+.back-btn {
+  background: var(--card);
+  border: 1px solid var(--border-light);
+  color: var(--text);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.back-btn:hover {
+  background: var(--card-hover);
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+
+.page-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Page Body */
+.page-body {
+  padding: 0;
+  height: calc(100vh - 108px);
+  overflow: hidden;
+}
+
+/* Full Page Frame */
+.full-page-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* ===== OVERLAY (MOBILE ONLY) ===== */
+.overlay {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 998;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+/* ===== TABLET RESPONSIVE ===== */
+@media (min-width: 768px) {
+  .header {
+    height: 70px;
+    padding: 14px 20px;
+  }
+  
+  .sidebar {
+    top: 70px;
+    height: calc(100vh - 70px);
+    --sidebar-width: 280px;
+  }
+  
+  .main-content {
+    margin-top: 70px;
+  }
+  
+  .welcome-state {
+    padding: 40px;
+  }
+  
+  .welcome-title {
+    font-size: 2rem;
+  }
+  
+  .welcome-subtitle {
+    font-size: 1rem;
+    max-width: 500px;
+  }
+  
+  .quick-actions {
+    flex-direction: row;
+    max-width: 600px;
+    flex-wrap: wrap;
+  }
+  
+  .quick-action {
+    flex: 1;
+    min-width: 180px;
+  }
+  
+  .page-content, .overlay {
+    top: 70px;
+  }
+  
+  .page-body {
+    height: calc(100vh - 118px);
+  }
+  
+  /* Overlay only on mobile */
+  .overlay {
+    display: none;
+  }
+}
+
+/* ===== DESKTOP RESPONSIVE ===== */
+@media (min-width: 1024px) {
+  :root {
+    --sidebar-width: 280px;
+  }
+  
+  .header {
+    height: 70px;
+    padding: 16px 24px;
+  }
+  
+  .sidebar {
+    top: 70px;
+    height: calc(100vh - 70px);
+  }
+  
+  .logo-text {
+    font-size: 1.1rem;
+  }
+  
+  .menu-toggle {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+  }
+  
+  .sidebar-header {
+    padding: 20px 20px 16px;
+  }
+  
+  .sidebar-title {
+    font-size: 0.9rem;
+  }
+  
+  .controls-list {
+    padding: 20px 16px;
+    gap: 8px;
+  }
+  
+  .control-item {
+    padding: 16px;
+    gap: 14px;
+  }
+  
+  .control-icon {
+    font-size: 18px;
+    width: 36px;
+    height: 36px;
+  }
+  
+  .control-label {
+    font-size: 0.95rem;
+  }
+  
+  .welcome-state {
+    padding: 60px 40px;
+  }
+  
+  .welcome-title {
+    font-size: 2.5rem;
+  }
+  
+  .welcome-icon {
+    font-size: 64px;
+    width: 100px;
+    height: 100px;
+  }
+  
+  .welcome-subtitle {
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin-bottom: 40px;
+  }
+  
+  .quick-action {
+    padding: 16px 28px;
+    font-size: 1rem;
+    min-width: 200px;
+  }
+  
+  .page-header {
+    padding: 16px 24px;
+  }
+  
+  .page-title {
+    font-size: 1.3rem;
+  }
+  
+  .back-btn {
+    width: 44px;
+    height: 44px;
+  }
+  
+  /* Desktop sidebar behavior */
+  .main-content.sidebar-open .welcome-state,
+  .main-content.sidebar-open .page-content.active {
+    padding-left: var(--sidebar-width);
+  }
+}
+
+/* ===== LARGE DESKTOP ===== */
+@media (min-width: 1440px) {
+  :root {
+    --sidebar-width: 300px;
+  }
+  
+  .welcome-title {
+    font-size: 3rem;
+  }
+  
+  .welcome-icon {
+    font-size: 72px;
+    width: 120px;
+    height: 120px;
+  }
+}
+
+/* Safe area for notches */
+@supports (padding: max(0px)) {
+  .header, .sidebar-header, .controls-list {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+  
+  .header {
+    padding-top: max(6px, env(safe-area-inset-top));
+    height: calc(60px + max(0px, env(safe-area-inset-top) - 6px));
+  }
+  
+  .sidebar {
+    top: calc(60px + max(0px, env(safe-area-inset-top) - 6px));
+    height: calc(100vh - (60px + max(0px, env(safe-area-inset-top) - 6px)));
+  }
+  
+  .overlay, .page-content {
+    top: calc(60px + max(0px, env(safe-area-inset-top) - 6px));
+  }
+  
+  .main-content {
+    margin-top: calc(60px + max(0px, env(safe-area-inset-top) - 6px));
+  }
+  
+  @media (min-width: 768px) {
+    .header {
+      padding-top: max(10px, env(safe-area-inset-top));
+      height: calc(70px + max(0px, env(safe-area-inset-top) - 10px));
+    }
+    
+    .sidebar {
+      top: calc(70px + max(0px, env(safe-area-inset-top) - 10px));
+      height: calc(100vh - (70px + max(0px, env(safe-area-inset-top) - 10px)));
+    }
+    
+    .overlay, .page-content {
+      top: calc(70px + max(0px, env(safe-area-inset-top) - 10px));
+    }
+    
+    .main-content {
+      margin-top: calc(70px + max(0px, env(safe-area-inset-top) - 10px));
+    }
+  }
+}
+
+/* Loading State */
+.loading-spinner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(246, 200, 76, 0.3);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  z-index: 1001;
+  display: none;
+}
+
+.loading-spinner.active {
+  display: block;
+}
+
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Progress Bar */
+.progress-bar {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background: var(--accent);
+  z-index: 1001;
+  transition: width 0.2s ease;
+}
+
+/* Scrollbar Styling */
+.sidebar::-webkit-scrollbar,
+.page-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-track,
+.page-body::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.page-body::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+/* Sidebar toggle animation */
+@keyframes slideInDesktop {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideOutDesktop {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+/* Toast Message Styles */
+#toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #111;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(246,200,76,0.3);
+  font-size: 14px;
+  z-index: 2000;
+  opacity: 0;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+/* Dense embedded layout for the Rampur HO shell */
+:root {
+  --sidebar-width: 220px;
+}
+
+.header {
+  height: 44px;
+  padding: 6px 10px;
+}
+
+.logo-container {
+  gap: 7px;
+}
+
+.logo-icon {
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+}
+
+.logo-text {
+  font-size: 0.88rem;
+}
+
+.menu-toggle {
+  width: 34px;
+  height: 34px;
+  font-size: 0.9rem;
+}
+
+.sidebar {
+  top: 44px;
+  width: var(--sidebar-width);
+  height: calc(100vh - 44px);
+}
+
+.sidebar-header {
+  padding: 10px 12px 8px;
+}
+
+.sidebar-title {
+  font-size: 0.72rem;
+}
+
+.controls-list {
+  padding: 10px;
+  gap: 5px;
+}
+
+.control-item {
+  min-height: 42px;
+  padding: 8px 10px;
+  gap: 9px;
+  border-radius: 7px;
+}
+
+.control-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  font-size: 14px;
+}
+
+.control-label {
+  font-size: 0.82rem;
+}
+
+.main-content {
+  margin-top: 44px;
+  min-height: calc(100vh - 44px);
+}
+
+.main-content.sidebar-open {
+  padding-left: var(--sidebar-width);
+}
+
+.welcome-state {
+  min-height: calc(100vh - 44px);
+  justify-content: flex-start;
+  padding: 18px 12px;
+}
+
+.welcome-icon {
+  width: 54px;
+  height: 54px;
+  margin-bottom: 10px;
+  font-size: 30px;
+}
+
+.welcome-title {
+  margin-bottom: 6px;
+  font-size: 1.35rem;
+}
+
+.welcome-subtitle {
+  margin-bottom: 14px;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 8px;
+  max-width: 760px;
+}
+
+.quick-action {
+  min-height: 42px;
+  padding: 9px 12px;
+  border-radius: 7px;
+  font-size: 0.82rem;
+}
+
+.page-content,
+.overlay {
+  top: 44px;
+}
+
+.page-header {
+  min-height: 38px;
+  padding: 5px 8px;
+  gap: 8px;
+}
+
+.back-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  font-size: 0.85rem;
+}
+
+.page-title {
+  font-size: 0.92rem;
+}
+
+.page-body {
+  height: calc(100vh - 82px);
+}
+
+.full-page-frame {
+  height: 100%;
+}
+
+.progress-bar {
+  top: 44px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --sidebar-width: 230px;
+  }
+
+  .header {
+    height: 46px;
+    padding: 7px 12px;
+  }
+
+  .sidebar {
+    top: 46px;
+    height: calc(100vh - 46px);
+  }
+
+  .main-content {
+    margin-top: 46px;
+    min-height: calc(100vh - 46px);
+  }
+
+  .welcome-state {
+    min-height: calc(100vh - 46px);
+    padding: 22px 18px;
+  }
+
+  .page-content,
+  .overlay {
+    top: 46px;
+  }
+
+  .page-body {
+    height: calc(100vh - 84px);
+  }
+
+  .progress-bar {
+    top: 46px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --sidebar-width: 230px;
+  }
+
+  .control-item {
+    padding: 9px 11px;
+  }
+
+  .welcome-title {
+    font-size: 1.65rem;
+  }
+
+  .welcome-icon {
+    width: 62px;
+    height: 62px;
+    font-size: 34px;
+  }
+}
+
+@media (max-width: 767px) {
+  .header {
+    height: 42px;
+  }
+
+  .sidebar {
+    top: 42px;
+    width: min(82vw, 240px);
+    height: calc(100vh - 42px);
+  }
+
+  .main-content {
+    margin-top: 42px;
+    min-height: calc(100vh - 42px);
+  }
+
+  .page-content,
+  .overlay {
+    top: 42px;
+  }
+
+  .page-header {
+    min-height: 36px;
+  }
+
+  .page-body {
+    height: calc(100vh - 78px);
+  }
+
+  .quick-actions {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+  }
+
+  .progress-bar {
+    top: 42px;
+  }
+}
+</style>
+</head>
+
+<body>
+  <!-- Loading Spinner -->
+  <div class="loading-spinner" id="loadingSpinner"></div>
+  
+  <!-- Progress Bar -->
+  <div class="progress-bar" id="progressBar"></div>
+  
+  <!-- Header with Hamburger Menu for ALL screens -->
+  <header class="header">
+    <div class="logo-container">
+      <div class="logo-icon">
+        <i class="fas fa-cogs"></i>
+      </div>
+      <div class="logo-text">KWIKKWASH Control</div>
+    </div>
+    
+    <button class="menu-toggle" id="menuToggle">
+      <i class="fas fa-bars" id="menuIcon"></i>
+    </button>
+  </header>
+  
+  <!-- Overlay (Mobile Only) -->
+  <div class="overlay" id="overlay"></div>
+  
+  <!-- Sidebar - Hidden by default, shown via hamburger menu -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3 class="sidebar-title">
+        <i class="fas fa-th-large"></i> Control Panels
+      </h3>
+    </div>
+    
+    <div class="controls-list">
+      <div class="control-item active" onclick="openPage('testimonials')">
+        <div class="control-icon">
+          <i class="fas fa-star"></i>
+        </div>
+        <div class="control-label">Testimonials</div>
+        <div class="status-dot dot-active"></div>
+      </div>
+      
+      <!-- Changed: Bookings Dashboard → Reporting Panel with Coming Soon toast -->
+      <div class="control-item" onclick="showComingSoon()">
+        <div class="control-icon">
+          <i class="fas fa-chart-pie"></i>
+        </div>
+        <div class="control-label">Reporting Panel</div>
+        <div class="status-dot dot-soon"></div>
+      </div>
+      
+      <div class="control-item" onclick="openPage('analytics')">
+        <div class="control-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="control-label">Analytics</div>
+        <div class="status-dot dot-active"></div>
+      </div>
+      
+      <!-- New: Control Panel section - opens full page -->
+      <div class="control-item" onclick="openFullControlPanel()">
+        <div class="control-icon">
+          <i class="fas fa-sliders-h"></i>
+        </div>
+        <div class="control-label">Control Panel</div>
+        <div class="status-dot dot-active"></div>
+      </div>
+
+      <div class="control-item" onclick="openSlotManagement()">
+        <div class="control-icon">
+          <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="control-label">Slot Management</div>
+        <div class="status-dot dot-active"></div>
+      </div>
+    </div>
+  </nav>
+  
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent">
+    <!-- Welcome State -->
+    <div class="welcome-state" id="welcomeState">
+      <div class="welcome-icon">
+        <i class="fas fa-cogs"></i>
+      </div>
+      <h1 class="welcome-title">Control Panel</h1>
+      <p class="welcome-subtitle">Manage all aspects of your KWIKKWASH business from one centralized dashboard</p>
+      
+      <div class="quick-actions">
+        <div class="quick-action" onclick="openPage('testimonials')">
+          <i class="fas fa-star"></i>
+          <span>Manage Testimonials</span>
+        </div>
+        
+        <!-- Updated quick action for Reporting Panel -->
+        <div class="quick-action" onclick="showComingSoon()">
+          <i class="fas fa-chart-pie"></i>
+          <span>Reporting Panel</span>
+        </div>
+        
+        <div class="quick-action" onclick="openPage('analytics')">
+          <i class="fas fa-chart-line"></i>
+          <span>View Analytics</span>
+        </div>
+        
+        <!-- New quick action for Control Panel -->
+        <div class="quick-action" onclick="openFullControlPanel()">
+          <i class="fas fa-sliders-h"></i>
+          <span>Full Control Panel</span>
+        </div>
+
+        <div class="quick-action" onclick="openSlotManagement()">
+          <i class="fas fa-calendar-check"></i>
+          <span>Slot Management</span>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- Page Content - Testimonials -->
+  <div class="page-content" id="pageTestimonials">
+    <div class="page-header">
+      <button class="back-btn" onclick="closePage()">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <h2 class="page-title">
+        <i class="fas fa-star"></i> Testimonials Management
+      </h2>
+    </div>
+    <div class="page-body">
+      <iframe src="/controls/testm/" class="full-page-frame"></iframe>
+    </div>
+  </div>
+  
+  <!-- Page Content - Bookings (keeping for compatibility, but not used directly now) -->
+  <div class="page-content" id="pageBookings">
+    <div class="page-header">
+      <button class="back-btn" onclick="closePage()">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <h2 class="page-title">
+        <i class="fas fa-calendar-alt"></i> Bookings Dashboard
+      </h2>
+    </div>
+    <div class="page-body">
+      <iframe src="/bashboard/" class="full-page-frame"></iframe>
+    </div>
+  </div>
+  
+  <!-- Page Content - Analytics -->
+  <div class="page-content" id="pageAnalytics">
+    <div class="page-header">
+      <button class="back-btn" onclick="closePage()">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <h2 class="page-title">
+        <i class="fas fa-chart-line"></i> Analytics Dashboard
+      </h2>
+    </div>
+    <div class="page-body">
+      <iframe src="/analytics/" class="full-page-frame"></iframe>
+    </div>
+  </div>
+  
+  <!-- Toast Message for Coming Soon -->
+  <div id="toast">Coming Soon!</div>
+
+  <script>
+    // State management
+    let currentPage = null;
+    let isLoading = false;
+    let isSidebarOpen = false;
+    
+    // DOM Elements
+    const menuToggle = document.getElementById('menuToggle');
+    const menuIcon = document.getElementById('menuIcon');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const mainContent = document.getElementById('mainContent');
+    const welcomeState = document.getElementById('welcomeState');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const progressBar = document.getElementById('progressBar');
+    
+    // Page elements
+    const pageTestimonials = document.getElementById('pageTestimonials');
+    const pageBookings = document.getElementById('pageBookings');
+    const pageAnalytics = document.getElementById('pageAnalytics');
+    
+    // Check if mobile
+    const isMobile = window.innerWidth < 768;
+    
+    // Initialize - Check localStorage for sidebar state
+    const savedSidebarState = localStorage.getItem('sidebarOpen');
+    if (savedSidebarState === 'true') {
+      openSidebar();
+    }
+    
+    // Menu toggle functionality
+    menuToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleSidebar();
+    });
+    
+    // Toggle sidebar function
+    function toggleSidebar() {
+      if (isSidebarOpen) {
+        closeSidebar();
+      } else {
+        openSidebar();
+      }
+    }
+    
+    // Open sidebar function
+    function openSidebar() {
+      sidebar.classList.add('active');
+      isSidebarOpen = true;
+      
+      // Add class to main content for desktop
+      if (!isMobile) {
+        mainContent.classList.add('sidebar-open');
+      }
+      
+      // Show overlay only on mobile
+      if (isMobile) {
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+      
+      // Update menu icon
+      menuIcon.classList.remove('fa-bars');
+      menuIcon.classList.add('fa-times');
+      
+      // Save state to localStorage
+      localStorage.setItem('sidebarOpen', 'true');
+    }
+    
+    // Close sidebar function
+    function closeSidebar() {
+      sidebar.classList.remove('active');
+      isSidebarOpen = false;
+      
+      // Remove class from main content for desktop
+      if (!isMobile) {
+        mainContent.classList.remove('sidebar-open');
+      }
+      
+      // Hide overlay only on mobile
+      if (isMobile) {
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+      
+      // Update menu icon
+      menuIcon.classList.remove('fa-times');
+      menuIcon.classList.add('fa-bars');
+      
+      // Save state to localStorage
+      localStorage.setItem('sidebarOpen', 'false');
+    }
+    
+    // Close sidebar when clicking overlay (mobile only)
+    overlay.addEventListener('click', () => {
+      closeSidebar();
+    });
+    
+    // Close sidebar when clicking outside on mobile
+    if (isMobile) {
+      document.addEventListener('click', (e) => {
+        if (sidebar.classList.contains('active') && 
+            !sidebar.contains(e.target) && 
+            e.target !== menuToggle) {
+          closeSidebar();
+        }
+      });
+    }
+    
+    // Open page function
+    function openPage(pageId) {
+      // Close sidebar on mobile when opening a page
+      if (isMobile) {
+        closeSidebar();
+      }
+      
+      // Reset all pages
+      hideAllPages();
+      
+      // Hide welcome state
+      welcomeState.style.display = 'none';
+      mainContent.style.display = 'none';
+      
+      // Show loading
+      showLoading();
+      
+      // Open requested page
+      setTimeout(() => {
+        switch(pageId) {
+          case 'testimonials':
+            pageTestimonials.classList.add('active');
+            currentPage = 'testimonials';
+            updateSidebarActive(0);
+            break;
+            
+          case 'bookings':
+            pageBookings.classList.add('active');
+            currentPage = 'bookings';
+            updateSidebarActive(1);
+            break;
+            
+          case 'analytics':
+            pageAnalytics.classList.add('active');
+            currentPage = 'analytics';
+            updateSidebarActive(2);
+            break;
+        }
+        
+        // Adjust page content position if sidebar is open on desktop
+        if (!isMobile && isSidebarOpen) {
+          adjustPageContentForSidebar();
+        }
+        
+        // Hide loading after page is shown
+        setTimeout(() => {
+          hideLoading();
+        }, 600);
+        
+      }, 200);
+    }
+    
+    // Adjust page content when sidebar is open on desktop
+    function adjustPageContentForSidebar() {
+      const activePage = document.querySelector('.page-content.active');
+      if (activePage) {
+        activePage.style.left = 'var(--sidebar-width)';
+      }
+    }
+    
+    // Close page function
+    function closePage() {
+      // Hide current page
+      if (currentPage) {
+        const currentPageElement = document.getElementById(`page${currentPage.charAt(0).toUpperCase() + currentPage.slice(1)}`);
+        if (currentPageElement) {
+          currentPageElement.classList.remove('active');
+          currentPageElement.style.left = '0';
+        }
+      }
+      
+      // Reset to welcome state
+      setTimeout(() => {
+        welcomeState.style.display = 'flex';
+        mainContent.style.display = 'block';
+        currentPage = null;
+        updateSidebarActive(null);
+      }, 100);
+    }
+    
+    // Update active state in sidebar
+    function updateSidebarActive(index) {
+      const controlItems = document.querySelectorAll('.control-item');
+      controlItems.forEach((item, i) => {
+        if (index === i) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+    }
+    
+    // Hide all pages
+    function hideAllPages() {
+      pageTestimonials.classList.remove('active');
+      pageBookings.classList.remove('active');
+      pageAnalytics.classList.remove('active');
+      
+      // Reset positions
+      pageTestimonials.style.left = '0';
+      pageBookings.style.left = '0';
+      pageAnalytics.style.left = '0';
+    }
+    
+    // Show loading indicator
+    function showLoading() {
+      isLoading = true;
+      loadingSpinner.classList.add('active');
+      progressBar.style.width = '30%';
+      
+      setTimeout(() => {
+        progressBar.style.width = '70%';
+      }, 200);
+    }
+    
+    // Hide loading indicator
+    function hideLoading() {
+      isLoading = false;
+      progressBar.style.width = '100%';
+      
+      setTimeout(() => {
+        loadingSpinner.classList.remove('active');
+        progressBar.style.width = '0%';
+      }, 200);
+    }
+    
+    // Handle responsive behavior
+    window.addEventListener('resize', function() {
+      const newIsMobile = window.innerWidth < 768;
+      
+      if (newIsMobile !== isMobile) {
+        // Mobile/Desktop switch
+        if (newIsMobile) {
+          // Switched to mobile
+          mainContent.classList.remove('sidebar-open');
+          overlay.style.display = 'block';
+          
+          // Close sidebar if open
+          if (isSidebarOpen) {
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+          }
+        } else {
+          // Switched to desktop
+          overlay.style.display = 'none';
+          overlay.classList.remove('active');
+          document.body.style.overflow = '';
+          
+          // Adjust sidebar if open
+          if (isSidebarOpen) {
+            mainContent.classList.add('sidebar-open');
+            adjustPageContentForSidebar();
+          }
+        }
+      }
+    });
+    
+    // Add ESC key support
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        if (currentPage) {
+          closePage();
+        } else if (isSidebarOpen) {
+          closeSidebar();
+        }
+      }
+    });
+    
+    // Handle iframe loading
+    document.querySelectorAll('iframe').forEach(iframe => {
+      iframe.addEventListener('load', function() {
+        console.log('Iframe loaded:', this.src);
+      });
+      
+      iframe.addEventListener('error', function() {
+        console.error('Iframe failed to load:', this.src);
+        hideLoading();
+      });
+    });
+    
+    // Preload iframes for better performance
+    window.addEventListener('load', function() {
+      // Set iframe sources after page load
+      setTimeout(() => {
+        document.querySelectorAll('iframe').forEach(iframe => {
+          iframe.src = iframe.getAttribute('src');
+        });
+      }, 500);
+    });
+    
+    // New function: Show Coming Soon toast
+    function showComingSoon() {
+      const toast = document.getElementById('toast');
+      
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(-50%) translateY(0)';
+      
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-50%) translateY(100px)';
+      }, 2000);
+    }
+    
+    // New function: Open Full Control Panel (redirects to external URL)
+    function openFullControlPanel() {
+      window.location.href = "/cp/";
+    }
+
+    function openSlotManagement() {
+      window.location.href = "https://kwikkwash.com/cp/slotcontrole/";
+    }
+  </script>
+</body>
+</html>
