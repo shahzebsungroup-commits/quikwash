@@ -50,6 +50,7 @@ function getBookingAddressValue() {
 let pinMotionState = null;
 
 const DEFAULT_CITY = "Rampur";
+const DEFAULT_MAP_CENTER = { lat: 28.8029, lng: 79.0250 };
 const SAVED_CITY_KEY = "kwikkwashSelectedCity";
 const SAVED_VEHICLE_TYPE_KEY = "kwikkwashSelectedVehicleType";
 const FIRSTBOOK_CODE = "FIRSTBOOK";
@@ -441,7 +442,7 @@ async function getUserLocation() {
         navigator.geolocation.getCurrentPosition(
             pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
             () => resolve(null),
-            { timeout: 5000 }
+            { enableHighAccuracy: true, maximumAge: 60000, timeout: 7000 }
         );
     });
 }
@@ -550,13 +551,7 @@ function getDefaultPartner() {
 }
 
 function getDefaultCoordinates() {
-    const defaultPartner = getDefaultPartner();
-    if (!defaultPartner) return null;
-
-    return {
-        lat: Number(defaultPartner.office_lat),
-        lng: Number(defaultPartner.office_lng)
-    };
+    return { ...DEFAULT_MAP_CENTER };
 }
 
 function setOtherCityMode(visible, value = "") {
@@ -1988,18 +1983,17 @@ async function geocodeCityName(cityName) {
     }
 }
 
-function getSelectedCityCoordinates() {
+async function getSelectedCityCoordinates() {
     const dropdown = document.getElementById("cityDropdown");
     const selectedValue = dropdown?.value;
-    if (!selectedValue || selectedValue === "Other") return null;
+    const otherInputValue = document.getElementById("otherCityInput")?.value.trim();
+    const cityName = selectedValue === "Other"
+        ? (otherInputValue || currentCity || DEFAULT_CITY)
+        : (selectedValue || currentCity || DEFAULT_CITY);
 
-    const partner = getPartnersForCity(selectedValue).find(item => item.office_lat && item.office_lng);
-    if (!partner) return null;
+    if (!cityName) return null;
 
-    return {
-        lat: Number(partner.office_lat),
-        lng: Number(partner.office_lng)
-    };
+    return await geocodeCityName(`${cityName}, India`) || await geocodeCityName(cityName);
 }
 
 async function getPreferredMapCenter() {
@@ -2010,20 +2004,20 @@ async function getPreferredMapCenter() {
         };
     }
 
-    const selectedCityCoords = getSelectedCityCoordinates();
-    if (selectedCityCoords) return selectedCityCoords;
-
-    const otherInputValue = document.getElementById("otherCityInput")?.value.trim();
-    if (otherInputValue) {
-        const typedCityCoords = await geocodeCityName(otherInputValue);
-        if (typedCityCoords) return typedCityCoords;
+    const liveLocation = await getUserLocation();
+    if (liveLocation?.lat && liveLocation?.lng) {
+        userLocation = liveLocation;
+        return liveLocation;
     }
 
     if (userLocation?.lat && userLocation?.lng) {
         return userLocation;
     }
 
-    return getDefaultCoordinates() || { lat: 28.6139, lng: 77.209 };
+    const selectedCityCoords = await getSelectedCityCoordinates();
+    if (selectedCityCoords) return selectedCityCoords;
+
+    return getDefaultCoordinates();
 }
 
 function updateCurrentMapCenter() {
@@ -2034,8 +2028,6 @@ function updateCurrentMapCenter() {
         lat: center.lat(),
         lng: center.lng()
     };
-    selectedMapLat = currentMapCenter.lat;
-    selectedMapLng = currentMapCenter.lng;
 }
 
 function centerMapOn(coords, zoom = 16) {
@@ -2044,8 +2036,6 @@ function centerMapOn(coords, zoom = 16) {
     map.setCenter(coords);
     map.setZoom(zoom);
     currentMapCenter = { ...coords };
-    selectedMapLat = coords.lat;
-    selectedMapLng = coords.lng;
 }
 
 function setActiveMapTypeButton(type) {
@@ -2109,7 +2099,7 @@ function bindMapUiControls() {
 
     document.getElementById("mapCurrentLocation")?.addEventListener("click", async () => {
         const liveLocation = await getUserLocation();
-        const fallbackLocation = liveLocation || userLocation || getDefaultCoordinates();
+        const fallbackLocation = liveLocation || userLocation || currentMapCenter || getDefaultCoordinates();
 
         if (!fallbackLocation) {
             showToast("Current location is not available");
@@ -2117,7 +2107,9 @@ function bindMapUiControls() {
         }
 
         resetMapPinVisualState();
-        userLocation = liveLocation || userLocation || fallbackLocation;
+        if (liveLocation) {
+            userLocation = liveLocation;
+        }
         centerMapOn({
             lat: fallbackLocation.lat,
             lng: fallbackLocation.lng
@@ -2432,7 +2424,7 @@ function scheduleMapSearch(query, delayMs = 1000) {
 function ensureMapInitialized() {
     if (!googleMapsReady || !window.google?.maps) return false;
 
-    const defaultCoords = userLocation || getDefaultCoordinates() || { lat: 28.6139, lng: 77.209 };
+    const defaultCoords = currentMapCenter || userLocation || getDefaultCoordinates();
 
     if (!map) {
         map = new google.maps.Map(document.getElementById("mapContainer"), {
@@ -2610,6 +2602,19 @@ function closeRangeConfirmPopup() {
     document.getElementById("rangeConfirmPopup").classList.remove("show");
 }
 
+function commitConfirmedMapLocation(coords, rawAddress, displayAddress, addressField) {
+    window.__selectedMapAddressRaw = rawAddress;
+    window.__selectedMapAddress = displayAddress;
+    window.__selectedMapCoords = coords;
+    userLocation = coords;
+    selectedMapLat = coords.lat;
+    selectedMapLng = coords.lng;
+
+    if (addressField) {
+        addressField.value = displayAddress;
+    }
+}
+
 async function confirmMapLocation() {
     const liveCenter = map?.getCenter
         ? { lat: map.getCenter().lat(), lng: map.getCenter().lng() }
@@ -2625,9 +2630,6 @@ async function confirmMapLocation() {
     const addressField = document.getElementById("userAddress");
     const userPinnedAddress = addressData.formattedAddress;
     const displayAddress = getDisplayAddress(userPinnedAddress);
-    window.__selectedMapAddressRaw = userPinnedAddress;
-    window.__selectedMapAddress = displayAddress;
-    window.__selectedMapCoords = coords;
     const dropdown = document.getElementById("cityDropdown");
     const otherInput = document.getElementById("otherCityInput");
     const isOtherMode = dropdown?.value === "Other";
@@ -2637,13 +2639,7 @@ async function confirmMapLocation() {
 
     if (isOtherMode) {
         await triggerMapPinConfirmFeedback();
-        userLocation = coords;
-        selectedMapLat = coords.lat;
-        selectedMapLng = coords.lng;
-
-        if (addressField) {
-            addressField.value = displayAddress;
-        }
+        commitConfirmedMapLocation(coords, userPinnedAddress, displayAddress, addressField);
 
         if (addressData.cityName) {
             const resolvedCity = fuzzyMatchCity(addressData.cityName, availableCities);
@@ -2665,13 +2661,7 @@ async function confirmMapLocation() {
 
     if (withinCurrentRange) {
         await triggerMapPinConfirmFeedback();
-        userLocation = coords;
-        selectedMapLat = coords.lat;
-        selectedMapLng = coords.lng;
-
-        if (addressField) {
-            addressField.value = displayAddress;
-        }
+        commitConfirmedMapLocation(coords, userPinnedAddress, displayAddress, addressField);
 
         closeMapPopup();
         showToast("Location updated");
@@ -2700,14 +2690,7 @@ async function confirmMapLocation() {
         await loadServicesFromDefault();
     }
 
-    userLocation = coords;
-    selectedMapLat = coords.lat;
-    selectedMapLng = coords.lng;
-
-    if (addressField) {
-        addressField.value = displayAddress;
-    }
-
+    commitConfirmedMapLocation(coords, userPinnedAddress, displayAddress, addressField);
     await triggerMapPinConfirmFeedback();
     closeMapPopup();
     showToast("Location updated");
@@ -2924,7 +2907,7 @@ booking_date: (() => {
         customer_remark: `${getFormattedTimestamp()} | ${instructions || "No instructions"}`,
         employee_remark: "",
         address: address,
-        // Use map selected coordinates if available, otherwise use geolocation
+        // Use confirmed map coordinates if available, otherwise use geolocation.
         lat: selectedMapLat || userLocation?.lat || null,
         lng: selectedMapLng || userLocation?.lng || null,
         applied_coupon: firstBookingOfferState.applied ? FIRSTBOOK_CODE : "",
