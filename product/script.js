@@ -1862,6 +1862,20 @@ function showUserFormOnPage() {
 const addressField = document.getElementById("userAddress");
 
 if (addressField) {
+    addressField.addEventListener("pointerdown", (event) => {
+        const shouldOpenMap =
+            window.matchMedia("(max-width: 768px)").matches &&
+            event.pointerType !== "mouse" &&
+            Date.now() >= addressMapLockUntil;
+
+        if (!shouldOpenMap) return;
+
+        // Prevent the textarea from receiving focus before the map opens on touch devices.
+        event.preventDefault();
+        addressMapLockUntil = Date.now() + ADDRESS_MAP_LOCK_MS;
+        openMapPopup();
+    });
+
     addressField.addEventListener("click", () => {
         const now = Date.now();
 
