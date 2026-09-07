@@ -392,6 +392,62 @@ function setupCTAButton() {
   });
 }
 
+// ================= PROMOTIONAL POPUP =================
+function showPromoPopup() {
+  // Use a counter to allow up to 2 shows per session
+  const shownCount = parseInt(
+    sessionStorage.getItem('kwikkwash_promo_shown_count') || '0',
+    10
+  );
+
+  if (shownCount >= 2) {
+    return;
+  }
+
+  const overlay = document.getElementById('promoPopupOverlay');
+  if (!overlay) return;
+
+  // Show overlay with animation
+  overlay.style.display = 'flex';
+  void overlay.offsetWidth; // force reflow
+  overlay.classList.add('active');
+
+  // Increment the counter
+  sessionStorage.setItem(
+    'kwikkwash_promo_shown_count',
+    String(shownCount + 1)
+  );
+}
+
+function hidePromoPopup() {
+  const overlay = document.getElementById('promoPopupOverlay');
+  if (!overlay) return;
+  overlay.classList.remove('active');
+  // After transition ends, hide completely
+  setTimeout(() => {
+    if (!overlay.classList.contains('active')) {
+      overlay.style.display = 'none';
+    }
+  }, 500); // matches transition duration
+}
+
+function setupPromoPopup() {
+  const closeBtn = document.getElementById('promoCloseBtn');
+  const ctaBtn = document.getElementById('promoCtaBtn');
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', hidePromoPopup);
+  }
+
+  if (ctaBtn) {
+    ctaBtn.addEventListener('click', () => {
+      hidePromoPopup();
+      // The link will navigate to /product/
+    });
+  }
+}
+
+// ================= INIT =================
 async function init() {
   try {
     await sendAnalytics();
@@ -401,6 +457,7 @@ async function init() {
   loadTestimonials();
   registerServiceWorker();
   setupCTAButton();
+  setupPromoPopup();
   
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
@@ -425,6 +482,11 @@ async function init() {
     localStorage.setItem("appInstalled", "true");
     checkPWAStatus();
   });
+
+  // Show promotional popup after 3 seconds (only up to 2 times per session)
+  setTimeout(() => {
+    showPromoPopup();
+  }, 3000);
 }
 
 if (document.readyState === 'loading') {

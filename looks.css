@@ -362,6 +362,131 @@ h1 {
   font-style: italic;
 }
 
+/* ================= PROMOTIONAL POPUP ================= */
+/* Overlay – lighter and less intrusive */
+.promo-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.promo-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Modal – more compact */
+.promo-modal {
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 24px;
+  padding: 28px 24px 24px;
+  max-width: 400px;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
+  text-align: center;
+  position: relative;
+  transform: scale(0.95) translateY(20px);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+  opacity: 0;
+}
+
+.promo-overlay.active .promo-modal {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+/* Close button – stays same */
+.promo-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 4px 8px;
+}
+
+.promo-close:hover {
+  color: #fff;
+}
+
+/* Content – emoji smaller, heading hero, rest scaled down */
+.promo-emoji {
+  font-size: 32px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.promo-heading {
+  color: #F6C84C;
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin: 0 0 2px;
+  line-height: 1.1;
+}
+
+.promo-subheading {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px;
+  letter-spacing: 0.3px;
+}
+
+.promo-description {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 20px;
+  padding: 0 4px;
+}
+
+.promo-cta {
+  display: inline-block;
+  background: #F6C84C;
+  color: #000;
+  font-weight: 700;
+  font-size: 18px;
+  padding: 14px 32px;
+  border-radius: 50px;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.15s;
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 16px rgba(246, 200, 76, 0.3);
+}
+
+.promo-cta:hover {
+  background: #ffd966;
+  transform: scale(1.02);
+}
+
+.promo-cta:active {
+  transform: scale(0.98);
+}
+
+.promo-small {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 13px;
+  margin-top: 16px;
+  letter-spacing: 0.3px;
+}
+
 /* ================= MOBILE RESPONSIVE ================= */
 @media (max-width: 768px) {
   h1 {
@@ -413,6 +538,45 @@ h1 {
     min-width: 44px;
     flex-basis: 44px;
     font-size: 16px;
+  }
+
+  /* Promo popup mobile adjustments – more compact */
+  .promo-modal {
+    padding: 24px 18px 20px;
+    max-width: 340px;
+  }
+
+  .promo-emoji {
+    font-size: 28px;
+  }
+
+  .promo-heading {
+    font-size: 34px;
+  }
+
+  .promo-subheading {
+    font-size: 16px;
+  }
+
+  .promo-description {
+    font-size: 13px;
+    margin-bottom: 18px;
+  }
+
+  .promo-cta {
+    font-size: 16px;
+    padding: 12px 24px;
+  }
+
+  .promo-small {
+    font-size: 12px;
+    margin-top: 14px;
+  }
+
+  .promo-close {
+    font-size: 24px;
+    top: 8px;
+    right: 10px;
   }
 }
 
@@ -466,6 +630,24 @@ h1 {
   .instruction-text {
     padding: 10px 15px;
     font-size: 13px;
+  }
+
+  .promo-modal {
+    padding: 20px 14px 16px;
+    max-width: 300px;
+  }
+
+  .promo-heading {
+    font-size: 30px;
+  }
+
+  .promo-subheading {
+    font-size: 15px;
+  }
+
+  .promo-cta {
+    font-size: 15px;
+    padding: 10px 18px;
   }
 }
 
@@ -525,7 +707,8 @@ h1 {
   .heroVideo,
   .testVideo,
   .cta-button::before,
-  .install-btn {
+  .install-btn,
+  .promo-overlay {
     display: none;
   }
 
