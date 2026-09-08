@@ -486,7 +486,7 @@ async function init() {
   // Show promotional popup after 1 seconds (only up to 2 times per session)
   setTimeout(() => {
     showPromoPopup();
-  }, 1000);
+  }, 100);
 }
 
 if (document.readyState === 'loading') {
