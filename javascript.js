@@ -483,10 +483,10 @@ async function init() {
     checkPWAStatus();
   });
 
-  // Show promotional popup after 3 seconds (only up to 2 times per session)
+  // Show promotional popup after 1 seconds (only up to 2 times per session)
   setTimeout(() => {
     showPromoPopup();
-  }, 3000);
+  }, 1000);
 }
 
 if (document.readyState === 'loading') {
