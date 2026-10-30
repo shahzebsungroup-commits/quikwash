@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /cp/
+Disallow: /wc/
+Disallow: /bashboard/
+Disallow: /controls/
+Disallow: /attendancekwikkwash/
+Disallow: /rampur/
+Disallow: /welcome/
+
+Sitemap: https://kwikkwash.com/sitemap.xml
