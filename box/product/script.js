@@ -830,10 +830,23 @@ function showPremiumServicesLoader(message = "Curating services for you") {
 
 let serviceSparkleRepeatTimer = null;
 let serviceSparkleCleanupTimer = null;
+let hasRunInitialServiceSparkle = false;
+let serviceSparkleGeneration = 0;
+
+const SERVICE_SPARKLE_STAGGER_MS = 85;
+const SERVICE_SPARKLE_ROUND_MS = 2150;
+const SERVICE_SPARKLE_TRAIL_DELAY_MS = 335;
+const SERVICE_SPARKLE_INITIAL_START_MS = 1100;
+const SERVICE_SPARKLE_REFLECTION_DELAY_MS = 4750;
+const SERVICE_SPARKLE_REFLECTION_DURATION_MS = 900;
+const SERVICE_SPARKLE_REPEAT_GAP_MS = 3000;
+const SERVICE_SPARKLE_CLEANUP_BUFFER_MS = 120;
 
 function stopServiceSparkleRepeater() {
+    serviceSparkleGeneration += 1;
+
     if (serviceSparkleRepeatTimer) {
-        clearInterval(serviceSparkleRepeatTimer);
+        clearTimeout(serviceSparkleRepeatTimer);
         serviceSparkleRepeatTimer = null;
     }
 
@@ -841,37 +854,91 @@ function stopServiceSparkleRepeater() {
         clearTimeout(serviceSparkleCleanupTimer);
         serviceSparkleCleanupTimer = null;
     }
+
+    document.querySelectorAll(
+        ".service-card-sparkle-rollout, .service-card-sparkle-initial, .service-card-sparkle-repeat"
+    ).forEach(card => {
+        card.classList.remove(
+            "service-card-sparkle-rollout",
+            "service-card-sparkle-initial",
+            "service-card-sparkle-repeat"
+        );
+    });
 }
 
-function runServiceSparkleCycle(container) {
+function serviceSparkleCardsMatch(container, cards) {
+    const currentCards = Array.from(container.querySelectorAll(".service-card"));
+    return currentCards.length === cards.length && currentCards.every((card, index) => card === cards[index]);
+}
+
+function runServiceSparkleCycle(
+    container,
+    { initial = false, generation = serviceSparkleGeneration } = {}
+) {
     const cards = Array.from(container.querySelectorAll(".service-card"));
-    if (!cards.length) return false;
+    if (!cards.length) return null;
 
     cards.forEach((card, index) => {
         if (!card.style.getPropertyValue("--reveal-delay")) {
-            card.style.setProperty("--reveal-delay", `${index * 85}ms`);
+            card.style.setProperty("--reveal-delay", `${index * SERVICE_SPARKLE_STAGGER_MS}ms`);
         }
-        card.classList.remove("service-card-sparkle-rollout");
+        card.classList.remove(
+            "service-card-sparkle-rollout",
+            "service-card-sparkle-initial",
+            "service-card-sparkle-repeat"
+        );
     });
 
     void container.offsetWidth;
-    cards.forEach(card => card.classList.add("service-card-sparkle-rollout"));
+    cards.forEach(card => {
+        card.classList.add("service-card-sparkle-rollout");
+        card.classList.add(initial ? "service-card-sparkle-initial" : "service-card-sparkle-repeat");
+    });
 
     if (serviceSparkleCleanupTimer) {
         clearTimeout(serviceSparkleCleanupTimer);
     }
 
-    const lastStagger = Math.max(0, cards.length - 1) * 85;
-    serviceSparkleCleanupTimer = setTimeout(() => {
-        cards.forEach(card => {
-            if (card.isConnected) {
-                card.classList.remove("service-card-sparkle-rollout");
-            }
-        });
-        serviceSparkleCleanupTimer = null;
-    }, 3600 + lastStagger);
+    const lastStagger = Math.max(0, cards.length - 1) * SERVICE_SPARKLE_STAGGER_MS;
+    const visualDuration = lastStagger + (initial
+        ? SERVICE_SPARKLE_INITIAL_START_MS
+            + SERVICE_SPARKLE_REFLECTION_DELAY_MS
+            + SERVICE_SPARKLE_REFLECTION_DURATION_MS
+        : SERVICE_SPARKLE_ROUND_MS + SERVICE_SPARKLE_TRAIL_DELAY_MS);
 
-    return true;
+    serviceSparkleCleanupTimer = setTimeout(() => {
+        if (generation === serviceSparkleGeneration && serviceSparkleCardsMatch(container, cards)) {
+            cards.forEach(card => {
+                card.classList.remove(
+                    "service-card-sparkle-rollout",
+                    "service-card-sparkle-initial",
+                    "service-card-sparkle-repeat"
+                );
+            });
+        }
+        serviceSparkleCleanupTimer = null;
+    }, visualDuration + SERVICE_SPARKLE_CLEANUP_BUFFER_MS);
+
+    return { cards, generation, visualDuration };
+}
+
+function scheduleServiceSparkleRepeat(container, cycle) {
+    serviceSparkleRepeatTimer = setTimeout(() => {
+        serviceSparkleRepeatTimer = null;
+
+        if (
+            cycle.generation !== serviceSparkleGeneration
+            || !container.isConnected
+            || !serviceSparkleCardsMatch(container, cycle.cards)
+        ) {
+            return;
+        }
+
+        const nextCycle = runServiceSparkleCycle(container, { generation: cycle.generation });
+        if (!nextCycle) return;
+
+        scheduleServiceSparkleRepeat(container, nextCycle);
+    }, cycle.visualDuration + SERVICE_SPARKLE_REPEAT_GAP_MS);
 }
 
 function revealRenderedServiceCards() {
@@ -882,7 +949,7 @@ function revealRenderedServiceCards() {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
 
     container.querySelectorAll(".service-card").forEach((card, index) => {
-        const revealDelay = index * 85;
+        const revealDelay = index * SERVICE_SPARKLE_STAGGER_MS;
         card.style.setProperty("--reveal-delay", `${revealDelay}ms`);
         card.classList.add("service-card-premium-reveal");
 
@@ -891,13 +958,15 @@ function revealRenderedServiceCards() {
         }, 1100 + revealDelay);
     });
 
-    if (!runServiceSparkleCycle(container)) return;
+    const isInitialCycle = !hasRunInitialServiceSparkle;
+    const cycle = runServiceSparkleCycle(container, {
+        initial: isInitialCycle,
+        generation: serviceSparkleGeneration
+    });
+    if (!cycle) return;
 
-    serviceSparkleRepeatTimer = setInterval(() => {
-        if (!container.isConnected || !runServiceSparkleCycle(container)) {
-            stopServiceSparkleRepeater();
-        }
-    }, 9000);
+    if (isInitialCycle) hasRunInitialServiceSparkle = true;
+    scheduleServiceSparkleRepeat(container, cycle);
 }
 
 function getCleaningSparkleRolloutMarkup() {
