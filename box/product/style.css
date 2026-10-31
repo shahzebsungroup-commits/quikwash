@@ -3160,20 +3160,6 @@ body.app-loading > *:not(.app-loader) {
     border-bottom: 1px solid rgba(246, 200, 76, 0.16);
 }
 
-.location-popup-badge {
-    display: inline-flex;
-    align-items: center;
-    margin-bottom: 0.75rem;
-    padding: 0.35rem 0.7rem;
-    border-radius: 999px;
-    background: rgba(246, 200, 76, 0.12);
-    color: var(--text-gold);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
 .location-popup-header h3 {
     color: var(--text-gold);
     display: flex;
@@ -4402,37 +4388,40 @@ body.app-loading > *:not(.app-loader) {
 
 .booking-phone-device {
     position: absolute;
-    left: 0.55rem;
-    bottom: 0;
-    width: 3.15rem;
-    height: 5.18rem;
-    overflow: hidden;
-    border: 1px solid rgba(255, 225, 120, 0.86);
-    border-radius: 0.82rem;
-    background: linear-gradient(155deg, #2d2d2d, #070707 68%);
-    box-shadow:
-        inset 0 0 0 2px rgba(255, 255, 255, 0.05),
-        inset 0 -0.35rem 0.7rem rgba(0, 0, 0, 0.55),
-        0 0.58rem 1.15rem rgba(0, 0, 0, 0.5),
-        0 0 0.75rem rgba(246, 200, 76, 0.17);
-    transform: perspective(11rem) rotateY(-7deg) rotateZ(-1.5deg);
+    left: 0.625rem;
+    bottom: -0.5rem;
+    width: 3rem;
+    height: 6rem;
+    overflow: visible;
+    isolation: isolate;
+    border: 0;
+    background: none;
+    filter: none;
+    transform: none;
     transform-origin: center bottom;
 }
 
 .booking-phone-device::before {
     content: "";
     position: absolute;
-    z-index: 5;
-    top: 1.05rem;
-    left: 0;
-    width: 2px;
-    height: 0.72rem;
-    border-radius: 2px 0 0 2px;
-    background: rgba(255, 224, 112, 0.7);
-    box-shadow: 0 1.02rem 0 rgba(255, 224, 112, 0.42);
+    z-index: 0;
+    inset: 0;
+    pointer-events: none;
+    background: url("assets/smartphone-frame-premium.png") center / 100% 100% no-repeat;
+    filter:
+        brightness(1.16)
+        contrast(1.12)
+        saturate(1.08)
+        drop-shadow(0 0 0.035rem rgba(255, 246, 211, 0.94))
+        drop-shadow(0 0 0.34rem rgba(246, 200, 76, 0.52));
+    backface-visibility: hidden;
 }
 
 .booking-phone-device::after {
+    content: none;
+}
+
+.booking-phone-screen::after {
     content: "";
     position: absolute;
     z-index: 4;
@@ -4447,15 +4436,7 @@ body.app-loading > *:not(.app-loader) {
 }
 
 .booking-phone-speaker {
-    position: absolute;
-    z-index: 5;
-    top: 0.22rem;
-    left: 50%;
-    width: 0.62rem;
-    height: 0.11rem;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateX(-50%);
+    display: none;
 }
 
 .booking-phone-speaker::after {
@@ -4472,13 +4453,16 @@ body.app-loading > *:not(.app-loader) {
 
 .booking-phone-screen {
     position: absolute;
-    inset: 0.48rem 0.23rem 0.32rem;
+    z-index: 1;
+    inset: 0.66rem 0.22rem 0.21rem;
     overflow: hidden;
-    border-radius: 0.48rem;
+    border-radius: 0.36rem 0.36rem 0.58rem 0.58rem;
     background:
-        radial-gradient(circle at 16% 0%, rgba(246, 200, 76, 0.2), transparent 40%),
-        linear-gradient(165deg, #1d1d1d, #0b0b0b);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+        radial-gradient(circle at 16% 0%, rgba(246, 200, 76, 0.27), transparent 42%),
+        linear-gradient(165deg, #262626, #101010);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.11),
+        inset 0 0.4rem 0.85rem rgba(255, 255, 255, 0.026);
 }
 
 .booking-phone-brand,
@@ -4882,10 +4866,10 @@ body.app-loading > *:not(.app-loader) {
 
 .booking-clean-trail {
     position: absolute;
-    right: 3.55rem;
+    right: 0.55rem;
     bottom: 0.15rem;
-    width: clamp(3.8rem, 11vw, 6.5rem);
-    height: 0.68rem;
+    width: clamp(2.4rem, 6vw, 3.6rem);
+    height: 0.56rem;
     border-radius: 999px;
     background:
         linear-gradient(90deg, transparent 0%, rgba(88, 213, 238, 0.025) 24%, rgba(108, 225, 246, 0.11) 70%, rgba(238, 253, 255, 0.24) 100%),
@@ -4893,7 +4877,7 @@ body.app-loading > *:not(.app-loader) {
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.06),
         0 0 9px rgba(101, 220, 242, 0.12);
-    opacity: 0.42;
+    opacity: 0.34;
 }
 
 .booking-clean-trail::before {
@@ -4928,15 +4912,15 @@ body.app-loading > *:not(.app-loader) {
     position: absolute;
     right: 0.25rem;
     bottom: -0.05rem;
-    width: 3.9rem;
-    height: 2.35rem;
+    width: 3.5rem;
+    height: 2.1rem;
     background: url("assets/microfiber-cloth-realistic.png") center / contain no-repeat;
     filter:
         drop-shadow(0 0 8px rgba(92, 222, 246, 0.48))
         drop-shadow(0 6px 6px rgba(0, 0, 0, 0.38));
     transform-origin: center bottom;
     will-change: transform;
-    animation: bookingIntroClothFlex 1.65s ease-in-out infinite;
+    animation: bookingIntroClothFlex var(--intro-clean-cycle) cubic-bezier(0.45, 0, 0.2, 1) infinite;
 }
 
 .booking-clean-pad::before {
@@ -5037,8 +5021,11 @@ body.app-loading > *:not(.app-loader) {
 .booking-foam-eighteen { --foam-size: 0.24rem; --foam-left: 5rem; --foam-top: 0.62rem; --foam-duration: 1.5s; --foam-delay: 1.16s; }
 
 .booking-vacuum-track {
-    --vac-left: -5.4rem;
-    --vac-right: 5.1rem;
+    --vac-left: -6.4rem;
+    --vac-right: 6.1rem;
+    --vac-mid-left: -2.7rem;
+    --vac-mid-right: 3.8rem;
+    --vac-settle: 0.65rem;
     position: absolute;
     right: 0;
     bottom: 0.64rem;
@@ -5051,39 +5038,94 @@ body.app-loading > *:not(.app-loader) {
 }
 
 .booking-vacuum-trail {
+    --trail-distance: -3.45rem;
+    --trail-mid-distance: -2.05rem;
     position: absolute;
-    left: calc(50% + 2.7rem);
-    bottom: 0.26rem;
-    width: clamp(3.5rem, 9vw, 5.8rem);
-    height: 0.86rem;
-    border-radius: 999px;
+    left: calc(50% + 2.4rem);
+    bottom: -0.02rem;
+    width: 3.65rem;
+    height: 1.82rem;
+    overflow: visible;
+    border-radius: 52% 18% 18% 52%;
+    opacity: 1;
+    background: none;
+    box-shadow: none;
+    filter: drop-shadow(0 0 0.28rem rgba(107, 225, 246, 0.18));
+}
+
+.booking-vacuum-trail::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 18% 52% 52% 18%;
     background:
-        linear-gradient(90deg, rgba(242, 253, 255, 0.42), rgba(102, 221, 243, 0.2) 30%, rgba(246, 200, 76, 0.07) 64%, transparent 100%),
-        linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.1) 35%, rgba(92, 218, 241, 0.14) 58%, transparent);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.13),
-        0 0 13px rgba(105, 221, 242, 0.18);
-    opacity: 0.82;
+        radial-gradient(ellipse at 0% 50%, transparent 0 13%, rgba(220, 250, 255, 0.5) 14% 15.2%, transparent 16.5% 27%, rgba(116, 225, 245, 0.34) 28% 29.5%, transparent 31% 43%, rgba(231, 251, 255, 0.2) 44% 45.5%, transparent 47%),
+        radial-gradient(ellipse at 0% 16%, transparent 0 61%, rgba(126, 226, 245, 0.2) 62% 63.5%, transparent 65%),
+        radial-gradient(ellipse at 0% 84%, transparent 0 61%, rgba(246, 200, 76, 0.14) 62% 63.5%, transparent 65%),
+        radial-gradient(ellipse at 0% 50%, rgba(189, 241, 251, 0.16), rgba(99, 220, 242, 0.07) 34%, transparent 72%);
+    clip-path: polygon(0 39%, 100% 4%, 100% 96%, 0 61%);
+    filter: blur(0.35px);
+    transform-origin: left center;
+    animation: bookingIntroTrailVortex 1.05s ease-in-out infinite;
 }
 
 .booking-vacuum-trail::after {
     content: "";
     position: absolute;
-    left: 0;
-    bottom: 0.31rem;
-    width: 78%;
-    height: 2px;
-    border-radius: inherit;
-    background: linear-gradient(90deg, rgba(242, 253, 255, 0.92), rgba(107, 224, 245, 0.34), transparent);
-    box-shadow: 0 0 8px rgba(116, 226, 245, 0.46);
+    left: 0.12rem;
+    top: 50%;
+    width: 0.92rem;
+    height: 0.62rem;
+    border: 1.5px solid transparent;
+    border-top-color: rgba(230, 252, 255, 0.74);
+    border-right-color: rgba(105, 224, 245, 0.38);
+    border-radius: 50%;
+    filter: drop-shadow(0 0 0.24rem rgba(130, 230, 248, 0.42));
+    animation: bookingIntroTrailSpiral 0.72s linear infinite;
 }
+
+.booking-trail-particle {
+    --trail-size: 0.12rem;
+    --trail-top: 50%;
+    --trail-mid-y: 0rem;
+    --trail-end-y: 0rem;
+    --trail-duration: 0.9s;
+    --trail-delay: 0s;
+    position: absolute;
+    z-index: 2;
+    top: var(--trail-top);
+    right: 0.02rem;
+    width: var(--trail-size);
+    height: var(--trail-size);
+    border-radius: 48% 52% 44% 56%;
+    opacity: 0;
+    background: rgba(238, 223, 188, 0.86);
+    box-shadow: 0 0 0.18rem rgba(255, 242, 203, 0.36);
+    will-change: transform, opacity;
+    animation: bookingIntroTrailParticle var(--trail-duration) cubic-bezier(0.44, 0.02, 0.78, 0.62) var(--trail-delay) infinite;
+}
+
+.booking-trail-particle:nth-child(even) {
+    background: rgba(194, 241, 250, 0.75);
+    box-shadow: 0 0 0.2rem rgba(112, 226, 246, 0.38);
+}
+
+.booking-trail-particle-one { --trail-size: 0.14rem; --trail-top: 8%; --trail-mid-y: 0.32rem; --trail-end-y: 0.68rem; --trail-duration: 1.02s; --trail-delay: -0.12s; }
+.booking-trail-particle-two { --trail-size: 0.09rem; --trail-top: 25%; --trail-mid-y: 0.16rem; --trail-end-y: 0.39rem; --trail-duration: 0.82s; --trail-delay: -0.54s; }
+.booking-trail-particle-three { --trail-size: 0.11rem; --trail-top: 82%; --trail-mid-y: -0.22rem; --trail-end-y: -0.57rem; --trail-duration: 0.96s; --trail-delay: -0.34s; }
+.booking-trail-particle-four { --trail-size: 0.07rem; --trail-top: 66%; --trail-mid-y: -0.12rem; --trail-end-y: -0.3rem; --trail-duration: 0.76s; --trail-delay: -0.68s; }
+.booking-trail-particle-five { --trail-size: 0.16rem; --trail-top: 42%; --trail-mid-y: 0.08rem; --trail-end-y: 0.12rem; --trail-duration: 1.12s; --trail-delay: -0.8s; }
+.booking-trail-particle-six { --trail-size: 0.08rem; --trail-top: 94%; --trail-mid-y: -0.36rem; --trail-end-y: -0.78rem; --trail-duration: 0.88s; --trail-delay: -0.22s; }
+.booking-trail-particle-seven { --trail-size: 0.1rem; --trail-top: 2%; --trail-mid-y: 0.38rem; --trail-end-y: 0.82rem; --trail-duration: 0.94s; --trail-delay: -0.7s; }
+.booking-trail-particle-eight { --trail-size: 0.06rem; --trail-top: 56%; --trail-mid-y: -0.05rem; --trail-end-y: -0.1rem; --trail-duration: 0.72s; --trail-delay: -0.42s; }
 
 .booking-vacuum-nozzle {
     position: absolute;
-    left: calc(50% - 3.325rem);
+    z-index: 3;
+    left: calc(50% - 3rem);
     bottom: -0.34rem;
-    width: 6.65rem;
-    height: 4.2rem;
+    width: 6rem;
+    height: 3.8rem;
     background: url("assets/vacuum-extractor-nozzle-realistic.png") center / contain no-repeat;
     filter:
         drop-shadow(0 0 7px rgba(93, 218, 241, 0.2))
@@ -5103,41 +5145,79 @@ body.app-loading > *:not(.app-loader) {
 
 .booking-vacuum-pull {
     position: absolute;
-    left: calc(50% - 6.2rem);
-    bottom: 0.16rem;
-    width: 3.25rem;
-    height: 1.3rem;
+    left: calc(50% - 6.05rem);
+    bottom: -0.02rem;
+    width: 3.65rem;
+    height: 1.82rem;
+    overflow: visible;
+    filter: drop-shadow(0 0 0.28rem rgba(107, 225, 246, 0.18));
 }
 
 .booking-vacuum-pull::before {
     content: "";
     position: absolute;
-    right: 0;
-    top: 0.28rem;
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(114, 224, 245, 0.18), rgba(236, 252, 255, 0.8));
-    box-shadow:
-        0 0.34rem 0 rgba(246, 200, 76, 0.25),
-        0 0.68rem 0 rgba(114, 224, 245, 0.25);
+    inset: 0;
+    border-radius: 52% 18% 18% 52%;
+    background:
+        radial-gradient(ellipse at 100% 50%, transparent 0 13%, rgba(220, 250, 255, 0.5) 14% 15.2%, transparent 16.5% 27%, rgba(116, 225, 245, 0.34) 28% 29.5%, transparent 31% 43%, rgba(231, 251, 255, 0.2) 44% 45.5%, transparent 47%),
+        radial-gradient(ellipse at 100% 16%, transparent 0 61%, rgba(126, 226, 245, 0.2) 62% 63.5%, transparent 65%),
+        radial-gradient(ellipse at 100% 84%, transparent 0 61%, rgba(246, 200, 76, 0.14) 62% 63.5%, transparent 65%),
+        radial-gradient(ellipse at 100% 50%, rgba(189, 241, 251, 0.16), rgba(99, 220, 242, 0.07) 34%, transparent 72%);
+    clip-path: polygon(0 4%, 100% 39%, 100% 61%, 0 96%);
+    filter: blur(0.35px);
     transform-origin: right center;
-    animation: bookingIntroSuctionLines 0.78s ease-in-out infinite;
+    animation: bookingIntroSuctionVortex 1.05s ease-in-out infinite;
 }
 
 .booking-vacuum-pull::after {
     content: "";
     position: absolute;
-    left: 0;
-    top: 0.5rem;
-    width: 3px;
-    height: 3px;
+    right: 0.12rem;
+    top: 50%;
+    width: 0.92rem;
+    height: 0.62rem;
+    border: 1.5px solid transparent;
+    border-top-color: rgba(230, 252, 255, 0.74);
+    border-left-color: rgba(105, 224, 245, 0.38);
     border-radius: 50%;
-    background: rgba(217, 202, 166, 0.84);
-    box-shadow:
-        0.55rem -0.34rem 0 rgba(255, 242, 204, 0.68),
-        1.08rem 0.32rem 0 rgba(174, 155, 118, 0.72);
-    animation: bookingIntroVacuumParticles 0.9s ease-in infinite;
+    filter: drop-shadow(0 0 0.24rem rgba(130, 230, 248, 0.42));
+    animation: bookingIntroSuctionSpiral 0.72s linear infinite;
 }
+
+.booking-suction-particle {
+    --suction-size: 0.12rem;
+    --suction-top: 50%;
+    --suction-mid-y: 0rem;
+    --suction-end-y: 0rem;
+    --suction-duration: 0.9s;
+    --suction-delay: 0s;
+    position: absolute;
+    z-index: 2;
+    top: var(--suction-top);
+    left: 0.02rem;
+    width: var(--suction-size);
+    height: var(--suction-size);
+    border-radius: 48% 52% 44% 56%;
+    opacity: 0;
+    background: rgba(238, 223, 188, 0.86);
+    box-shadow: 0 0 0.18rem rgba(255, 242, 203, 0.36);
+    will-change: transform, opacity;
+    animation: bookingIntroSuctionParticle var(--suction-duration) cubic-bezier(0.44, 0.02, 0.78, 0.62) var(--suction-delay) infinite;
+}
+
+.booking-suction-particle:nth-child(even) {
+    background: rgba(194, 241, 250, 0.75);
+    box-shadow: 0 0 0.2rem rgba(112, 226, 246, 0.38);
+}
+
+.booking-suction-particle-one { --suction-size: 0.14rem; --suction-top: 8%; --suction-mid-y: 0.32rem; --suction-end-y: 0.68rem; --suction-duration: 1.02s; --suction-delay: -0.12s; }
+.booking-suction-particle-two { --suction-size: 0.09rem; --suction-top: 25%; --suction-mid-y: 0.16rem; --suction-end-y: 0.39rem; --suction-duration: 0.82s; --suction-delay: -0.54s; }
+.booking-suction-particle-three { --suction-size: 0.11rem; --suction-top: 82%; --suction-mid-y: -0.22rem; --suction-end-y: -0.57rem; --suction-duration: 0.96s; --suction-delay: -0.34s; }
+.booking-suction-particle-four { --suction-size: 0.07rem; --suction-top: 66%; --suction-mid-y: -0.12rem; --suction-end-y: -0.3rem; --suction-duration: 0.76s; --suction-delay: -0.68s; }
+.booking-suction-particle-five { --suction-size: 0.16rem; --suction-top: 42%; --suction-mid-y: 0.08rem; --suction-end-y: 0.12rem; --suction-duration: 1.12s; --suction-delay: -0.8s; }
+.booking-suction-particle-six { --suction-size: 0.08rem; --suction-top: 94%; --suction-mid-y: -0.36rem; --suction-end-y: -0.78rem; --suction-duration: 0.88s; --suction-delay: -0.22s; }
+.booking-suction-particle-seven { --suction-size: 0.1rem; --suction-top: 2%; --suction-mid-y: 0.38rem; --suction-end-y: 0.82rem; --suction-duration: 0.94s; --suction-delay: -0.7s; }
+.booking-suction-particle-eight { --suction-size: 0.06rem; --suction-top: 56%; --suction-mid-y: -0.05rem; --suction-end-y: -0.1rem; --suction-duration: 0.72s; --suction-delay: -0.42s; }
 
 .booking-bike-road {
     position: absolute;
@@ -5170,7 +5250,7 @@ body.app-loading > *:not(.app-loader) {
     right: 0;
     bottom: 0.12rem;
     left: 0;
-    height: clamp(2.55rem, 4.6vw, 3.12rem);
+    height: clamp(2.75rem, 4.97vw, 3.37rem);
     opacity: 0;
     transform: translate3d(-100%, 0, 0);
     will-change: transform, opacity;
@@ -5181,7 +5261,7 @@ body.app-loading > *:not(.app-loader) {
     position: absolute;
     right: clamp(2.85rem, 5.3vw, 4rem);
     bottom: 0.22rem;
-    width: clamp(3.9rem, 8vw, 4.85rem);
+    width: clamp(4.21rem, 8.64vw, 5.24rem);
     aspect-ratio: 560 / 374;
     transform-origin: 72% 88%;
     will-change: transform;
@@ -5206,7 +5286,7 @@ body.app-loading > *:not(.app-loader) {
     z-index: 1;
     top: 30%;
     right: 59%;
-    left: -3.2rem;
+    left: -3.46rem;
     height: 46%;
     opacity: 0;
     transform: scaleX(0.45);
@@ -5249,9 +5329,9 @@ body.app-loading > *:not(.app-loader) {
     position: absolute;
     z-index: 1;
     top: 43%;
-    right: -1.47rem;
-    width: 2.35rem;
-    height: 0.8rem;
+    right: -1.59rem;
+    width: 2.54rem;
+    height: 0.86rem;
     opacity: 0;
     clip-path: polygon(0 37%, 100% 0, 100% 100%, 0 63%);
     background: linear-gradient(90deg, rgba(255, 248, 210, 0.72), rgba(246, 200, 76, 0.18) 46%, transparent);
@@ -5352,20 +5432,57 @@ body.app-loading > *:not(.app-loader) {
 .booking-glint-three { right: 31%; top: 18%; --glint-delay: 0.36s; font-size: 0.68rem; }
 .booking-glint-four { right: 9%; bottom: 25%; --glint-delay: 0.54s; }
 
-.booking-breadcrumb {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    margin-bottom: 0.7rem;
-    color: var(--text-secondary);
-    font-size: 0.78rem;
-    text-decoration: none;
-    transition: color 0.25s ease, transform 0.25s ease;
+.proclean-return {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    justify-content: center;
+    width: min(920px, calc(100% - 2rem));
+    margin: 1.4rem auto 0;
 }
 
-.booking-breadcrumb:hover {
+.proclean-return-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    min-height: 44px;
+    padding: 0.72rem 1.15rem;
+    border: 1px solid rgba(246, 200, 76, 0.4);
+    border-radius: 999px;
+    color: #fff3c3;
+    background: linear-gradient(135deg, rgba(246, 200, 76, 0.14), rgba(18, 18, 18, 0.96));
+    box-shadow: 0 0.55rem 1.4rem rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    font-size: 0.84rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: color 0.25s ease, border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.proclean-return-link i {
     color: var(--primary);
-    transform: translateX(-2px);
+}
+
+.proclean-return-link:hover,
+.proclean-return-link:focus-visible {
+    border-color: rgba(246, 200, 76, 0.82);
+    color: #fff;
+    box-shadow: 0 0.65rem 1.55rem rgba(0, 0, 0, 0.38), 0 0 1rem rgba(246, 200, 76, 0.14);
+    transform: translateY(-2px);
+    outline: none;
+}
+
+@media (max-width: 640px) {
+    .proclean-return {
+        width: calc(100% - 1.5rem);
+        margin-top: 1rem;
+    }
+
+    .proclean-return-link {
+        width: min(100%, 20rem);
+    }
 }
 
 .booking-eyebrow {
@@ -5481,14 +5598,17 @@ body.app-loading > *:not(.app-loader) {
 }
 
 @keyframes bookingIntroWetCleanRun {
-    0%, 53% { opacity: 0; transform: translate3d(-100%, 0, 0); }
-    55% { opacity: 1; transform: translate3d(-97%, 0, 0); animation-timing-function: cubic-bezier(0.18, 0.72, 0.22, 1); }
-    59% { opacity: 1; transform: translate3d(-73%, 0, 0); }
-    63% { opacity: 1; transform: translate3d(-54%, 0, 0); animation-timing-function: cubic-bezier(0.4, 0, 0.18, 1); }
-    67% { opacity: 1; transform: translate3d(-41%, 0, 0); }
-    70% { opacity: 1; transform: translate3d(-17%, 0, 0); }
-    72% { opacity: 1; transform: translate3d(0, 0, 0); }
-    74%, 100% { opacity: 0; transform: translate3d(2%, 0, 0); }
+    0%, 53% { opacity: 0; transform: translate3d(-100%, 0.1rem, 0); }
+    55% { opacity: 1; transform: translate3d(-96%, 0.12rem, 0); }
+    58% { opacity: 1; transform: translate3d(-48%, -0.12rem, 0); }
+    59.5%, 61% { opacity: 1; transform: translate3d(-36%, -0.16rem, 0); }
+    63.5% { opacity: 1; transform: translate3d(-68%, 0.08rem, 0); }
+    65%, 66% { opacity: 1; transform: translate3d(-73%, 0.12rem, 0); }
+    68.5% { opacity: 1; transform: translate3d(-28%, -0.14rem, 0); }
+    70%, 71% { opacity: 1; transform: translate3d(-17%, -0.18rem, 0); }
+    72.5% { opacity: 1; transform: translate3d(-46%, 0.06rem, 0); }
+    73.5% { opacity: 1; transform: translate3d(-30%, -0.03rem, 0); }
+    75.5%, 100% { opacity: 0; transform: translate3d(3%, -0.08rem, 0); }
 }
 
 @keyframes bookingIntroWaterDrop {
@@ -5499,10 +5619,17 @@ body.app-loading > *:not(.app-loader) {
 }
 
 @keyframes bookingIntroClothFlex {
-    0%, 100% { transform: translate3d(0, 1px, 0) rotate(-5deg) scale(0.98, 1.02); }
-    27% { transform: translate3d(0, -1px, 0) rotate(-2deg) scale(1.025, 0.98); }
-    61% { transform: translate3d(0, 0.5px, 0) rotate(-6deg) scale(0.99, 1.015); }
-    82% { transform: translate3d(0, -0.5px, 0) rotate(-3deg) scale(1.012, 0.99); }
+    0%, 53%, 100% { transform: translate3d(0, 1px, 0) rotate(-6deg) scale(0.98, 1.02); }
+    55% { transform: translate3d(0, 1px, 0) rotate(-7deg) scale(0.98, 1.02); }
+    58% { transform: translate3d(0, -1px, 0) rotate(-2deg) scale(1.025, 0.98); }
+    59.5%, 61% { transform: translate3d(0, -1px, 0) rotate(1deg) scale(1.03, 0.975); }
+    63.5% { transform: translate3d(0, 0.5px, 0) rotate(-8deg) scale(0.99, 1.015); }
+    65%, 66% { transform: translate3d(0, 1px, 0) rotate(-10deg) scale(0.98, 1.025); }
+    68.5% { transform: translate3d(0, -0.5px, 0) rotate(-3deg) scale(1.015, 0.99); }
+    70%, 71% { transform: translate3d(0, -1px, 0) rotate(1deg) scale(1.025, 0.98); }
+    72.5% { transform: translate3d(0, 0.5px, 0) rotate(-9deg) scale(0.99, 1.02); }
+    74% { transform: translate3d(0, 0, 0) rotate(-4deg) scale(1); }
+    75.5% { transform: translate3d(0, -0.5px, 0) rotate(-2deg) scale(1.01, 0.99); }
 }
 
 @keyframes bookingIntroFoamFloat {
@@ -5532,15 +5659,18 @@ body.app-loading > *:not(.app-loader) {
 }
 
 @keyframes bookingIntroVacuumRun {
-    0%, 73% { opacity: 0; transform: translate3d(var(--vac-left), 0, 0); }
-    75% { opacity: 0.98; transform: translate3d(var(--vac-left), 0, 0); }
-    80% { opacity: 0.98; transform: translate3d(var(--vac-right), 0, 0); }
-    85% { opacity: 0.98; transform: translate3d(var(--vac-left), 0, 0); }
-    90% { opacity: 0.98; transform: translate3d(var(--vac-right), 0, 0); }
-    94.5% { opacity: 0.98; transform: translate3d(var(--vac-left), 0, 0); }
-    97% { opacity: 0.98; transform: translate3d(1.8rem, 0, 0); }
-    98.5% { opacity: 0.98; transform: translate3d(0, 0, 0); }
-    99.5%, 100% { opacity: 0; transform: translate3d(0.4rem, 0, 0); }
+    0%, 73% { opacity: 0; transform: translate3d(var(--vac-left), 0.08rem, 0); }
+    75% { opacity: 0.98; transform: translate3d(var(--vac-left), 0.08rem, 0); }
+    79% { opacity: 0.98; transform: translate3d(var(--vac-mid-right), -0.05rem, 0); }
+    81%, 82% { opacity: 0.98; transform: translate3d(var(--vac-right), 0.02rem, 0); }
+    85% { opacity: 0.98; transform: translate3d(var(--vac-mid-left), 0.1rem, 0); }
+    87%, 88.2% { opacity: 0.98; transform: translate3d(var(--vac-left), 0.08rem, 0); }
+    91.8% { opacity: 0.98; transform: translate3d(var(--vac-mid-right), -0.06rem, 0); }
+    93.5%, 94.6% { opacity: 0.98; transform: translate3d(var(--vac-right), 0.03rem, 0); }
+    96.8% { opacity: 0.98; transform: translate3d(var(--vac-mid-left), 0.08rem, 0); }
+    98.2% { opacity: 0.98; transform: translate3d(var(--vac-settle), -0.02rem, 0); }
+    99.2% { opacity: 0.98; transform: translate3d(0.1rem, 0, 0); }
+    99.7%, 100% { opacity: 0; transform: translate3d(0.4rem, 0, 0); }
 }
 
 @keyframes bookingIntroVacuumContact {
@@ -5550,15 +5680,42 @@ body.app-loading > *:not(.app-loader) {
     82% { transform: translate3d(0, -0.4px, 0) rotate(-0.25deg) scale(1.004); }
 }
 
-@keyframes bookingIntroSuctionLines {
-    0%, 100% { opacity: 0.24; transform: scaleX(0.62); }
-    50% { opacity: 0.9; transform: scaleX(1); }
+@keyframes bookingIntroSuctionVortex {
+    0%, 100% { opacity: 0.32; transform: translate3d(-0.16rem, 0, 0) scale(0.88, 0.82); }
+    38% { opacity: 0.82; transform: translate3d(0.05rem, -0.03rem, 0) scale(1.03, 1.04); }
+    72% { opacity: 0.58; transform: translate3d(0.12rem, 0.03rem, 0) scale(0.97, 0.91); }
 }
 
-@keyframes bookingIntroVacuumParticles {
-    0% { opacity: 0; transform: translate3d(-0.3rem, 0.12rem, 0) scale(1); }
-    26% { opacity: 0.9; }
-    100% { opacity: 0; transform: translate3d(3.15rem, -0.12rem, 0) scale(0.12); }
+@keyframes bookingIntroSuctionSpiral {
+    0% { opacity: 0.24; transform: translateY(-50%) rotate(0deg) scale(1.08, 0.88); }
+    50% { opacity: 0.9; transform: translateY(-50%) rotate(180deg) scale(0.82, 1); }
+    100% { opacity: 0.24; transform: translateY(-50%) rotate(360deg) scale(1.08, 0.88); }
+}
+
+@keyframes bookingIntroSuctionParticle {
+    0% { opacity: 0; transform: translate3d(-0.22rem, 0, 0) rotate(0deg) scale(1.2); }
+    14% { opacity: 0.9; }
+    58% { opacity: 0.78; transform: translate3d(2.12rem, var(--suction-mid-y), 0) rotate(145deg) scale(0.72); }
+    100% { opacity: 0; transform: translate3d(3.52rem, var(--suction-end-y), 0) rotate(320deg) scale(0.08); }
+}
+
+@keyframes bookingIntroTrailVortex {
+    0%, 100% { opacity: 0.32; transform: translate3d(0.16rem, 0, 0) scale(0.88, 0.82); }
+    38% { opacity: 0.82; transform: translate3d(-0.05rem, -0.03rem, 0) scale(1.03, 1.04); }
+    72% { opacity: 0.58; transform: translate3d(-0.12rem, 0.03rem, 0) scale(0.97, 0.91); }
+}
+
+@keyframes bookingIntroTrailSpiral {
+    0% { opacity: 0.24; transform: translateY(-50%) rotate(360deg) scale(1.08, 0.88); }
+    50% { opacity: 0.9; transform: translateY(-50%) rotate(180deg) scale(0.82, 1); }
+    100% { opacity: 0.24; transform: translateY(-50%) rotate(0deg) scale(1.08, 0.88); }
+}
+
+@keyframes bookingIntroTrailParticle {
+    0% { opacity: 0; transform: translate3d(0.22rem, 0, 0) rotate(0deg) scale(1.2); }
+    14% { opacity: 0.9; }
+    58% { opacity: 0.78; transform: translate3d(var(--trail-mid-distance), var(--trail-mid-y), 0) rotate(-145deg) scale(0.72); }
+    100% { opacity: 0; transform: translate3d(var(--trail-distance), var(--trail-end-y), 0) rotate(-320deg) scale(0.08); }
 }
 
 @keyframes bookingBikeRoadReveal {
@@ -5955,8 +6112,8 @@ body.app-loading > *:not(.app-loader) {
     }
 
     .booking-clean-pad {
-        width: 3.25rem;
-        height: 1.95rem;
+        width: 2.9rem;
+        height: 1.75rem;
     }
 
     .booking-clean-pad::before {
@@ -5975,10 +6132,10 @@ body.app-loading > *:not(.app-loader) {
     }
 
     .booking-clean-trail {
-        right: 3rem;
-        width: 4.2rem;
-        height: 0.55rem;
-        opacity: 0.4;
+        right: 0.4rem;
+        width: 2.8rem;
+        height: 0.48rem;
+        opacity: 0.34;
     }
 
     .booking-water-one { --drop-left: 2.48rem; --drop-top: -0.12rem; }
@@ -6012,26 +6169,31 @@ body.app-loading > *:not(.app-loader) {
     .booking-foam-eighteen { --foam-left: 4.06rem; --foam-top: 0.52rem; }
 
     .booking-vacuum-track {
-        --vac-left: -3.2rem;
-        --vac-right: 3rem;
+        --vac-left: -3.8rem;
+        --vac-right: 3.6rem;
+        --vac-mid-left: -1.65rem;
+        --vac-mid-right: 2.25rem;
+        --vac-settle: 0.42rem;
         height: 3.7rem;
     }
 
     .booking-vacuum-nozzle {
-        left: calc(50% - 2.7rem);
+        left: calc(50% - 2.425rem);
         bottom: -0.22rem;
-        width: 5.4rem;
-        height: 3.45rem;
+        width: 4.85rem;
+        height: 3.1rem;
     }
 
     .booking-vacuum-trail {
-        left: calc(50% + 2.2rem);
-        width: 3.8rem;
-        height: 0.62rem;
+        --trail-distance: -2.58rem;
+        --trail-mid-distance: -1.52rem;
+        left: calc(50% + 1.7rem);
+        width: 2.75rem;
+        height: 1.55rem;
     }
 
     .booking-vacuum-pull {
-        left: calc(50% - 5.1rem);
+        left: calc(50% - 4.95rem);
         transform: scale(0.85);
         transform-origin: right bottom;
     }
@@ -6042,22 +6204,22 @@ body.app-loading > *:not(.app-loader) {
     }
 
     .booking-rider-track {
-        height: 2.45rem;
+        height: 2.65rem;
     }
 
     .booking-rider-wrap {
         right: 2.35rem;
-        width: 3.36rem;
+        width: 3.63rem;
     }
 
     .booking-rider-speedlines {
-        left: -2.03rem;
+        left: -2.19rem;
     }
 
     .booking-rider-headlight {
-        right: -1.05rem;
-        width: 1.65rem;
-        height: 0.6rem;
+        right: -1.13rem;
+        width: 1.78rem;
+        height: 0.65rem;
     }
 
     .booking-doorstep-target {
@@ -6103,7 +6265,7 @@ body.app-loading > *:not(.app-loader) {
     .booking-intro-card,
     .booking-intro-card::after,
     .booking-phone-stage,
-    .booking-phone-device::after,
+    .booking-phone-screen::after,
     .booking-phone-button,
     .booking-phone-button::after,
     .booking-phone-confirm,
@@ -6123,8 +6285,12 @@ body.app-loading > *:not(.app-loader) {
     .booking-foam,
     .booking-vacuum-track,
     .booking-vacuum-nozzle,
+    .booking-vacuum-trail::before,
+    .booking-vacuum-trail::after,
+    .booking-trail-particle,
     .booking-vacuum-pull::before,
     .booking-vacuum-pull::after,
+    .booking-suction-particle,
     .booking-bike-road,
     .booking-bike-road::before,
     .booking-rider-track,
