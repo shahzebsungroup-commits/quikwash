@@ -449,7 +449,7 @@ body.city-selection-compact #otherCityInput {
 .city-topbar .city-section {
     width: min(94vw, 820px);
     margin: 0;
-    padding: 0.5rem;
+    padding: 0.34rem;
     border-radius: 999px;
     border: 1px solid rgba(255, 249, 219, 0.24);
     background:
@@ -481,6 +481,155 @@ body.city-selection-compact #otherCityInput {
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     padding: 1px;
+}
+
+/* Page filters use the same premium fold language as the setup popup. */
+.city-selector .page-fold-native {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.city-topbar .city-selector {
+    align-items: flex-start;
+    gap: 0.42rem;
+}
+
+.city-topbar .page-fold-selector {
+    min-width: 0;
+    margin-top: 0;
+}
+
+.city-topbar .page-city-fold {
+    z-index: 5;
+    flex: 0 1 38%;
+}
+
+.city-topbar .page-service-fold {
+    z-index: 4;
+    flex: 1 1 62%;
+}
+
+.city-topbar .page-fold-selector.is-menu-open {
+    z-index: 9;
+}
+
+.city-topbar .page-fold-selector .service-fold-trigger {
+    min-height: 34px;
+    padding: 0.22rem 0.3rem 0.22rem 0.68rem;
+    border-radius: 999px;
+}
+
+.city-topbar .page-fold-selector .service-fold-trigger-label {
+    font-size: 0.74rem;
+}
+
+.city-topbar .page-fold-selector .service-fold-trigger-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+}
+
+.city-topbar .page-fold-selector.is-menu-open .service-fold-trigger {
+    border-radius: 18px 18px 9px 9px;
+}
+
+.city-topbar .page-fold-selector .service-fold-panel {
+    position: relative;
+    top: auto;
+    right: auto;
+    left: auto;
+    width: 100%;
+    min-width: 0;
+    margin-top: 0;
+    box-shadow: 0 22px 52px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(255,255,255,0.045);
+}
+
+.city-topbar .page-service-fold .service-fold-panel {
+    min-width: 0;
+}
+
+.city-topbar .page-fold-selector.is-menu-open .service-fold-panel {
+    margin-top: 0.36rem;
+    max-height: min(330px, calc(100vh - 5.5rem));
+}
+
+.city-topbar .city-section:has(.page-fold-selector.is-menu-open) {
+    border-radius: 24px;
+}
+
+.city-topbar #otherCityInput {
+    min-height: 40px;
+    flex: 1 1 100%;
+    padding: 0.55rem 0.82rem;
+    border-radius: 14px;
+}
+
+.city-topbar .city-selector:has(#otherCityInput[style*="block"]) {
+    flex-wrap: wrap;
+}
+
+.city-topbar .city-selector:has(#otherCityInput[style*="block"]) .page-city-fold,
+.city-topbar .city-selector:has(#otherCityInput[style*="block"]) .page-service-fold {
+    flex-basis: calc(50% - 0.21rem);
+}
+
+.city-topbar .page-fold-selector .service-fold-trigger:disabled {
+    border-color: rgba(246, 200, 76, 0.16);
+    color: rgba(255,255,255,0.58);
+    background: linear-gradient(135deg, #2c2b28, #20201f);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.035);
+    filter: saturate(0.5);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.city-topbar .page-fold-selector .service-fold-trigger:disabled .service-fold-trigger-label {
+    color: rgba(255,255,255,0.58);
+}
+
+@media (max-width: 640px) {
+    .city-topbar .city-selector {
+        flex-wrap: nowrap;
+        gap: 0.28rem;
+    }
+
+    .city-topbar .city-selector:has(#otherCityInput[style*="block"]) {
+        flex-wrap: wrap;
+    }
+
+    .city-topbar .page-city-fold,
+    .city-topbar .page-service-fold {
+        flex: 1 1 50%;
+    }
+
+    .city-topbar .page-fold-selector .service-fold-trigger {
+        min-height: 32px;
+        padding: 0.18rem 0.24rem 0.18rem 0.52rem;
+    }
+
+    .city-topbar .page-fold-selector .service-fold-trigger-label {
+        font-size: 0.7rem;
+    }
+
+    .city-topbar .page-fold-selector .service-fold-trigger-icon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .city-topbar .page-city-fold .service-fold-panel {
+        width: 100%;
+    }
+
+    .city-topbar .page-service-fold .service-fold-panel {
+        width: 100%;
+    }
 }
 
 #vehicleTypeDropdown.vehicle-type-prompt,
@@ -529,7 +678,8 @@ body.city-selection-compact #otherCityInput {
 }
 
 body.city-topbar-mounted #landing {
-    padding-top: 5.1rem;
+    padding-top: calc(var(--city-topbar-height, 4.5rem) + 1rem);
+    transition: padding-top 0.38s cubic-bezier(0.22, 0.8, 0.24, 1);
 }
 
 body.city-topbar-mounted #booking-form {
@@ -539,8 +689,9 @@ body.city-topbar-mounted #booking-form {
 body.direct-booking.city-topbar-mounted #booking-form {
     position: relative;
     min-height: 100vh;
-    padding-top: 6.4rem;
+    padding-top: calc(var(--city-topbar-height, 4.8rem) + 1.35rem);
     isolation: isolate;
+    transition: padding-top 0.38s cubic-bezier(0.22, 0.8, 0.24, 1);
 }
 
 body.direct-booking #booking-form::before,
@@ -580,15 +731,15 @@ body.direct-booking.app-ready #booking-form::after {
 
     .city-topbar .city-section {
         width: calc(100vw - 0.9rem);
-        padding: 0.35rem;
+        padding: 0.26rem;
     }
 
     body.direct-booking.city-topbar-mounted #booking-form {
-        padding-top: 5.7rem;
+        padding-top: calc(var(--city-topbar-height, 4.5rem) + 0.9rem);
     }
 
     body.city-topbar-mounted #landing {
-        padding-top: 4.65rem;
+        padding-top: calc(var(--city-topbar-height, 4.2rem) + 0.75rem);
     }
 }
 
@@ -1310,7 +1461,15 @@ body.app-ready .booking-panel {
 
 @media (max-width: 768px) {
     .slots-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        min-width: 0;
+        width: 100%;
+    }
+
+    .slot-card,
+    .slot-tabs,
+    .tab-btn {
+        min-width: 0;
     }
 }
 
@@ -1986,29 +2145,54 @@ body.app-ready .booking-panel {
 
 /* ===== MOBILE RESPONSIVE FIXES ===== */
 @media (max-width: 768px) {
+    #booking-form,
+    #booking-form .container,
+    #booking-form .services-panel,
+    #booking-form .booking-panel,
+    #booking-form .slots-section,
+    #booking-form #slotsContainer,
+    #booking-form .slots-panel {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    #booking-form .container,
+    #booking-form .services-panel,
+    #booking-form .booking-panel {
+        width: 100%;
+    }
+
     .services-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
     }
 
     .service-card {
-        aspect-ratio: auto;
+        min-width: 0;
+        aspect-ratio: 0.86 / 1;
         height: auto;
         display: block;
-        padding: 14px;
+        padding: 0;
+        font-size: 11px;
+    }
+
+    .service-card.selected {
+        transform: none;
     }
 
     .service-card-inner {
-        height: auto;
+        width: 100%;
+        height: 100%;
         transform: none !important;
     }
 
     .service-card-front,
     .service-card-back {
-        position: relative;
-        height: auto;
-        transform: none;
-        backface-visibility: visible;
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
     }
 
     .service-card.flipped .service-card-inner {
@@ -2016,26 +2200,132 @@ body.app-ready .booking-panel {
     }
 
     .service-card-front {
-        flex-direction: row;
-        align-items: center;
-        gap: 14px;
-        position: relative;
-        padding: 12px 12px 36px;
-        height: auto;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: space-between;
+        gap: 0.35rem;
+        padding: 8px 8px 24px;
+        transform: rotateY(0deg);
+    }
+
+    .service-card-back {
+        padding: 8px;
+        transform: rotateY(180deg);
+    }
+
+    .service-card-front > .service-header {
+        flex: 0 0 auto;
+        margin-bottom: 0.2rem;
+    }
+
+    .service-card-front > div:not(.service-header) {
+        min-width: 0;
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        justify-content: flex-end;
     }
 
     .service-icon {
-        width: 48px;
-        height: 48px;
-        font-size: 24px;
+        width: 32px;
+        height: 32px;
+        margin-right: 0;
+        border-radius: 10px;
+        font-size: 18px;
+    }
+
+    .service-checkbox {
+        width: 18px;
+        height: 18px;
     }
 
     .service-name {
-        font-size: 15px;
+        margin-bottom: 0.18rem;
+        font-size: 0.7rem;
+        line-height: 1.18;
     }
 
     .service-price {
+        font-size: 0.82rem;
+        line-height: 1.2;
+    }
+
+    .service-duration {
+        gap: 0.18rem;
+        margin: 0.18rem 0 0;
+        font-size: 0.6rem;
+        line-height: 1.2;
+    }
+
+    .info-btn {
+        right: 5px;
+        bottom: 5px;
+        width: 20px;
+        height: 20px;
+        font-size: 10px;
+    }
+
+    .preview-badge {
+        padding: 0.2rem 0.32rem;
+        font-size: 0.53rem;
+    }
+
+    .home-care-preview-detail {
+        margin-top: 0.25rem;
+        font-size: 0.6rem;
+        line-height: 1.25;
+    }
+}
+
+/* Move to three columns immediately after standard narrow-phone widths. */
+@media (min-width: 430px) and (max-width: 768px) {
+    .services-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+    }
+
+    .service-card {
+        aspect-ratio: 1 / 1;
+    }
+}
+
+/* Extra-compact card details where three columns have just become viable. */
+@media (min-width: 430px) and (max-width: 559px) {
+    .service-card {
+        aspect-ratio: 0.86 / 1;
+    }
+
+    .service-card-front {
+        padding: 6px 6px 21px;
+    }
+
+    .service-icon {
+        width: 28px;
+        height: 28px;
         font-size: 16px;
+    }
+
+    .service-checkbox {
+        width: 16px;
+        height: 16px;
+    }
+
+    .service-name {
+        font-size: 0.62rem;
+    }
+
+    .service-price {
+        font-size: 0.74rem;
+    }
+
+    .service-duration {
+        font-size: 0.54rem;
+    }
+
+    .info-btn {
+        width: 18px;
+        height: 18px;
+        font-size: 9px;
     }
 }
 /* ===== SLOT CARD TEXT LAYOUT ===== */
@@ -3135,7 +3425,8 @@ body.app-loading > *:not(.app-loader) {
 }
 
 .location-popup-content {
-    width: min(92vw, 460px);
+    width: min(94vw, 500px);
+    max-height: calc(100dvh - 1.5rem);
     background:
         radial-gradient(circle at top right, rgba(246, 200, 76, 0.12), transparent 34%),
         linear-gradient(180deg, rgba(26, 26, 26, 0.98), rgba(12, 12, 12, 0.98));
@@ -3155,8 +3446,8 @@ body.app-loading > *:not(.app-loader) {
 }
 
 .location-popup-header {
-    padding-top: 1.1rem;
-    padding-bottom: 0.75rem;
+    padding-top: 0.85rem;
+    padding-bottom: 0.65rem;
     border-bottom: 1px solid rgba(246, 200, 76, 0.16);
 }
 
@@ -3165,13 +3456,77 @@ body.app-loading > *:not(.app-loader) {
     display: flex;
     align-items: center;
     gap: 0.65rem;
-    font-size: 1.15rem;
+    font-size: 1.05rem;
+}
+
+.location-progress {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.42rem;
+}
+
+.location-progress-step {
+    min-height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.38rem;
+    padding: 0.38rem 0.62rem;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 999px;
+    color: rgba(255,255,255,0.54);
+    background: rgba(255,255,255,0.025);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    transition: color 0.28s ease, background 0.28s ease, border-color 0.28s ease, opacity 0.28s ease;
+}
+
+.location-progress-step.is-active {
+    border-color: rgba(246, 200, 76, 0.72);
+    color: #17120a;
+    background: linear-gradient(135deg, #fff1b0, #f6c84c);
+    box-shadow: 0 7px 20px rgba(246, 200, 76, 0.13);
+}
+
+.location-progress-step.is-complete {
+    border-color: rgba(246, 200, 76, 0.34);
+    color: #f6c84c;
+    background: rgba(246, 200, 76, 0.08);
+}
+
+.location-progress-step.is-locked {
+    border-color: rgba(246, 200, 76, 0.1);
+    color: rgba(255,255,255,0.42);
+    background: rgba(255,255,255,0.028);
+    opacity: 1;
+}
+
+.location-progress-arrow {
+    color: rgba(255,255,255,0.3);
+    font-size: 0.58rem;
+    transition: color 0.28s ease;
+}
+
+.location-progress-step.is-complete + .location-progress-arrow {
+    color: rgba(246, 200, 76, 0.7);
 }
 
 .location-popup-body {
-    padding: 1rem 1.25rem 0.5rem;
+    padding: 0.68rem 1.25rem 0.45rem;
     color: var(--text-secondary);
-    line-height: 1.7;
+    line-height: 1.45;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+.location-popup-content,
+.city-topbar .page-fold-selector {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
 }
 
 .location-popup-form {
@@ -3180,10 +3535,10 @@ body.app-loading > *:not(.app-loader) {
 
 .location-popup-form .city-select {
     width: 100%;
-    padding: 0.9rem 1rem;
+    padding: 0.72rem 0.9rem;
     border: 1px solid rgba(246, 200, 76, 0.22);
-    border-radius: 16px;
-    font-size: 0.96rem;
+    border-radius: 14px;
+    font-size: 0.9rem;
     color: var(--text-primary);
     background: rgba(20, 20, 20, 0.95);
     outline: none;
@@ -3196,6 +3551,378 @@ body.app-loading > *:not(.app-loader) {
 
 .location-popup-form #locationPopupVehicleTypeSelect {
     margin-top: 0.75rem;
+}
+
+.location-popup-form #locationPopupCitySelect.city-fold-native,
+.location-popup-form #locationPopupVehicleTypeSelect.service-fold-native {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.service-fold-selector {
+    position: relative;
+    margin-top: 0.75rem;
+    z-index: 3;
+}
+
+.city-fold-selector {
+    margin-top: 0;
+}
+
+.city-fold-panel .service-fold-option:first-child {
+    border-top: 0;
+}
+
+.city-fold-selector.is-menu-open .city-fold-panel,
+.service-fold-group.is-direct {
+    border-color: rgba(246, 200, 76, 0.34);
+    background:
+        radial-gradient(circle at 92% 8%, rgba(246, 200, 76, 0.07), transparent 34%),
+        rgba(246, 200, 76, 0.035);
+    box-shadow: inset 3px 0 0 rgba(246, 200, 76, 0.78), inset 0 1px 0 rgba(255,255,255,0.035);
+}
+
+.service-fold-trigger {
+    width: 100%;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.55rem 0.68rem 0.55rem 0.9rem;
+    border: 1px solid rgba(246, 200, 76, 0.42);
+    border-radius: 17px;
+    color: #16120a;
+    background:
+        linear-gradient(115deg, rgba(255,255,255,0.7), transparent 32%),
+        linear-gradient(135deg, #fff1b0 0%, #f6c84c 56%, #e6aa21 100%);
+    box-shadow: 0 10px 28px rgba(246, 200, 76, 0.12), inset 0 1px 0 rgba(255,255,255,0.75);
+    cursor: pointer;
+    text-align: left;
+    transition: border-radius 0.28s ease, transform 0.22s ease, box-shadow 0.28s ease;
+}
+
+.service-fold-trigger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 34px rgba(246, 200, 76, 0.2), inset 0 1px 0 rgba(255,255,255,0.8);
+}
+
+.service-fold-trigger-label {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    color: #17120a;
+    font-size: 0.88rem;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.service-fold-trigger-icon {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border: 1px solid rgba(50, 35, 4, 0.16);
+    border-radius: 12px;
+    background: rgba(20, 14, 4, 0.08);
+    transition: transform 0.32s ease, background 0.25s ease;
+}
+
+.service-fold-selector.is-menu-open .service-fold-trigger {
+    border-radius: 17px 17px 8px 8px;
+    box-shadow: 0 16px 42px rgba(0, 0, 0, 0.36), 0 0 26px rgba(246, 200, 76, 0.12);
+}
+
+.service-fold-selector.is-menu-open .service-fold-trigger-icon {
+    transform: rotate(180deg);
+    background: rgba(20, 14, 4, 0.14);
+}
+
+.service-fold-panel {
+    display: block;
+    position: relative;
+    max-height: 0;
+    margin-top: 0;
+    padding: 0 0.42rem;
+    overflow: hidden;
+    overscroll-behavior: contain;
+    border: 0 solid rgba(246, 200, 76, 0.32);
+    border-radius: 14px;
+    background:
+        radial-gradient(circle at 88% 4%, rgba(246, 200, 76, 0.13), transparent 30%),
+        linear-gradient(160deg, rgba(29, 29, 28, 0.995), rgba(10, 10, 10, 0.995));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.045);
+    scrollbar-color: rgba(246, 200, 76, 0.55) transparent;
+    opacity: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+    transition:
+        max-height 0.38s cubic-bezier(0.22, 0.8, 0.24, 1),
+        margin-top 0.32s ease,
+        padding 0.32s ease,
+        opacity 0.22s ease,
+        transform 0.32s ease;
+}
+
+.service-fold-selector.is-menu-open.is-scroll-ready .service-fold-panel {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.service-fold-selector.is-menu-open .service-fold-panel {
+    max-height: min(260px, 42vh);
+    margin-top: 0.42rem;
+    padding: 0.42rem;
+    border-width: 1px;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.service-fold-group + .service-fold-group,
+.service-fold-other {
+    margin-top: 0.32rem;
+}
+
+.service-fold-group {
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(246, 200, 76, 0.42) transparent;
+    border: 1px solid rgba(255,255,255,0.075);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.025);
+    transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.service-fold-group.is-open {
+    border-color: rgba(246, 200, 76, 0.34);
+    background: rgba(246, 200, 76, 0.04);
+    box-shadow: inset 3px 0 0 rgba(246, 200, 76, 0.78);
+}
+
+.service-fold-group-trigger {
+    width: 100%;
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    gap: 0.58rem;
+    padding: 0.45rem 0.58rem;
+    border: 0;
+    color: #f5f5f5;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+}
+
+.service-fold-group-icon {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border: 1px solid rgba(246, 200, 76, 0.22);
+    border-radius: 10px;
+    color: #f6c84c;
+    background: linear-gradient(145deg, rgba(246,200,76,0.16), rgba(246,200,76,0.035));
+}
+
+.service-fold-group-copy {
+    min-width: 0;
+    display: grid;
+    gap: 0.08rem;
+    flex: 1;
+}
+
+.service-fold-group-copy strong {
+    font-size: 0.84rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.service-fold-count {
+    min-width: 25px;
+    height: 25px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    color: #171108;
+    background: #f6c84c;
+    font-size: 0.7rem;
+    font-weight: 900;
+}
+
+.service-fold-chevron {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.7rem;
+    transition: transform 0.28s ease, color 0.28s ease;
+}
+
+.service-fold-group.is-open .service-fold-chevron {
+    transform: rotate(180deg);
+    color: #f6c84c;
+}
+
+.service-fold-options-wrap {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.34s cubic-bezier(0.22, 0.75, 0.24, 1);
+}
+
+.service-fold-group.is-open .service-fold-options-wrap {
+    grid-template-rows: 1fr;
+}
+
+.service-fold-options {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.service-fold-group .service-fold-options {
+    padding: 0 0.42rem;
+    transition: padding 0.3s ease;
+}
+
+.service-fold-group.is-open .service-fold-options {
+    padding: 0.05rem 0.42rem 0.38rem;
+}
+
+.service-fold-option {
+    width: 100%;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.3rem 0.54rem;
+    border: 0;
+    border-top: 1px solid rgba(255,255,255,0.055);
+    color: rgba(255,255,255,0.82);
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    font-size: 0.78rem;
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: 0;
+    transition: color 0.2s ease, background 0.2s ease, padding-left 0.2s ease;
+}
+
+.service-fold-option:hover,
+.service-fold-option:focus-visible {
+    padding-left: 0.72rem;
+    color: #fff;
+    background: linear-gradient(90deg, rgba(246,200,76,0.13), transparent);
+    outline: none;
+}
+
+.service-fold-option-check {
+    width: 19px;
+    height: 19px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 7px;
+    color: transparent;
+    font-size: 0.63rem;
+}
+
+.service-fold-option.is-selected {
+    color: #f6c84c;
+    font-weight: 700;
+    background: linear-gradient(90deg, rgba(246,200,76,0.13), transparent);
+}
+
+.service-fold-option.is-selected .service-fold-option-check {
+    border-color: #f6c84c;
+    color: #171108;
+    background: #f6c84c;
+}
+
+.service-fold-direct-mark {
+    width: 25px;
+    height: 25px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    color: rgba(255,255,255,0.55);
+    font-size: 0.68rem;
+    transition: color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.service-fold-group.is-direct:hover .service-fold-direct-mark {
+    color: #f6c84c;
+    transform: translateX(2px);
+}
+
+.service-fold-group.is-direct.is-selected {
+    border-color: rgba(246, 200, 76, 0.48);
+    background: rgba(246, 200, 76, 0.08);
+    box-shadow: inset 3px 0 0 rgba(246, 200, 76, 0.78);
+}
+
+.service-fold-group.is-direct.is-selected .service-fold-direct-mark {
+    color: #171108;
+    background: #f6c84c;
+}
+
+.service-fold-group.is-direct.is-selected .service-fold-direct-mark i::before {
+    content: "\f00c";
+}
+
+.service-fold-other {
+    padding: 0.55rem;
+    border-top: 1px solid rgba(246,200,76,0.16);
+}
+
+.service-fold-other-title {
+    padding: 0.2rem 0.68rem 0.35rem;
+    color: rgba(246,200,76,0.72);
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+@keyframes serviceFoldPanelIn {
+    from { opacity: 0; transform: translateY(-8px) scale(0.985); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 520px) {
+    .service-fold-selector.is-menu-open .service-fold-panel {
+        max-height: min(230px, 40vh);
+    }
+
+    .service-fold-trigger {
+        min-height: 48px;
+    }
+
+    .location-progress {
+        gap: 0.22rem;
+    }
+
+    .location-progress-step {
+        min-height: 27px;
+        gap: 0.28rem;
+        padding: 0.3rem 0.44rem;
+        font-size: 0.64rem;
+    }
+
+    .location-progress-arrow {
+        font-size: 0.5rem;
+    }
 }
 
 .location-popup-form .city-select:focus {
@@ -3218,12 +3945,262 @@ body.app-loading > *:not(.app-loader) {
 .location-popup-actions {
     display: flex;
     gap: 0.75rem;
-    padding-top: 1rem;
-    padding-bottom: 1.25rem;
+    padding-top: 0.72rem;
+    padding-bottom: 0.85rem;
 }
 
 .location-popup-actions .confirm-btn {
     width: 100%;
+}
+
+/* One visual language for the popup's three primary controls. */
+.location-popup-form #locationPopupCitySelect,
+.location-popup-form #locationPopupOtherCity,
+.location-popup-form .service-fold-trigger,
+.location-popup-actions .confirm-btn.confirm {
+    min-height: 50px;
+    border: 1px solid rgba(246, 200, 76, 0.5);
+    border-radius: 14px;
+    color: #17120a;
+    background:
+        linear-gradient(115deg, rgba(255,255,255,0.68), transparent 32%),
+        linear-gradient(135deg, #fff1b0 0%, #f6c84c 56%, #e6aa21 100%);
+    box-shadow: 0 9px 24px rgba(246, 200, 76, 0.11), inset 0 1px 0 rgba(255,255,255,0.72);
+    font-size: 0.88rem;
+    font-weight: 800;
+    transition: transform 0.22s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.location-popup-form #locationPopupCitySelect,
+.location-popup-form #locationPopupOtherCity {
+    padding-left: 0.9rem;
+    padding-right: 2.35rem;
+}
+
+.location-popup-form #locationPopupCitySelect {
+    background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M2 2l5 5 5-5' fill='none' stroke='%2317120a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"),
+        linear-gradient(115deg, rgba(255,255,255,0.68), transparent 32%),
+        linear-gradient(135deg, #fff1b0 0%, #f6c84c 56%, #e6aa21 100%);
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-position: right 0.95rem center, 0 0, 0 0;
+    background-size: 12px 8px, auto, auto;
+}
+
+.location-popup-form #locationPopupCitySelect option {
+    color: #f5f5f5;
+    background: #171717;
+}
+
+.location-popup-form #locationPopupOtherCity::placeholder {
+    color: rgba(23, 18, 10, 0.62);
+}
+
+.location-popup-form #locationPopupCitySelect:hover,
+.location-popup-form #locationPopupOtherCity:hover,
+.location-popup-form .service-fold-trigger:hover,
+.location-popup-actions .confirm-btn.confirm:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 225, 132, 0.82);
+    box-shadow: 0 13px 30px rgba(246, 200, 76, 0.18), inset 0 1px 0 rgba(255,255,255,0.8);
+}
+
+.location-popup-form #locationPopupCitySelect:focus,
+.location-popup-form #locationPopupOtherCity:focus,
+.location-popup-form .service-fold-trigger:focus-visible,
+.location-popup-actions .confirm-btn.confirm:focus-visible {
+    outline: none;
+    border-color: #ffe184;
+    box-shadow: 0 0 0 3px rgba(246, 200, 76, 0.16), 0 13px 30px rgba(246, 200, 76, 0.16);
+}
+
+.location-popup-actions .confirm-btn.confirm:active,
+.location-popup-form .service-fold-trigger:active {
+    transform: scale(0.985);
+}
+
+.location-popup-form .service-fold-trigger:disabled,
+.location-popup-actions .confirm-btn.confirm:disabled {
+    border-color: rgba(246, 200, 76, 0.16);
+    color: rgba(255,255,255,0.58);
+    background:
+        linear-gradient(115deg, rgba(255,255,255,0.035), transparent 34%),
+        linear-gradient(135deg, #2c2b28, #20201f);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.035);
+    opacity: 1;
+    filter: saturate(0.5);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.location-popup-form .service-fold-trigger:disabled .service-fold-trigger-label {
+    color: rgba(255,255,255,0.58);
+}
+
+.location-popup-form .service-fold-trigger:disabled .service-fold-trigger-icon {
+    border-color: rgba(246, 200, 76, 0.1);
+    color: rgba(255,255,255,0.34);
+    background: rgba(255,255,255,0.025);
+}
+
+.location-popup-form .service-fold-trigger:disabled:hover,
+.location-popup-actions .confirm-btn.confirm:disabled:hover {
+    border-color: rgba(246, 200, 76, 0.16);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.035);
+    transform: none;
+}
+
+@property --popup-action-orbit {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
+}
+
+.location-popup .is-next-action,
+.city-topbar .is-next-action,
+.location-progress-step.is-active {
+    --popup-action-orbit: 0deg;
+    position: relative;
+    isolation: isolate;
+}
+
+.location-popup .is-next-action:not(.service-fold-panel),
+.city-topbar .is-next-action:not(.service-fold-panel),
+.location-progress-step.is-active {
+    overflow: visible;
+}
+
+.location-popup .is-next-action::before,
+.city-topbar .is-next-action::before,
+.location-progress-step.is-active::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    z-index: 2;
+    padding: 2px;
+    border-radius: inherit;
+    background: conic-gradient(
+        from var(--popup-action-orbit),
+        transparent 0deg 276deg,
+        rgba(142, 234, 255, 0.3) 294deg,
+        rgba(235, 253, 255, 1) 316deg,
+        #ffe06d 338deg,
+        transparent 358deg 360deg
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0;
+    filter: drop-shadow(0 0 5px rgba(226, 252, 255, 0.32)) drop-shadow(0 0 8px rgba(246, 200, 76, 0.24));
+    animation: popupActionOrbit 4.4s linear infinite;
+}
+
+.location-popup .is-next-action::after,
+.city-topbar .is-next-action::after,
+.location-progress-step.is-active::after {
+    content: "";
+    position: absolute;
+    z-index: 3;
+    width: 12px;
+    height: 12px;
+    left: 9%;
+    top: 2px;
+    background: linear-gradient(135deg, #e8fbff 8%, #fff 42%, #f6c84c 74%, #8eeaff 100%);
+    clip-path: polygon(50% 0%, 61% 38%, 100% 50%, 61% 62%, 50% 100%, 39% 62%, 0% 50%, 39% 38%);
+    filter: drop-shadow(0 0 5px rgba(225, 252, 255, 1)) drop-shadow(0 0 10px rgba(246, 200, 76, 0.94));
+    pointer-events: none;
+    opacity: 0;
+    animation: popupFlapStar 4.4s linear infinite;
+}
+
+.location-progress-step.is-active::after {
+    width: 9px;
+    height: 9px;
+}
+
+.location-popup .is-next-action:not(.service-fold-panel)::before,
+.city-topbar .is-next-action:not(.service-fold-panel)::before,
+.location-progress-step.is-active::before {
+    inset: -2px;
+}
+
+.location-popup .is-next-action:not(.service-fold-panel)::after,
+.city-topbar .is-next-action:not(.service-fold-panel)::after,
+.location-progress-step.is-active::after {
+    top: -5px;
+    animation-name: popupOuterStar;
+}
+
+.service-fold-panel.is-next-action::before {
+    inset: 2px;
+    filter: none;
+}
+
+.service-fold-panel.is-next-action::after {
+    width: 10px;
+    height: 10px;
+    filter: drop-shadow(0 0 4px rgba(225, 252, 255, 0.94)) drop-shadow(0 0 7px rgba(246, 200, 76, 0.82));
+    animation-name: popupPanelStar;
+}
+
+@keyframes popupActionOrbit {
+    0% { --popup-action-orbit: 0deg; opacity: 0; }
+    4% { opacity: 1; }
+    72% { opacity: 1; }
+    78% { --popup-action-orbit: 360deg; opacity: 0; }
+    100% { --popup-action-orbit: 360deg; opacity: 0; }
+}
+
+@keyframes popupFlapStar {
+    0% { left: 9%; top: 2px; opacity: 0; rotate: 0deg; scale: 0.55; }
+    4% { opacity: 1; scale: 1; }
+    16% { left: calc(100% - 13px); top: 2px; rotate: 130deg; }
+    23% { left: calc(100% - 13px); top: 45%; rotate: 210deg; scale: 1.16; }
+    36% { left: calc(100% - 13px); top: calc(100% - 13px); rotate: 310deg; }
+    48% { left: 45%; top: calc(100% - 13px); rotate: 430deg; scale: 1.12; }
+    62% { left: 2px; top: calc(100% - 13px); rotate: 525deg; }
+    71% { left: 2px; top: 35%; opacity: 1; rotate: 610deg; }
+    78% { left: 9%; top: 2px; opacity: 0; rotate: 720deg; scale: 0.45; }
+    100% { left: 9%; top: 2px; opacity: 0; rotate: 720deg; scale: 0.45; }
+}
+
+@keyframes popupOuterStar {
+    0% { left: 9%; top: -5px; opacity: 0; rotate: 0deg; scale: 0.55; }
+    4% { opacity: 1; scale: 1; }
+    16% { left: calc(100% - 7px); top: -5px; rotate: 130deg; }
+    23% { left: calc(100% - 6px); top: 45%; rotate: 210deg; scale: 1.16; }
+    36% { left: calc(100% - 6px); top: calc(100% - 7px); rotate: 310deg; }
+    48% { left: 45%; top: calc(100% - 6px); rotate: 430deg; scale: 1.12; }
+    62% { left: -5px; top: calc(100% - 6px); rotate: 525deg; }
+    71% { left: -5px; top: 35%; opacity: 1; rotate: 610deg; }
+    78% { left: 9%; top: -5px; opacity: 0; rotate: 720deg; scale: 0.45; }
+    100% { left: 9%; top: -5px; opacity: 0; rotate: 720deg; scale: 0.45; }
+}
+
+@keyframes popupPanelStar {
+    0% { left: 10px; top: 8px; opacity: 0; rotate: 0deg; scale: 0.55; }
+    4% { opacity: 1; scale: 1; }
+    16% { left: calc(100% - 19px); top: 8px; rotate: 130deg; }
+    23% { left: calc(100% - 19px); top: 45%; rotate: 210deg; scale: 1.14; }
+    36% { left: calc(100% - 19px); top: calc(100% - 19px); rotate: 310deg; }
+    48% { left: 45%; top: calc(100% - 19px); rotate: 430deg; scale: 1.1; }
+    62% { left: 8px; top: calc(100% - 19px); rotate: 525deg; }
+    71% { left: 8px; top: 35%; opacity: 1; rotate: 610deg; }
+    78% { left: 10px; top: 8px; opacity: 0; rotate: 720deg; scale: 0.45; }
+    100% { left: 10px; top: 8px; opacity: 0; rotate: 720deg; scale: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .location-popup .is-next-action::before,
+    .location-popup .is-next-action::after,
+    .city-topbar .is-next-action::before,
+    .city-topbar .is-next-action::after,
+    .location-progress-step.is-active::before,
+    .location-progress-step.is-active::after {
+        animation: none;
+        display: none;
+    }
 }
 
 .map-popup {
@@ -4102,7 +5079,7 @@ body.app-loading > *:not(.app-loader) {
 
 @media (max-width: 768px) {
     body.city-topbar-mounted #landing {
-        padding-top: 4.8rem;
+        padding-top: calc(var(--city-topbar-height, 4.5rem) + 0.8rem);
     }
 
     .map-popup-header {
@@ -4192,7 +5169,7 @@ body.app-loading > *:not(.app-loader) {
     }
 
     body.city-topbar-mounted #landing {
-        padding-top: 4.55rem;
+        padding-top: calc(var(--city-topbar-height, 4.2rem) + 0.7rem);
     }
 }
 
@@ -4316,14 +5293,29 @@ body.app-loading > *:not(.app-loader) {
 /* ===== PREMIUM SERVICE MENU TRANSITION ===== */
 .booking-intro {
     width: min(920px, 100%);
+    display: grid;
+    grid-template-rows: 1fr;
+    height: auto;
+    min-height: 0;
+    max-height: 48rem;
+    overflow: hidden;
+    interpolate-size: allow-keywords;
     margin: 0 auto 1.2rem;
+    opacity: 1;
     text-align: center;
     animation: panelRiseIn 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
+    transition:
+        height 0.44s cubic-bezier(0.22, 0.8, 0.24, 1),
+        max-height 0.44s cubic-bezier(0.22, 0.8, 0.24, 1),
+        grid-template-rows 0.44s cubic-bezier(0.22, 0.8, 0.24, 1),
+        margin-bottom 0.4s cubic-bezier(0.22, 0.8, 0.24, 1),
+        opacity 0.26s ease;
 }
 
 .booking-intro-card {
     --intro-clean-cycle: 20s;
     position: relative;
+    min-height: 0;
     isolation: isolate;
     overflow: hidden;
     padding: clamp(1.35rem, 3vw, 2rem) clamp(1rem, 4vw, 2.8rem) clamp(5.65rem, 9vw, 6.35rem);
@@ -4338,6 +5330,18 @@ body.app-loading > *:not(.app-loader) {
         inset 0 -1px 0 rgba(246, 200, 76, 0.045),
         0 22px 56px rgba(0, 0, 0, 0.34),
         0 0 36px rgba(246, 200, 76, 0.055);
+}
+
+body.page-filter-open .booking-intro,
+body.has-selected-service .booking-intro {
+    grid-template-rows: 0fr;
+    height: 0;
+    min-height: 0;
+    max-height: 0;
+    margin-bottom: 0;
+    opacity: 0;
+    pointer-events: none;
+    animation: none;
 }
 
 .booking-intro-card::after {

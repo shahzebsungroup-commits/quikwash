@@ -518,6 +518,7 @@ function setDropdownToCity(city) {
     const dropdown = document.getElementById("cityDropdown");
     if (dropdown) {
         dropdown.value = city;
+        updatePageCityFoldSelection();
     }
 }
 
@@ -605,6 +606,635 @@ function resolveProCleanSelection(vehicleTypes = [], preferredValue = "") {
     return vehicleTypes.includes(normalizedValue) ? normalizedValue : "";
 }
 
+function getPopupServiceGroup(label = "") {
+    if (/\bcars?\b/i.test(label)) return "car";
+    if (/\bhome(?:[\s-]*care)?\b/i.test(label)) return "home";
+    return "other";
+}
+
+function setFoldScrollReadiness(selector, isOpen) {
+    if (!selector) return;
+    if (selector._scrollReadyTimer) clearTimeout(selector._scrollReadyTimer);
+    const panel = selector.querySelector(".service-fold-panel");
+    if (panel && selector._scrollReadyHandler) {
+        panel.removeEventListener("transitionend", selector._scrollReadyHandler);
+    }
+    selector.classList.remove("is-scroll-ready");
+
+    if (isOpen) {
+        const markScrollReady = () => {
+            if (selector.classList.contains("is-menu-open")) {
+                selector.classList.add("is-scroll-ready");
+            }
+        };
+        selector._scrollReadyHandler = event => {
+            if (event.propertyName !== "max-height") return;
+            panel.removeEventListener("transitionend", selector._scrollReadyHandler);
+            markScrollReady();
+        };
+        panel?.addEventListener("transitionend", selector._scrollReadyHandler);
+        selector._scrollReadyTimer = setTimeout(markScrollReady, 1200);
+    }
+}
+
+function setPopupCityFoldOpen(isOpen) {
+    const selector = document.getElementById("locationPopupCityFold");
+    const trigger = document.getElementById("locationPopupCityTrigger");
+    if (!selector || !trigger) return;
+
+    selector.classList.toggle("is-menu-open", isOpen);
+    setFoldScrollReadiness(selector, isOpen);
+    trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    syncPopupActionSparkleTarget();
+}
+
+function updatePopupCityFoldSelection() {
+    const select = document.getElementById("locationPopupCitySelect");
+    const label = document.getElementById("locationPopupCityLabel");
+    if (!select || !label) return;
+
+    const selectedOption = select.options[select.selectedIndex];
+    label.textContent = select.value && selectedOption ? selectedOption.textContent.trim() : "Select city";
+
+    document.querySelectorAll("#locationPopupCityPanel .city-fold-option").forEach(option => {
+        const isSelected = option.dataset.value === select.value;
+        option.classList.toggle("is-selected", isSelected);
+        option.setAttribute("aria-selected", isSelected ? "true" : "false");
+    });
+}
+
+function updateLocationPopupFlowState() {
+    const citySelect = document.getElementById("locationPopupCitySelect");
+    const serviceSelect = document.getElementById("locationPopupVehicleTypeSelect");
+    const cityTrigger = document.getElementById("locationPopupCityTrigger");
+    const serviceTrigger = document.getElementById("locationPopupServiceTrigger");
+    const confirmButton = document.getElementById("confirmCitySelectionBtn");
+    if (!citySelect || !serviceSelect) return;
+
+    const hasCity = Boolean(citySelect.value);
+    const hasService = hasCity && Boolean(serviceSelect.value);
+
+    if (serviceTrigger) {
+        serviceTrigger.disabled = !hasCity;
+        serviceTrigger.setAttribute("aria-disabled", hasCity ? "false" : "true");
+        if (!hasCity) setPopupServiceFoldOpen(false);
+    }
+    if (confirmButton) confirmButton.disabled = !hasService;
+
+    syncPopupActionSparkleTarget();
+
+    const cityStep = document.querySelector('[data-progress-step="city"]');
+    const serviceStep = document.querySelector('[data-progress-step="service"]');
+    const continueStep = document.querySelector('[data-progress-step="continue"]');
+
+    cityStep?.classList.toggle("is-active", !hasCity);
+    cityStep?.classList.toggle("is-complete", hasCity);
+    serviceStep?.classList.toggle("is-active", hasCity && !hasService);
+    serviceStep?.classList.toggle("is-complete", hasService);
+    serviceStep?.classList.toggle("is-locked", !hasCity);
+    continueStep?.classList.toggle("is-active", hasService);
+    continueStep?.classList.toggle("is-locked", !hasService);
+}
+
+function syncPopupActionSparkleTarget() {
+    const citySelect = document.getElementById("locationPopupCitySelect");
+    const serviceSelect = document.getElementById("locationPopupVehicleTypeSelect");
+    const citySelector = document.getElementById("locationPopupCityFold");
+    const serviceSelector = document.getElementById("locationPopupServiceFold");
+    const cityTrigger = document.getElementById("locationPopupCityTrigger");
+    const serviceTrigger = document.getElementById("locationPopupServiceTrigger");
+    const cityPanel = document.getElementById("locationPopupCityPanel");
+    const servicePanel = document.getElementById("locationPopupServicePanel");
+    const confirmButton = document.getElementById("confirmCitySelectionBtn");
+    if (!citySelect || !serviceSelect) return;
+
+    [cityTrigger, serviceTrigger, cityPanel, servicePanel, confirmButton]
+        .forEach(control => control?.classList.remove("is-next-action"));
+
+    const hasCity = Boolean(citySelect.value);
+    const hasService = hasCity && Boolean(serviceSelect.value);
+    let target = confirmButton;
+
+    if (!hasCity) {
+        target = citySelector?.classList.contains("is-menu-open") ? cityPanel : cityTrigger;
+    } else if (!hasService) {
+        target = serviceSelector?.classList.contains("is-menu-open") ? servicePanel : serviceTrigger;
+    }
+
+    target?.classList.add("is-next-action");
+}
+
+function renderPopupCityFoldMenu() {
+    const select = document.getElementById("locationPopupCitySelect");
+    const panel = document.getElementById("locationPopupCityPanel");
+    if (!select || !panel) return;
+
+    panel.replaceChildren();
+    Array.from(select.options).forEach(nativeOption => {
+        if (!nativeOption.value) return;
+        const option = document.createElement("button");
+        option.type = "button";
+        option.className = "service-fold-option city-fold-option";
+        option.dataset.value = nativeOption.value;
+        option.setAttribute("role", "option");
+
+        const label = document.createElement("span");
+        label.textContent = (nativeOption.textContent || "").trim();
+        const check = document.createElement("span");
+        check.className = "service-fold-option-check";
+        check.setAttribute("aria-hidden", "true");
+        check.innerHTML = '<i class="fas fa-check"></i>';
+        option.append(label, check);
+        panel.appendChild(option);
+    });
+
+    updatePopupCityFoldSelection();
+}
+
+function initPopupCityFoldMenu() {
+    const selector = document.getElementById("locationPopupCityFold");
+    const trigger = document.getElementById("locationPopupCityTrigger");
+    const panel = document.getElementById("locationPopupCityPanel");
+    const select = document.getElementById("locationPopupCitySelect");
+    if (!selector || !trigger || !panel || !select || selector.dataset.ready === "true") return;
+
+    selector.dataset.ready = "true";
+    trigger.addEventListener("click", () => {
+        setPopupServiceFoldOpen(false);
+        setPopupCityFoldOpen(!selector.classList.contains("is-menu-open"));
+    });
+
+    panel.addEventListener("click", event => {
+        const option = event.target.closest(".city-fold-option");
+        if (!option) return;
+        select.value = option.dataset.value;
+        updatePopupCityFoldSelection();
+        setPopupCityFoldOpen(false);
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        updateLocationPopupFlowState();
+    });
+
+    document.addEventListener("click", event => {
+        if (!selector.contains(event.target)) setPopupCityFoldOpen(false);
+    });
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") setPopupCityFoldOpen(false);
+    });
+
+    renderPopupCityFoldMenu();
+    updateLocationPopupFlowState();
+}
+
+function setPopupServiceFoldOpen(isOpen) {
+    const selector = document.getElementById("locationPopupServiceFold");
+    const trigger = document.getElementById("locationPopupServiceTrigger");
+    if (!selector || !trigger || (isOpen && trigger.disabled)) return;
+
+    selector.classList.toggle("is-menu-open", isOpen);
+    setFoldScrollReadiness(selector, isOpen);
+    trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    syncPopupActionSparkleTarget();
+}
+
+function setPopupServiceGroupOpen(groupKey) {
+    document.querySelectorAll("#locationPopupServicePanel .service-fold-group").forEach(group => {
+        const isOpen = group.dataset.group === groupKey;
+        group.classList.toggle("is-open", isOpen);
+        group.querySelector(".service-fold-group-trigger")?.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+}
+
+function updatePopupServiceFoldSelection() {
+    const select = document.getElementById("locationPopupVehicleTypeSelect");
+    const label = document.getElementById("locationPopupServiceLabel");
+    const selector = document.getElementById("locationPopupServiceFold");
+    if (!select || !label || !selector) return;
+
+    const selectedOption = select.options[select.selectedIndex];
+    const selectedLabel = select.value && selectedOption ? selectedOption.textContent.trim() : "ProClean service for?";
+    label.textContent = selectedLabel;
+    selector.classList.toggle("has-selection", Boolean(select.value));
+
+    document.querySelectorAll("#locationPopupServicePanel .service-fold-option").forEach(option => {
+        const isSelected = option.dataset.value === select.value;
+        option.classList.toggle("is-selected", isSelected);
+        option.setAttribute("aria-selected", isSelected ? "true" : "false");
+    });
+
+    document.querySelectorAll("#locationPopupServicePanel .service-fold-group[data-direct-value]").forEach(group => {
+        group.classList.toggle("is-selected", group.dataset.directValue === select.value);
+    });
+}
+
+function selectPopupServiceFoldValue(value) {
+    const select = document.getElementById("locationPopupVehicleTypeSelect");
+    if (!select) return;
+
+    select.value = value;
+    select.classList.toggle("vehicle-type-prompt", !select.value);
+    updatePopupServiceFoldSelection();
+    updateLocationPopupFlowState();
+    setPopupServiceFoldOpen(false);
+
+    const errorText = document.getElementById("locationPopupError");
+    if (errorText) errorText.style.display = "none";
+}
+
+function renderPopupServiceFoldMenu() {
+    const select = document.getElementById("locationPopupVehicleTypeSelect");
+    const panel = document.getElementById("locationPopupServicePanel");
+    if (!select || !panel) return;
+
+    const groups = { car: [], home: [], other: [] };
+    Array.from(select.options).forEach(option => {
+        if (!option.value) return;
+        groups[getPopupServiceGroup(option.textContent || "")].push({
+            value: option.value,
+            label: (option.textContent || "").trim()
+        });
+    });
+
+    panel.replaceChildren();
+    const groupMeta = {
+        car: { title: "Car Care", icon: "fa-car-side" },
+        home: { title: "Home Care", icon: "fa-house" }
+    };
+    const selectedGroup = select.value ? getPopupServiceGroup(select.options[select.selectedIndex]?.textContent || "") : "";
+    const firstFoldGroup = selectedGroup !== "other" && groups[selectedGroup]?.length > 1
+        ? selectedGroup
+        : (!select.value ? (["car", "home"].find(key => groups[key].length > 1) || "") : "");
+
+    ["car", "home"].forEach(groupKey => {
+        if (!groups[groupKey].length) return;
+        const meta = groupMeta[groupKey];
+        const group = document.createElement("section");
+        group.className = "service-fold-group";
+        group.dataset.group = groupKey;
+        const isDirectSelection = groups[groupKey].length === 1;
+        if (isDirectSelection) {
+            group.dataset.directValue = groups[groupKey][0].value;
+            group.classList.add("is-direct");
+        }
+
+        const groupTrigger = document.createElement("button");
+        groupTrigger.type = "button";
+        groupTrigger.className = "service-fold-group-trigger";
+        if (!isDirectSelection) groupTrigger.setAttribute("aria-expanded", "false");
+        groupTrigger.innerHTML = `
+            <span class="service-fold-group-icon" aria-hidden="true"><i class="fas ${meta.icon}"></i></span>
+            <span class="service-fold-group-copy">
+                <strong>${meta.title}</strong>
+            </span>
+            ${isDirectSelection
+                ? '<span class="service-fold-direct-mark" aria-hidden="true"><i class="fas fa-arrow-right"></i></span>'
+                : '<span class="service-fold-chevron" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>'}`;
+
+        const optionsWrap = document.createElement("div");
+        optionsWrap.className = "service-fold-options-wrap";
+        const options = document.createElement("div");
+        options.className = "service-fold-options";
+        optionsWrap.appendChild(options);
+
+        groups[groupKey].forEach(item => options.appendChild(createPopupServiceFoldOption(item)));
+        group.appendChild(groupTrigger);
+        if (!isDirectSelection) group.appendChild(optionsWrap);
+        panel.appendChild(group);
+    });
+
+    if (groups.other.length) {
+        const other = document.createElement("div");
+        other.className = "service-fold-other";
+        const title = document.createElement("div");
+        title.className = "service-fold-other-title";
+        title.textContent = "Other Services";
+        const options = document.createElement("div");
+        options.className = "service-fold-options";
+        groups.other.forEach(item => options.appendChild(createPopupServiceFoldOption(item)));
+        other.append(title, options);
+        panel.appendChild(other);
+    }
+
+    setPopupServiceGroupOpen(firstFoldGroup);
+    updatePopupServiceFoldSelection();
+}
+
+function createPopupServiceFoldOption(item) {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = "service-fold-option";
+    option.dataset.value = item.value;
+    option.setAttribute("role", "option");
+
+    const label = document.createElement("span");
+    label.textContent = item.label;
+    const check = document.createElement("span");
+    check.className = "service-fold-option-check";
+    check.setAttribute("aria-hidden", "true");
+    check.innerHTML = '<i class="fas fa-check"></i>';
+    option.append(label, check);
+    return option;
+}
+
+function initPopupServiceFoldMenu() {
+    const selector = document.getElementById("locationPopupServiceFold");
+    const trigger = document.getElementById("locationPopupServiceTrigger");
+    const panel = document.getElementById("locationPopupServicePanel");
+    const select = document.getElementById("locationPopupVehicleTypeSelect");
+    if (!selector || !trigger || !panel || !select || selector.dataset.ready === "true") return;
+
+    selector.dataset.ready = "true";
+    trigger.addEventListener("click", () => {
+        setPopupCityFoldOpen(false);
+        setPopupServiceFoldOpen(!selector.classList.contains("is-menu-open"));
+    });
+
+    panel.addEventListener("click", event => {
+        const groupTrigger = event.target.closest(".service-fold-group-trigger");
+        if (groupTrigger) {
+            const group = groupTrigger.closest(".service-fold-group");
+            if (group.dataset.directValue) {
+                selectPopupServiceFoldValue(group.dataset.directValue);
+                return;
+            }
+            const shouldOpen = !group.classList.contains("is-open");
+            setPopupServiceGroupOpen(shouldOpen ? group.dataset.group : "");
+            return;
+        }
+
+        const option = event.target.closest(".service-fold-option");
+        if (!option) return;
+        selectPopupServiceFoldValue(option.dataset.value);
+    });
+
+    document.addEventListener("click", event => {
+        if (!selector.contains(event.target)) setPopupServiceFoldOpen(false);
+    });
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") setPopupServiceFoldOpen(false);
+    });
+
+    renderPopupServiceFoldMenu();
+}
+
+function syncPageFilterSparkleTarget() {
+    const citySelector = document.getElementById("pageCityFold");
+    const serviceSelector = document.getElementById("pageServiceFold");
+    const cityTrigger = document.getElementById("pageCityTrigger");
+    const serviceTrigger = document.getElementById("pageServiceTrigger");
+    const cityPanel = document.getElementById("pageCityPanel");
+    const servicePanel = document.getElementById("pageServicePanel");
+    [cityTrigger, serviceTrigger, cityPanel, servicePanel]
+        .forEach(control => control?.classList.remove("is-next-action"));
+
+    let target = null;
+    if (citySelector?.classList.contains("is-menu-open")) {
+        target = cityPanel;
+    } else if (serviceSelector?.classList.contains("is-menu-open")) {
+        target = servicePanel;
+    }
+    target?.classList.add("is-next-action");
+}
+
+function syncPageFilterExpandedState() {
+    const hasOpenFilter = Boolean(document.querySelector(".city-topbar .page-fold-selector.is-menu-open"));
+    document.body.classList.toggle("page-filter-open", hasOpenFilter);
+}
+
+function setPageCityFoldOpen(isOpen) {
+    const selector = document.getElementById("pageCityFold");
+    const trigger = document.getElementById("pageCityTrigger");
+    if (!selector || !trigger) return;
+
+    if (isOpen) {
+        const serviceSelector = document.getElementById("pageServiceFold");
+        const serviceTrigger = document.getElementById("pageServiceTrigger");
+        serviceSelector?.classList.remove("is-menu-open", "is-scroll-ready");
+        serviceTrigger?.setAttribute("aria-expanded", "false");
+    }
+    selector.classList.toggle("is-menu-open", isOpen);
+    setFoldScrollReadiness(selector, isOpen);
+    trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    syncPageFilterSparkleTarget();
+    syncPageFilterExpandedState();
+}
+
+function setPageServiceFoldOpen(isOpen) {
+    const selector = document.getElementById("pageServiceFold");
+    const trigger = document.getElementById("pageServiceTrigger");
+    if (!selector || !trigger || (isOpen && trigger.disabled)) return;
+
+    if (isOpen) {
+        const citySelector = document.getElementById("pageCityFold");
+        const cityTrigger = document.getElementById("pageCityTrigger");
+        citySelector?.classList.remove("is-menu-open", "is-scroll-ready");
+        cityTrigger?.setAttribute("aria-expanded", "false");
+    }
+    selector.classList.toggle("is-menu-open", isOpen);
+    setFoldScrollReadiness(selector, isOpen);
+    trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    syncPageFilterSparkleTarget();
+    syncPageFilterExpandedState();
+}
+
+function updatePageCityFoldSelection() {
+    const select = document.getElementById("cityDropdown");
+    const label = document.getElementById("pageCityLabel");
+    if (!select || !label) return;
+
+    const selectedOption = select.options[select.selectedIndex];
+    label.textContent = select.value && selectedOption ? selectedOption.textContent.trim() : "Select city";
+    document.querySelectorAll("#pageCityPanel .city-fold-option").forEach(option => {
+        const isSelected = option.dataset.value === select.value;
+        option.classList.toggle("is-selected", isSelected);
+        option.setAttribute("aria-selected", isSelected ? "true" : "false");
+    });
+
+    const serviceTrigger = document.getElementById("pageServiceTrigger");
+    if (serviceTrigger) serviceTrigger.disabled = !select.value;
+    syncPageFilterSparkleTarget();
+}
+
+function renderPageCityFoldMenu() {
+    const select = document.getElementById("cityDropdown");
+    const panel = document.getElementById("pageCityPanel");
+    if (!select || !panel) return;
+
+    panel.replaceChildren();
+    Array.from(select.options).forEach(nativeOption => {
+        if (!nativeOption.value) return;
+        const option = createPopupServiceFoldOption({
+            value: nativeOption.value,
+            label: (nativeOption.textContent || "").trim()
+        });
+        option.classList.add("city-fold-option");
+        panel.appendChild(option);
+    });
+    updatePageCityFoldSelection();
+}
+
+function setPageServiceGroupOpen(groupKey) {
+    document.querySelectorAll("#pageServicePanel .service-fold-group").forEach(group => {
+        const isOpen = group.dataset.group === groupKey;
+        group.classList.toggle("is-open", isOpen);
+        group.querySelector(".service-fold-group-trigger")?.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+}
+
+function updatePageServiceFoldSelection() {
+    const select = document.getElementById("vehicleTypeDropdown");
+    const label = document.getElementById("pageServiceLabel");
+    const selector = document.getElementById("pageServiceFold");
+    if (!select || !label || !selector) return;
+
+    const selectedOption = select.options[select.selectedIndex];
+    label.textContent = select.value && selectedOption ? selectedOption.textContent.trim() : "ProClean service for?";
+    selector.classList.toggle("has-selection", Boolean(select.value));
+    document.querySelectorAll("#pageServicePanel .service-fold-option").forEach(option => {
+        const isSelected = option.dataset.value === select.value;
+        option.classList.toggle("is-selected", isSelected);
+        option.setAttribute("aria-selected", isSelected ? "true" : "false");
+    });
+    document.querySelectorAll("#pageServicePanel .service-fold-group[data-direct-value]").forEach(group => {
+        group.classList.toggle("is-selected", group.dataset.directValue === select.value);
+    });
+}
+
+function renderPageServiceFoldMenu() {
+    const select = document.getElementById("vehicleTypeDropdown");
+    const panel = document.getElementById("pageServicePanel");
+    if (!select || !panel) return;
+
+    const groups = { car: [], home: [], other: [] };
+    Array.from(select.options).forEach(option => {
+        if (!option.value) return;
+        groups[getPopupServiceGroup(option.textContent || "")].push({
+            value: option.value,
+            label: (option.textContent || "").trim()
+        });
+    });
+
+    panel.replaceChildren();
+    const groupMeta = {
+        car: { title: "Car Care", icon: "fa-car-side" },
+        home: { title: "Home Care", icon: "fa-house" }
+    };
+    const selectedGroup = select.value ? getPopupServiceGroup(select.options[select.selectedIndex]?.textContent || "") : "";
+    const firstFoldGroup = selectedGroup !== "other" && groups[selectedGroup]?.length > 1
+        ? selectedGroup
+        : (!select.value ? (["car", "home"].find(key => groups[key].length > 1) || "") : "");
+
+    ["car", "home"].forEach(groupKey => {
+        if (!groups[groupKey].length) return;
+        const meta = groupMeta[groupKey];
+        const group = document.createElement("section");
+        group.className = "service-fold-group";
+        group.dataset.group = groupKey;
+        const isDirectSelection = groups[groupKey].length === 1;
+        if (isDirectSelection) {
+            group.dataset.directValue = groups[groupKey][0].value;
+            group.classList.add("is-direct");
+        }
+
+        const groupTrigger = document.createElement("button");
+        groupTrigger.type = "button";
+        groupTrigger.className = "service-fold-group-trigger";
+        if (!isDirectSelection) groupTrigger.setAttribute("aria-expanded", "false");
+        groupTrigger.innerHTML = `
+            <span class="service-fold-group-icon" aria-hidden="true"><i class="fas ${meta.icon}"></i></span>
+            <span class="service-fold-group-copy"><strong>${meta.title}</strong></span>
+            ${isDirectSelection
+                ? '<span class="service-fold-direct-mark" aria-hidden="true"><i class="fas fa-arrow-right"></i></span>'
+                : '<span class="service-fold-chevron" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>'}`;
+
+        const optionsWrap = document.createElement("div");
+        optionsWrap.className = "service-fold-options-wrap";
+        const options = document.createElement("div");
+        options.className = "service-fold-options";
+        groups[groupKey].forEach(item => options.appendChild(createPopupServiceFoldOption(item)));
+        optionsWrap.appendChild(options);
+        group.appendChild(groupTrigger);
+        if (!isDirectSelection) group.appendChild(optionsWrap);
+        panel.appendChild(group);
+    });
+
+    if (groups.other.length) {
+        const other = document.createElement("div");
+        other.className = "service-fold-other";
+        other.innerHTML = '<div class="service-fold-other-title">Other Services</div>';
+        const options = document.createElement("div");
+        options.className = "service-fold-options";
+        groups.other.forEach(item => options.appendChild(createPopupServiceFoldOption(item)));
+        other.appendChild(options);
+        panel.appendChild(other);
+    }
+
+    setPageServiceGroupOpen(firstFoldGroup);
+    updatePageServiceFoldSelection();
+}
+
+function selectPageServiceFoldValue(value) {
+    const select = document.getElementById("vehicleTypeDropdown");
+    if (!select) return;
+    select.value = value;
+    updatePageServiceFoldSelection();
+    setPageServiceFoldOpen(false);
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+function initPageFoldMenus() {
+    const citySelector = document.getElementById("pageCityFold");
+    const cityTrigger = document.getElementById("pageCityTrigger");
+    const cityPanel = document.getElementById("pageCityPanel");
+    const citySelect = document.getElementById("cityDropdown");
+    const serviceSelector = document.getElementById("pageServiceFold");
+    const serviceTrigger = document.getElementById("pageServiceTrigger");
+    const servicePanel = document.getElementById("pageServicePanel");
+    if (!citySelector || !cityTrigger || !cityPanel || !citySelect ||
+        !serviceSelector || !serviceTrigger || !servicePanel || citySelector.dataset.ready === "true") return;
+
+    citySelector.dataset.ready = "true";
+    serviceSelector.dataset.ready = "true";
+    cityTrigger.addEventListener("click", () => setPageCityFoldOpen(!citySelector.classList.contains("is-menu-open")));
+    serviceTrigger.addEventListener("click", () => setPageServiceFoldOpen(!serviceSelector.classList.contains("is-menu-open")));
+
+    cityPanel.addEventListener("click", event => {
+        const option = event.target.closest(".city-fold-option");
+        if (!option) return;
+        citySelect.value = option.dataset.value;
+        updatePageCityFoldSelection();
+        setPageCityFoldOpen(false);
+        citySelect.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    servicePanel.addEventListener("click", event => {
+        const groupTrigger = event.target.closest(".service-fold-group-trigger");
+        if (groupTrigger) {
+            const group = groupTrigger.closest(".service-fold-group");
+            if (group.dataset.directValue) {
+                selectPageServiceFoldValue(group.dataset.directValue);
+            } else {
+                setPageServiceGroupOpen(group.classList.contains("is-open") ? "" : group.dataset.group);
+            }
+            return;
+        }
+        const option = event.target.closest(".service-fold-option");
+        if (option) selectPageServiceFoldValue(option.dataset.value);
+    });
+
+    document.addEventListener("click", event => {
+        if (!citySelector.contains(event.target)) setPageCityFoldOpen(false);
+        if (!serviceSelector.contains(event.target)) setPageServiceFoldOpen(false);
+    });
+    document.addEventListener("keydown", event => {
+        if (event.key !== "Escape") return;
+        setPageCityFoldOpen(false);
+        setPageServiceFoldOpen(false);
+    });
+
+    renderPageCityFoldMenu();
+    renderPageServiceFoldMenu();
+}
+
 function populateVehicleTypeOptions(vehicleTypes = [], selectedValue = "") {
     availableVehicleTypes = [...vehicleTypes];
     const normalizedSelected = normalizeVehicleType(selectedValue);
@@ -623,6 +1253,7 @@ function populateVehicleTypeOptions(vehicleTypes = [], selectedValue = "") {
         dropdown.style.display = "block";
         dropdown.value = availableSelections.includes(normalizedSelected) ? normalizedSelected : "";
         dropdown.classList.toggle("vehicle-type-prompt", !dropdown.value);
+        renderPageServiceFoldMenu();
     }
 
     if (popupDropdown) {
@@ -631,6 +1262,8 @@ function populateVehicleTypeOptions(vehicleTypes = [], selectedValue = "") {
         popupDropdown.style.display = "block";
         popupDropdown.value = availableSelections.includes(normalizedSelected) ? normalizedSelected : "";
         popupDropdown.classList.toggle("vehicle-type-prompt", !popupDropdown.value);
+        renderPopupServiceFoldMenu();
+        updateLocationPopupFlowState();
     }
 }
 
@@ -643,11 +1276,14 @@ function syncVehicleTypeSelection(vehicleType, { persist = true } = {}) {
     if (dropdown) {
         dropdown.value = currentVehicleType;
         dropdown.classList.toggle("vehicle-type-prompt", !currentVehicleType && dropdown.style.display !== "none");
+        updatePageServiceFoldSelection();
     }
 
     if (popupDropdown) {
         popupDropdown.value = currentVehicleType;
         popupDropdown.classList.toggle("vehicle-type-prompt", !currentVehicleType && popupDropdown.style.display !== "none");
+        updatePopupServiceFoldSelection();
+        updateLocationPopupFlowState();
     }
 
     if (persist) {
@@ -1036,6 +1672,19 @@ function moveCitySelectorToTopBar() {
 
     topBar.appendChild(citySection);
     document.body.classList.add("city-topbar-mounted");
+
+    const syncTopBarSpace = () => {
+        const occupiedHeight = Math.ceil(topBar.getBoundingClientRect().bottom);
+        document.documentElement.style.setProperty("--city-topbar-height", `${occupiedHeight}px`);
+    };
+
+    window.__cityTopBarResizeObserver?.disconnect();
+    if (typeof ResizeObserver === "function") {
+        window.__cityTopBarResizeObserver = new ResizeObserver(syncTopBarSpace);
+        window.__cityTopBarResizeObserver.observe(citySection);
+    }
+    window.addEventListener("resize", syncTopBarSpace, { passive: true });
+    requestAnimationFrame(syncTopBarSpace);
 }
 
 async function applyFallbackToOther(prefill = "") {
@@ -1183,7 +1832,12 @@ async function showLocationPermissionPopup() {
 
         if (citySelect) {
             citySelect.value = savedCity || "";
+            updatePopupCityFoldSelection();
+            updateLocationPopupFlowState();
             citySelect.onchange = () => {
+                updatePopupCityFoldSelection();
+                syncVehicleTypeSelection("", { persist: false });
+                updateLocationPopupFlowState();
                 const isOther = citySelect.value === "Other";
                 if (otherCityInput) {
                     otherCityInput.style.display = isOther ? "block" : "none";
@@ -1197,7 +1851,7 @@ async function showLocationPermissionPopup() {
                 }
 
                 if (isOther) {
-                    resolveVehicleTypesForCity(DEFAULT_CITY, savedVehicleType).catch(error => {
+                    resolveVehicleTypesForCity(DEFAULT_CITY, "").catch(error => {
                         console.error("Error resolving default vehicle types:", error);
                         populateVehicleTypeOptions([], "");
                         syncVehicleTypeSelection("", { persist: false });
@@ -1211,7 +1865,7 @@ async function showLocationPermissionPopup() {
                     return;
                 }
 
-                resolveVehicleTypesForCity(citySelect.value, savedVehicleType).catch(error => {
+                resolveVehicleTypesForCity(citySelect.value, "").catch(error => {
                     console.error("Error resolving vehicle types:", error);
                     populateVehicleTypeOptions([], "");
                     syncVehicleTypeSelection("", { persist: false });
@@ -1446,6 +2100,7 @@ function renderServices(services) {
     container.innerHTML = "";
     selectedServices = [];
     updateTotal();
+    updateServiceCount();
 
     if (currentVehicleType === HOME_CARE_PREVIEW_VALUE) {
         renderHomeCarePreview();
@@ -1697,6 +2352,7 @@ function updateServiceCount() {
     if (countEl) {
         countEl.textContent = `${selectedServices.length} selected`;
     }
+    document.body.classList.toggle("has-selected-service", selectedServices.length > 0);
 }
 
 function updateTotal() {
@@ -3318,11 +3974,14 @@ async function init() {
 
     dropdown.innerHTML = availableCities.map(c => `<option value="${c}">${c}</option>`).join("");
     dropdown.innerHTML += `<option value="Other">Other City</option>`;
+    renderPageCityFoldMenu();
     populateVehicleTypeOptions([], "");
     if (popupCitySelect) {
         popupCitySelect.innerHTML = `<option value="">Select city</option>` +
             availableCities.map(city => `<option value="${city}">${city}</option>`).join("") +
             `<option value="Other">Other City</option>`;
+        renderPopupCityFoldMenu();
+        updateLocationPopupFlowState();
     }
     otherInput.placeholder = "Enter your city name";
     moveCitySelectorToTopBar();
@@ -3331,6 +3990,7 @@ async function init() {
     await resolveInitialLocationFlow();
 
     dropdown.addEventListener("change", async function(e) {
+        updatePageCityFoldSelection();
         if (e.target.value === "Other") {
             saveConfirmedCity("");
             saveVehicleType("");
@@ -3431,6 +4091,9 @@ function initFooterAccordions() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    initPopupCityFoldMenu();
+    initPopupServiceFoldMenu();
+    initPageFoldMenus();
     init();
     initFooterAccordions();
 });

@@ -262,9 +262,33 @@
             <div class="services-panel">
                 <div class="city-section">
                     <div class="city-selector">
-                        <select id="cityDropdown" class="city-select"></select>
+                        <div id="pageCityFold" class="service-fold-selector city-fold-selector page-fold-selector page-city-fold">
+                            <button
+                                id="pageCityTrigger"
+                                class="service-fold-trigger"
+                                type="button"
+                                aria-expanded="false"
+                                aria-controls="pageCityPanel">
+                                <span id="pageCityLabel" class="service-fold-trigger-label">Select city</span>
+                                <span class="service-fold-trigger-icon" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
+                            </button>
+                            <div id="pageCityPanel" class="service-fold-panel city-fold-panel" aria-label="Available cities"></div>
+                        </div>
                         <input type="text" id="otherCityInput" placeholder="Enter your city" style="display:none;">
-                        <select id="vehicleTypeDropdown" class="city-select"></select>
+                        <div id="pageServiceFold" class="service-fold-selector page-fold-selector page-service-fold">
+                            <button
+                                id="pageServiceTrigger"
+                                class="service-fold-trigger"
+                                type="button"
+                                aria-expanded="false"
+                                aria-controls="pageServicePanel">
+                                <span id="pageServiceLabel" class="service-fold-trigger-label">ProClean service for?</span>
+                                <span class="service-fold-trigger-icon" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
+                            </button>
+                            <div id="pageServicePanel" class="service-fold-panel" aria-label="ProClean service groups"></div>
+                        </div>
+                        <select id="cityDropdown" class="city-select page-fold-native" aria-label="Select city" tabindex="-1"></select>
+                        <select id="vehicleTypeDropdown" class="city-select page-fold-native" aria-label="Select ProClean service" tabindex="-1"></select>
                     </div>
                 </div>
 
@@ -518,14 +542,31 @@
     <div id="locationPopup" class="location-popup">
         <div class="location-popup-content">
             <div class="location-popup-header">
-                <h3><i class="fas fa-sparkles"></i> Choose Your Service</h3>
+                <div class="location-progress" aria-label="Booking progress">
+                    <span class="location-progress-step is-active" data-progress-step="city"><i class="fas fa-location-dot"></i> City</span>
+                    <span class="location-progress-arrow" aria-hidden="true"><i class="fas fa-arrow-right"></i></span>
+                    <span class="location-progress-step" data-progress-step="service"><i class="fas fa-sparkles"></i> Service</span>
+                    <span class="location-progress-arrow" aria-hidden="true"><i class="fas fa-arrow-right"></i></span>
+                    <span class="location-progress-step" data-progress-step="continue"><i class="fas fa-check"></i> Continue</span>
+                </div>
             </div>
             <div class="location-popup-body">
-                <p>Choose your city and the ProClean service you want to explore.</p>
-                <p class="location-popup-note">Confirm both selections before continuing.</p>
+                <p>Select your city, then choose a cleaning service.</p>
             </div>
             <div class="location-popup-form">
-                <select id="locationPopupCitySelect" class="city-select" aria-label="Select city">
+                <div id="locationPopupCityFold" class="service-fold-selector city-fold-selector">
+                    <button
+                        id="locationPopupCityTrigger"
+                        class="service-fold-trigger"
+                        type="button"
+                        aria-expanded="false"
+                        aria-controls="locationPopupCityPanel">
+                        <span id="locationPopupCityLabel" class="service-fold-trigger-label">Select city</span>
+                        <span class="service-fold-trigger-icon" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
+                    </button>
+                    <div id="locationPopupCityPanel" class="service-fold-panel city-fold-panel" aria-label="Available cities"></div>
+                </div>
+                <select id="locationPopupCitySelect" class="city-select city-fold-native" aria-label="Select city" tabindex="-1">
                     <option value="">Select city</option>
                 </select>
                 <input
@@ -535,13 +576,26 @@
                     placeholder="Enter your city name"
                     style="display:none;"
                     aria-label="Enter other city">
-                <select id="locationPopupVehicleTypeSelect" class="city-select" aria-label="Select ProClean service">
+                <div id="locationPopupServiceFold" class="service-fold-selector">
+                    <button
+                        id="locationPopupServiceTrigger"
+                        class="service-fold-trigger"
+                        type="button"
+                        disabled
+                        aria-expanded="false"
+                        aria-controls="locationPopupServicePanel">
+                        <span id="locationPopupServiceLabel" class="service-fold-trigger-label">ProClean service for?</span>
+                        <span class="service-fold-trigger-icon" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
+                    </button>
+                    <div id="locationPopupServicePanel" class="service-fold-panel" aria-label="ProClean service groups"></div>
+                </div>
+                <select id="locationPopupVehicleTypeSelect" class="city-select service-fold-native" aria-label="Select ProClean service" tabindex="-1">
                     <option value="">Select ProClean service</option>
                 </select>
                 <p id="locationPopupError" class="location-popup-error" style="display:none;">Please select a city and ProClean service to continue.</p>
             </div>
             <div class="location-popup-actions">
-                <button id="confirmCitySelectionBtn" class="confirm-btn confirm" type="button">
+                <button id="confirmCitySelectionBtn" class="confirm-btn confirm" type="button" disabled>
                     <i class="fas fa-check"></i> Continue
                 </button>
             </div>
