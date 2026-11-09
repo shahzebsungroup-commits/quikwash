@@ -11,6 +11,61 @@ body {
   overflow-x: hidden;
 }
 
+.corporate-login {
+  position: fixed;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 8px 13px;
+  border: 1px solid rgba(246, 200, 76, 0.48);
+  border-radius: 999px;
+  color: #fff4c7;
+  background: rgba(10, 19, 26, 0.72);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.corporate-login i {
+  color: #F6C84C;
+  font-size: 11px;
+}
+
+.corporate-login:hover {
+  color: #fff;
+  border-color: #F6C84C;
+  background: rgba(10, 19, 26, 0.9);
+  transform: translateY(-1px);
+}
+
+.corporate-login:focus-visible {
+  outline: 3px solid rgba(246, 200, 76, 0.42);
+  outline-offset: 3px;
+}
+
+.corporate-login:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+  .corporate-login {
+    top: max(10px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
+    min-height: 32px;
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+}
+
 /* ================= HERO ================= */
 .hero {
   position: relative;
