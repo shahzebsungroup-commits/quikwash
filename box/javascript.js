@@ -393,30 +393,28 @@ function setupCTAButton() {
 }
 
 // ================= PROMOTIONAL POPUP =================
-function showPromoPopup() {
-  // Use a counter to allow up to 2 shows per session
-  const shownCount = parseInt(
-    sessionStorage.getItem('kwikkwash_promo_shown_count') || '0',
-    10
+function showPromoPopup(audienceKey = 'guest') {
+  const safeAudience = String(audienceKey || 'guest').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80) || 'guest';
+  const storageKey = `kwikkwash_first_offer_last_shown_${safeAudience}`;
+  const browserStorageKey = 'kwikkwash_first_offer_last_shown_browser';
+  const repeatAfterMs = 2 * 60 * 60 * 1000;
+  const lastShownAt = Math.max(
+    Number(localStorage.getItem(storageKey) || 0),
+    Number(localStorage.getItem(browserStorageKey) || 0)
   );
-
-  if (shownCount >= 2) {
-    return;
-  }
+  if (Date.now() - lastShownAt < repeatAfterMs) return false;
 
   const overlay = document.getElementById('promoPopupOverlay');
-  if (!overlay) return;
+  if (!overlay) return false;
 
   // Show overlay with animation
   overlay.style.display = 'flex';
   void overlay.offsetWidth; // force reflow
   overlay.classList.add('active');
 
-  // Increment the counter
-  sessionStorage.setItem(
-    'kwikkwash_promo_shown_count',
-    String(shownCount + 1)
-  );
+  localStorage.setItem(storageKey, String(Date.now()));
+  localStorage.setItem(browserStorageKey, String(Date.now()));
+  return true;
 }
 
 function hidePromoPopup() {
@@ -430,6 +428,11 @@ function hidePromoPopup() {
     }
   }, 500); // matches transition duration
 }
+
+window.KwikkwashPromo = {
+  show: showPromoPopup,
+  hide: hidePromoPopup
+};
 
 function setupPromoPopup() {
   const closeBtn = document.getElementById('promoCloseBtn');
@@ -483,10 +486,6 @@ async function init() {
     checkPWAStatus();
   });
 
-  // Show promotional popup after 3 seconds (only up to 2 times per session)
-  setTimeout(() => {
-    showPromoPopup();
-  }, 3000);
 }
 
 if (document.readyState === 'loading') {

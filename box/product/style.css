@@ -446,8 +446,19 @@ body.city-selection-compact #otherCityInput {
     pointer-events: none;
 }
 
+.city-topbar-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.42rem;
+    width: min(96vw, 1080px);
+    pointer-events: none;
+}
+
 .city-topbar .city-section {
-    width: min(94vw, 820px);
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    max-width: 820px;
     margin: 0;
     padding: 0.34rem;
     border-radius: 999px;
@@ -595,6 +606,17 @@ body.city-selection-compact #otherCityInput {
 }
 
 @media (max-width: 640px) {
+    .city-topbar-layout {
+        flex-direction: column;
+        gap: 0.28rem;
+        width: min(94vw, 820px);
+    }
+
+    .city-topbar .city-section {
+        width: 100%;
+        max-width: none;
+    }
+
     .city-topbar .city-selector {
         flex-wrap: nowrap;
         gap: 0.28rem;

@@ -51,7 +51,8 @@
     
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=20261118-topbar-profile">
+    <link rel="stylesheet" href="auth.css?v=20261118-address-ux">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -96,7 +97,7 @@
     }
     </script>
 </head>
-<body class="app-loading direct-booking">
+<body class="app-loading direct-booking" data-kwa-page="product">
     <div id="appLoader" class="app-loader" aria-live="polite">
         <div class="app-loader-orbit">
             <div class="app-loader-ring ring-one"></div>
@@ -128,6 +129,7 @@
     <div id="cityTopBar" class="city-topbar"></div>
 
     <main id="booking-form">
+        <div id="kwaProductAccountSlot" class="kwa-product-account-slot" aria-label="Account access"></div>
         <header class="booking-intro">
             <div class="booking-intro-card">
                 <div class="booking-intro-fx" aria-hidden="true">
@@ -732,7 +734,8 @@
         <i class="fab fa-whatsapp" aria-hidden="true"></i>
     </a>
 
-    <script src="script.js"></script>
+    <script src="auth.js?v=20261118-consents-v2"></script>
+    <script src="script.js?v=20261118-address-ux"></script>
 </body>
 </html>
 

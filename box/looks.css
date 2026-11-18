@@ -880,6 +880,28 @@ h1 {
   }
 }
 
+/* Compact first-booking offer */
+.promo-overlay { padding: 12px; background: rgba(0, 0, 0, .42); backdrop-filter: blur(3px); }
+.promo-modal { width: min(390px, 100%); max-width: none; padding: 10px 38px 10px 10px; border-radius: 16px; color: #fff; background: linear-gradient(145deg, rgba(26,26,24,.98), rgba(9,9,9,.98)); border-color: rgba(246, 200, 76, .32); text-align: left; }
+.promo-content { display: grid; grid-template-columns: 38px 1fr auto; align-items: center; gap: 10px; }
+.promo-gift { display: grid; place-items: center; width: 38px; height: 38px; color: #171207; background: linear-gradient(145deg, #ffe68b, #edb62d); border-radius: 12px; box-shadow: 0 7px 20px rgba(246, 200, 76, .2); }
+.promo-copy { min-width: 0; }
+.promo-copy strong, .promo-copy small { display: block; }
+.promo-copy strong { color: #f6c84c; font-size: 17px; line-height: 1.1; }
+.promo-copy small { margin-top: 3px; color: #aaa; font-size: 10px; }
+.promo-cta { display: inline-flex; align-items: center; gap: 6px; padding: 9px 12px; border-radius: 10px; font-size: 11px; white-space: nowrap; box-shadow: none; }
+.promo-cta:hover { transform: translateY(-1px); }
+.promo-close { top: 50%; right: 7px; padding: 3px; color: #777; font-size: 21px; transform: translateY(-50%); }
+.promo-close:hover { transform: translateY(-50%); }
+@media (max-width: 420px) {
+  .promo-modal { max-width: 330px; padding: 9px 34px 9px 9px; }
+  .promo-content { grid-template-columns: 34px 1fr auto; gap: 8px; }
+  .promo-gift { width: 34px; height: 34px; }
+  .promo-copy strong { font-size: 15px; }
+  .promo-cta { padding: 8px 9px; font-size: 10px; }
+}
+@media print { .promo-overlay { display: none !important; } }
+
 /* ================= LOADING STATE ================= */
 .testimonialCard:first-child:only-child {
   position: relative;

@@ -19,6 +19,7 @@ let currentMapCenter = null;
 let mapControlsBound = false;
 let mapFooterCollapseTimer = null;
 let mapFooterAutoCollapseLocked = false;
+let preferenceSaveTimer = null;
 
 let addressMapLockUntil = 0;
 const ADDRESS_MAP_LOCK_MS = 15 * 60 * 1000;
@@ -57,6 +58,7 @@ const HOME_CARE_PREVIEW_VALUE = "home care";
 const FIRSTBOOK_CODE = "FIRSTBOOK";
 const FIRSTBOOK_DISCOUNT = 100;
 const firstBookingCheckCache = new Map();
+const pendingRequirementConsents = new Set();
 const firstBookingOfferState = {
     phone: "",
     eligible: false,
@@ -181,6 +183,211 @@ function normalizePhoneNumber(phone) {
     return String(phone || "").replace(/\D/g, "").slice(-10);
 }
 
+function escapeBookingMarkup(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function normalizedAddressKey(value) {
+    return String(value || "").toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
+}
+
+function setBookingAddress(address) {
+    const field = document.getElementById("userAddress");
+    if (!field || !address) return;
+    field.value = address.address || "";
+    const lat = Number(address.lat);
+    const lng = Number(address.lng);
+    const hasCoordinates = Number.isFinite(lat) && Number.isFinite(lng);
+    selectedMapLat = hasCoordinates ? lat : null;
+    selectedMapLng = hasCoordinates ? lng : null;
+    window.__selectedMapAddress = address.address || null;
+    window.__selectedMapAddressRaw = address.address || null;
+    window.__selectedMapCoords = hasCoordinates ? { lat, lng } : null;
+}
+
+function renderSavedAddressSuggestions() {
+    const container = document.getElementById("savedAddressSuggestions");
+    if (!container) return;
+    const customer = window.KwikkwashAuth?.getUser?.();
+    if (!customer) {
+        container.innerHTML = "";
+        container.hidden = true;
+        return;
+    }
+
+    const seen = new Set();
+    const addresses = (customer.addresses || []).filter(address => {
+        const key = normalizedAddressKey(address.address);
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+    container.hidden = false;
+    container.innerHTML = `
+        <div class="saved-address-head">
+            <span><i class="fas fa-bookmark"></i> Saved addresses</span>
+            <button type="button" id="addSavedAddressBtn"><i class="fas fa-plus"></i> Save new</button>
+        </div>
+        <div class="saved-address-list">
+            ${addresses.map(address => `
+                <article class="saved-address-option" data-address-id="${escapeBookingMarkup(address.address_id)}">
+                    <button type="button" class="saved-address-select" title="Use this address">
+                        <strong>${escapeBookingMarkup(address.label || "Address")}${address.is_default ? `<em>Default</em>` : ""}</strong>
+                        <span>${escapeBookingMarkup(address.address)}</span>
+                    </button>
+                    <div class="saved-address-actions">
+                        <button type="button" data-address-edit aria-label="Edit address" title="Edit"><i class="fas fa-pen"></i></button>
+                        <button type="button" data-address-delete aria-label="Delete address" title="Delete"><i class="fas fa-trash"></i></button>
+                    </div>
+                </article>
+            `).join("") || `<p class="saved-address-empty">No saved address yet. Save one for faster checkout next time.</p>`}
+        </div>
+        <div id="savedAddressEditor" class="saved-address-editor"></div>
+    `;
+
+    container.querySelectorAll(".saved-address-option").forEach(row => {
+        const address = addresses.find(item => item.address_id === row.dataset.addressId);
+        row.querySelector(".saved-address-select")?.addEventListener("click", () => {
+            setBookingAddress(address);
+            container.querySelectorAll(".saved-address-option").forEach(item => item.classList.remove("is-selected"));
+            row.classList.add("is-selected");
+        });
+        row.querySelector("[data-address-edit]")?.addEventListener("click", () => openSavedAddressEditor(address));
+        const deleteButton = row.querySelector("[data-address-delete]");
+        deleteButton?.addEventListener("click", async () => {
+            if (deleteButton.dataset.confirm !== "1") {
+                deleteButton.dataset.confirm = "1";
+                deleteButton.classList.add("is-confirming");
+                deleteButton.innerHTML = `<i class="fas fa-check"></i>`;
+                deleteButton.title = "Tap again to delete";
+                setTimeout(() => {
+                    if (!deleteButton.isConnected) return;
+                    deleteButton.dataset.confirm = "";
+                    deleteButton.classList.remove("is-confirming");
+                    deleteButton.innerHTML = `<i class="fas fa-trash"></i>`;
+                    deleteButton.title = "Delete";
+                }, 3500);
+                return;
+            }
+            deleteButton.disabled = true;
+            try {
+                await window.KwikkwashAuth.deleteAddress(address.address_id);
+                const field = document.getElementById("userAddress");
+                if (normalizedAddressKey(field?.value) === normalizedAddressKey(address.address)) {
+                    field.value = "";
+                    selectedMapLat = null;
+                    selectedMapLng = null;
+                }
+                showToast("Address deleted");
+                renderSavedAddressSuggestions();
+            } catch (error) {
+                showToast(error.message || "Address could not be deleted");
+                deleteButton.disabled = false;
+            }
+        });
+    });
+    document.getElementById("addSavedAddressBtn")?.addEventListener("click", () => openSavedAddressEditor(null));
+}
+
+function openSavedAddressEditor(address) {
+    const editor = document.getElementById("savedAddressEditor");
+    const field = document.getElementById("userAddress");
+    if (!editor || !field) return;
+    const rawLabel = String(address?.label || "Home").trim() || "Home";
+    const selectedType = ["Home", "Work"].includes(rawLabel) ? rawLabel : "Other";
+    const currentBookingAddress = field.value.trim();
+    const initialAddress = address?.address || currentBookingAddress;
+    editor.innerHTML = `
+        <div class="saved-address-editor-card">
+            <div class="saved-address-editor-head">
+                <span class="saved-address-editor-icon"><i class="fas ${address ? "fa-pen" : "fa-location-dot"}"></i></span>
+                <span><strong>${address ? "Edit saved address" : "Save a new address"}</strong><small>${address ? "Update the label or full address below." : "Keep this address ready for faster checkout next time."}</small></span>
+            </div>
+            <div class="saved-address-field-group">
+                <span class="saved-address-field-label">Address type <small>(this is only a label)</small></span>
+                <div class="saved-address-type-options" role="group" aria-label="Address type">
+                    ${["Home", "Work", "Other"].map(type => `
+                        <button type="button" data-saved-address-type="${type}" class="${selectedType === type ? "is-selected" : ""}" aria-pressed="${selectedType === type ? "true" : "false"}">
+                            <i class="fas ${type === "Home" ? "fa-house" : type === "Work" ? "fa-briefcase" : "fa-location-dot"}"></i> ${type}
+                        </button>
+                    `).join("")}
+                </div>
+                <div id="savedAddressCustomLabelWrap" class="saved-address-custom-label ${selectedType === "Other" ? "is-visible" : ""}">
+                    <label for="savedAddressCustomLabel">Label name</label>
+                    <input id="savedAddressCustomLabel" type="text" maxlength="40" value="${escapeBookingMarkup(selectedType === "Other" ? rawLabel : "")}" placeholder="e.g. Parents' house">
+                </div>
+            </div>
+            <div class="saved-address-field-group">
+                <label class="saved-address-field-label" for="savedAddressText">Full address</label>
+                <textarea id="savedAddressText" rows="3" minlength="10" maxlength="1000" placeholder="House/flat, street, landmark, city, PIN code">${escapeBookingMarkup(initialAddress)}</textarea>
+                <small class="saved-address-help">Enter the complete service address - not just Home or Work.</small>
+                ${!address && currentBookingAddress ? `<small class="saved-address-prefill"><i class="fas fa-circle-check"></i> Your current booking address is prefilled. Review it before saving.</small>` : ""}
+            </div>
+            <div class="saved-address-editor-actions">
+                <button type="button" id="cancelSavedAddressBtn">Cancel</button>
+                <button type="button" id="saveSavedAddressBtn"><i class="fas fa-check"></i> ${address ? "Update address" : "Save address"}</button>
+            </div>
+        </div>
+    `;
+    editor.classList.add("is-open");
+    let addressType = selectedType;
+    const customLabelWrap = document.getElementById("savedAddressCustomLabelWrap");
+    editor.querySelectorAll("[data-saved-address-type]").forEach(button => {
+        button.onclick = () => {
+            addressType = button.dataset.savedAddressType;
+            editor.querySelectorAll("[data-saved-address-type]").forEach(item => {
+                const isSelected = item === button;
+                item.classList.toggle("is-selected", isSelected);
+                item.setAttribute("aria-pressed", String(isSelected));
+            });
+            customLabelWrap.classList.toggle("is-visible", addressType === "Other");
+            if (addressType === "Other") document.getElementById("savedAddressCustomLabel").focus();
+        };
+    });
+    setTimeout(() => document.getElementById("savedAddressText")?.focus(), 50);
+    document.getElementById("cancelSavedAddressBtn").onclick = () => {
+        editor.classList.remove("is-open");
+        editor.innerHTML = "";
+    };
+    document.getElementById("saveSavedAddressBtn").onclick = async event => {
+        const button = event.currentTarget;
+        const addressTextInput = document.getElementById("savedAddressText");
+        const addressText = addressTextInput.value.trim();
+        if (addressText.length < 10) {
+            showToast("Please enter your complete address");
+            addressTextInput.focus();
+            return;
+        }
+        const customLabel = document.getElementById("savedAddressCustomLabel").value.trim();
+        const label = addressType === "Other" ? (customLabel || "Other") : addressType;
+        const sourceAddress = address?.address || currentBookingAddress;
+        const sameAsSource = normalizedAddressKey(addressText) === normalizedAddressKey(sourceAddress);
+        const lat = sameAsSource ? (address ? address.lat : selectedMapLat) : null;
+        const lng = sameAsSource ? (address ? address.lng : selectedMapLng) : null;
+        button.disabled = true;
+        try {
+            const savedAddress = await window.KwikkwashAuth.saveAddress({
+                label,
+                address: addressText,
+                lat,
+                lng,
+                is_default: address ? Boolean(address.is_default) : !(window.KwikkwashAuth.getUser()?.addresses || []).length,
+            }, address?.address_id || "");
+            if (savedAddress) setBookingAddress(savedAddress);
+            showToast(address ? "Address updated" : "Address saved");
+            renderSavedAddressSuggestions();
+        } catch (error) {
+            showToast(error.message || "Address could not be saved");
+            button.disabled = false;
+        }
+    };
+}
+
 function resetFirstBookingOffer() {
     firstBookingOfferState.phone = "";
     firstBookingOfferState.eligible = false;
@@ -219,8 +426,9 @@ function renderPricingBreakdown() {
 
 async function checkFirstBookingEligibility(phone) {
     const normalizedPhone = normalizePhoneNumber(phone);
+    const authenticatedUser = window.KwikkwashAuth?.getUser?.();
 
-    if (normalizedPhone.length !== 10) {
+    if (normalizedPhone.length !== 10 || !authenticatedUser?.phone_verified) {
         resetFirstBookingOffer();
         renderPricingBreakdown();
         return false;
@@ -237,14 +445,11 @@ async function checkFirstBookingEligibility(phone) {
         let hasExistingBooking = firstBookingCheckCache.get(normalizedPhone);
 
         if (typeof hasExistingBooking === "undefined") {
-            const response = await fetch(`${BASE_URL}/kwikkwash/bookings`);
+            const response = await window.KwikkwashAuth.authFetch("/booking-eligibility");
             if (!response.ok) throw new Error("Failed to check booking history");
 
-            const bookings = await response.json();
-            hasExistingBooking = Array.isArray(bookings) && bookings.some((booking) => {
-                const bookingPhone = normalizePhoneNumber(booking.phone || booking.customer_name || "");
-                return bookingPhone === normalizedPhone;
-            });
+            const eligibility = await response.json();
+            hasExistingBooking = !eligibility.eligible;
 
             firstBookingCheckCache.set(normalizedPhone, hasExistingBooking);
         }
@@ -262,6 +467,39 @@ async function checkFirstBookingEligibility(phone) {
         resetFirstBookingOffer();
         renderPricingBreakdown();
         return false;
+    }
+}
+
+async function ensureBookingCustomer(phone) {
+    if (!window.KwikkwashAuth?.requireBookingIdentity) {
+        showToast("Verification is loading. Please try again.");
+        return null;
+    }
+
+    const customer = await window.KwikkwashAuth.requireBookingIdentity(phone);
+    if (!customer?.phone_verified) return null;
+
+    await flushPendingRequirementConsents();
+
+    const verifiedPhone = normalizePhoneNumber(customer.phone);
+    const phoneField = document.getElementById("userPhone");
+    if (phoneField && verifiedPhone) phoneField.value = verifiedPhone;
+
+    scheduleProfilePreferenceSave();
+    await checkFirstBookingEligibility(verifiedPhone);
+    renderSavedAddressSuggestions();
+    return { customer, verifiedPhone };
+}
+
+async function flushPendingRequirementConsents() {
+    if (!pendingRequirementConsents.size || !window.KwikkwashAuth?.getUser?.() || !window.KwikkwashAuth?.saveRequirementConsents) {
+        return;
+    }
+    try {
+        await window.KwikkwashAuth.saveRequirementConsents(Array.from(pendingRequirementConsents));
+        pendingRequirementConsents.clear();
+    } catch (error) {
+        console.warn("Service confirmation could not be saved to profile:", error);
     }
 }
 
@@ -533,13 +771,27 @@ function getSavedConfirmedCity() {
     return "";
 }
 
+function scheduleProfilePreferenceSave() {
+    clearTimeout(preferenceSaveTimer);
+    preferenceSaveTimer = setTimeout(async () => {
+        const city = getSavedConfirmedCity();
+        const vehicleType = getSavedVehicleType();
+        if (!city || !vehicleType || !window.KwikkwashAuth?.getUser?.()) return;
+        try {
+            await window.KwikkwashAuth.savePreferences(city, vehicleType);
+        } catch (error) {
+            console.warn("Profile preferences could not be saved:", error);
+        }
+    }, 450);
+}
+
 function saveConfirmedCity(city) {
     if (city && availableCities.includes(city)) {
         localStorage.setItem(SAVED_CITY_KEY, city);
-        return;
+    } else {
+        localStorage.removeItem(SAVED_CITY_KEY);
     }
-
-    localStorage.removeItem(SAVED_CITY_KEY);
+    scheduleProfilePreferenceSave();
 }
 
 function normalizeVehicleType(value) {
@@ -578,10 +830,10 @@ function saveVehicleType(vehicleType) {
     const normalized = normalizeVehicleType(vehicleType);
     if (normalized) {
         localStorage.setItem(SAVED_VEHICLE_TYPE_KEY, normalized);
-        return;
+    } else {
+        localStorage.removeItem(SAVED_VEHICLE_TYPE_KEY);
     }
-
-    localStorage.removeItem(SAVED_VEHICLE_TYPE_KEY);
+    scheduleProfilePreferenceSave();
 }
 
 function getVehicleTypesFromServices(services = []) {
@@ -1332,6 +1584,12 @@ function showServiceRequirementsPopup(serviceName, requirements = []) {
         existingPopup.remove();
     }
 
+    const savedConsents = new Set(
+        [...(window.KwikkwashAuth?.getUser?.()?.service_requirement_consents || []), ...pendingRequirementConsents]
+            .map(item => String(item || "").replace(/\s+/g, " ").trim().toLowerCase())
+            .filter(Boolean)
+    );
+
     return new Promise((resolve) => {
         const popup = document.createElement("div");
         popup.id = "serviceRequirementsPopup";
@@ -1347,7 +1605,7 @@ function showServiceRequirementsPopup(serviceName, requirements = []) {
                     <div class="requirement-checklist">
                         ${requirements.map((requirement, index) => `
                             <label class="requirement-item" for="requirementCheck${index}">
-                                <input type="checkbox" id="requirementCheck${index}" data-requirement="${requirement}">
+                                <input type="checkbox" id="requirementCheck${index}" data-requirement="${requirement}" ${savedConsents.has(String(requirement).replace(/\s+/g, " ").trim().toLowerCase()) ? "checked" : ""}>
                                 <span>${requirement}</span>
                             </label>
                         `).join("")}
@@ -1380,8 +1638,14 @@ function showServiceRequirementsPopup(serviceName, requirements = []) {
 
         checkboxes.forEach(input => input.addEventListener("change", updateConfirmState));
         cancelBtn.addEventListener("click", () => cleanup(false));
-        confirmBtn.addEventListener("click", () => {
+        confirmBtn.addEventListener("click", async () => {
             if (!confirmBtn.disabled) {
+                const confirmedRequirements = checkboxes.map(input => input.dataset.requirement).filter(Boolean);
+                confirmedRequirements.forEach(requirement => pendingRequirementConsents.add(requirement));
+                if (window.KwikkwashAuth?.getUser?.() && window.KwikkwashAuth?.saveRequirementConsents) {
+                    confirmBtn.disabled = true;
+                    await flushPendingRequirementConsents();
+                }
                 cleanup(true);
             }
         });
@@ -1668,9 +1932,17 @@ function revealAppAfterLocationReady() {
 function moveCitySelectorToTopBar() {
     const topBar = document.getElementById("cityTopBar");
     const citySection = document.querySelector(".services-panel .city-section");
+    const accountSlot = document.getElementById("kwaProductAccountSlot");
     if (!topBar || !citySection) return;
 
-    topBar.appendChild(citySection);
+    let layout = topBar.querySelector(".city-topbar-layout");
+    if (!layout) {
+        layout = document.createElement("div");
+        layout.className = "city-topbar-layout";
+        topBar.appendChild(layout);
+    }
+    if (accountSlot) layout.appendChild(accountSlot);
+    layout.appendChild(citySection);
     document.body.classList.add("city-topbar-mounted");
 
     const syncTopBarSpace = () => {
@@ -1681,7 +1953,7 @@ function moveCitySelectorToTopBar() {
     window.__cityTopBarResizeObserver?.disconnect();
     if (typeof ResizeObserver === "function") {
         window.__cityTopBarResizeObserver = new ResizeObserver(syncTopBarSpace);
-        window.__cityTopBarResizeObserver.observe(citySection);
+        window.__cityTopBarResizeObserver.observe(layout);
     }
     window.addEventListener("resize", syncTopBarSpace, { passive: true });
     requestAnimationFrame(syncTopBarSpace);
@@ -2680,10 +2952,11 @@ function showUserFormOnPage() {
                     <i class="fas fa-map-marker-alt"></i> Complete Address
                 </label>
                 <textarea id="userAddress" rows="3" 
-                          class="form-input" placeholder="Enter your complete address">${defaultAddress}</textarea>
+                          class="form-input" placeholder="Enter your complete address">${escapeBookingMarkup(defaultAddress)}</textarea>
                 <button id="mapSelectBtn" type="button" class="map-select-btn">
                     <i class="fas fa-map-marker-alt"></i> Set on Map
                 </button>
+                <div id="savedAddressSuggestions" class="saved-address-suggestions" hidden></div>
             </div>
 
             <div class="form-group">
@@ -2732,6 +3005,16 @@ function showUserFormOnPage() {
 const addressField = document.getElementById("userAddress");
 
 if (addressField) {
+    addressField.addEventListener("input", () => {
+        const mapAddress = window.__selectedMapAddress || window.__selectedMapAddressRaw || "";
+        if (normalizedAddressKey(addressField.value) === normalizedAddressKey(mapAddress)) return;
+        selectedMapLat = null;
+        selectedMapLng = null;
+        window.__selectedMapAddress = null;
+        window.__selectedMapAddressRaw = null;
+        window.__selectedMapCoords = null;
+    });
+
     addressField.addEventListener("pointerdown", (event) => {
         const shouldOpenMap =
             window.matchMedia("(max-width: 768px)").matches &&
@@ -2783,6 +3066,14 @@ if (addressField) {
             }
         });
     }
+
+    window.KwikkwashAuth?.syncBookingFields?.();
+    const defaultSavedAddress = window.KwikkwashAuth?.getUser?.()?.addresses?.find(address => address.is_default);
+    const currentAddressValue = document.getElementById("userAddress")?.value.trim() || "";
+    if (defaultSavedAddress && (!currentAddressValue || currentAddressValue.endsWith(","))) {
+        setBookingAddress(defaultSavedAddress);
+    }
+    renderSavedAddressSuggestions();
 }
 
 function editSlot() {
@@ -2816,7 +3107,7 @@ function hideUserForm() {
 async function reverseGeocodeLocation(lat, lng) {
     if (!window.google?.maps) {
         return {
-            formattedAddress: `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+            formattedAddress: "",
             cityName: ""
         };
     }
@@ -2832,13 +3123,13 @@ async function reverseGeocodeLocation(lat, lng) {
         const result = response.results?.[0];
 
         return {
-            formattedAddress: result?.formatted_address || `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+            formattedAddress: result?.formatted_address || "",
             cityName: extractCityFromAddressComponents(result?.address_components || [])
         };
     } catch (error) {
         console.error("Reverse geocoding error:", error);
         return {
-            formattedAddress: `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+            formattedAddress: "",
             cityName: ""
         };
     }
@@ -3511,6 +3802,10 @@ async function confirmMapLocation() {
 
     const coords = { ...liveCenter };
     const addressData = await reverseGeocodeLocation(coords.lat, coords.lng);
+    if (!addressData.formattedAddress) {
+        showToast("Address could not be detected. Search or enter your full address.");
+        return;
+    }
     const addressField = document.getElementById("userAddress");
     const userPinnedAddress = addressData.formattedAddress;
     const displayAddress = getDisplayAddress(userPinnedAddress);
@@ -3601,14 +3896,16 @@ async function showBookingConfirmPopup() {
         return;
     }
 
-    if (!captchaInput || captchaInput !== window.__captcha) {
-        showToast("Invalid verification code");
-        generateCaptcha();
+    const identity = await ensureBookingCustomer(phone);
+    if (!identity) return;
+
+    if (firstBookingOfferState.eligible && !firstBookingOfferState.applied && document.getElementById("firstbookPopup")) {
         return;
     }
 
-    await checkFirstBookingEligibility(phone);
-    if (firstBookingOfferState.eligible && !firstBookingOfferState.applied && document.getElementById("firstbookPopup")) {
+    if (!captchaInput || captchaInput !== window.__captcha) {
+        showToast("Invalid verification code");
+        generateCaptcha();
         return;
     }
     
@@ -3743,6 +4040,13 @@ async function submitBooking() {
         return;
     }
 
+    const identity = await ensureBookingCustomer(phone);
+    if (!identity) return;
+
+    if (firstBookingOfferState.eligible && !firstBookingOfferState.applied && document.getElementById("firstbookPopup")) {
+        return;
+    }
+
     if (!captchaInput || captchaInput !== window.__captcha) {
         showToast("Invalid verification code");
         generateCaptcha();
@@ -3771,7 +4075,7 @@ async function submitBooking() {
 
     const payload = {
         booking_id: "BKG" + Date.now(),
-        customer_name: phone,
+        customer_name: window.KwikkwashAuth?.getUser?.()?.name || phone,
         phone: phone,
         city: city,
         service_code: serviceCodes,
@@ -3805,7 +4109,7 @@ booking_date: (() => {
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
-        const res = await fetch(`${BASE_URL}/kwikkwash/bookings`, {
+        const res = await window.KwikkwashAuth.authFetch("/bookings", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
@@ -3814,9 +4118,14 @@ booking_date: (() => {
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok) {
-            showToast(data.detail || data.message || "Booking failed");
+            showToast(typeof data.detail === "string" ? data.detail : (data.message || "Booking failed"));
             throw new Error("Booking failed");
         }
+
+        payload.booking_id = data.booking_id || payload.booking_id;
+        await window.KwikkwashAuth.loadMe().catch(() => null);
+        const bookedPhone = normalizePhoneNumber(phone);
+        if (bookedPhone.length === 10) firstBookingCheckCache.set(bookedPhone, true);
 
         hideUserForm();
         
@@ -3987,6 +4296,19 @@ async function init() {
     moveCitySelectorToTopBar();
     revealAppAfterLocationReady();
 
+    const authUser = await window.KwikkwashAuth?.whenReady?.();
+    if (authUser?.preferred_city && authUser?.preferred_vehicle_type) {
+        const savedProfileCity = availableCities.find(
+            city => city.toLowerCase() === String(authUser.preferred_city).toLowerCase()
+        );
+        if (savedProfileCity) {
+            localStorage.setItem(SAVED_CITY_KEY, savedProfileCity);
+            localStorage.setItem(SAVED_VEHICLE_TYPE_KEY, normalizeVehicleType(authUser.preferred_vehicle_type));
+        }
+    } else if (authUser && getSavedConfirmedCity() && getSavedVehicleType()) {
+        scheduleProfilePreferenceSave();
+    }
+
     await resolveInitialLocationFlow();
 
     dropdown.addEventListener("change", async function(e) {
@@ -4098,6 +4420,10 @@ document.addEventListener("DOMContentLoaded", () => {
     initFooterAccordions();
 });
 
+window.addEventListener("kwikkwash:profile-updated", () => {
+    renderSavedAddressSuggestions();
+});
+
 window.scrollToBooking = function() {
     document.getElementById('booking-form').scrollIntoView({ 
         behavior: "smooth", 
@@ -4125,6 +4451,7 @@ window.showBookingConfirmPopup = showBookingConfirmPopup;
 window.closeConfirmPopup = closeConfirmPopup;
 window.closeRangeConfirmPopup = closeRangeConfirmPopup;
 window.proceedToBooking = proceedToBooking;
+window.reverseGeocodeLocation = reverseGeocodeLocation;
 
 
 
