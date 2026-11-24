@@ -175,6 +175,14 @@ body.kwa-modal-open { overflow: hidden; }
 .kwa-booking-list strong { display: block; color: #eee; font-size: 11px; }
 .kwa-booking-list small { display: block; margin-top: 3px; color: #777; font-size: 9px; }
 .kwa-booking-list article > span { padding: 5px 8px; color: #e1c760; background: #242014; border-radius: 999px; font-size: 9px; text-transform: capitalize; }
+.kwa-booking-controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 9px; }
+.kwa-booking-controls > span { color: #777; font-size: 9px; }
+.kwa-booking-controls > div { display: flex; align-items: center; gap: 5px; }
+.kwa-booking-controls button { padding: 5px 7px; border: 0; color: #d9b943; background: transparent; font-size: 9px; font-weight: 750; cursor: pointer; }
+.kwa-booking-controls button:hover { color: #ffe17a; }
+.kwa-booking-controls button:focus-visible { outline: 2px solid rgba(246, 200, 76, .7); outline-offset: 2px; border-radius: 5px; }
+.kwa-booking-controls button[hidden] { display: none; }
+.kwa-booking-controls i { margin: 0 2px; font-size: 8px; }
 .kwa-empty { margin: 0; padding: 13px; color: #777; background: #0d0d0d; border-radius: 9px; font-size: 11px; }
 .kwa-offer { padding: 12px; background: rgba(246, 200, 76, .06); border: 1px solid rgba(246, 200, 76, .2); border-radius: 10px; }
 .kwa-offer p { margin: 4px 0 0; color: #aaa; font-size: 11px; }

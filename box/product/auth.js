@@ -7,6 +7,7 @@
     const PROMPT_KEY = "kwikkwash_auth_prompt_dismissed_until";
     const PROMPT_DELAY_MS = 3500;
     const PROMPT_DISMISS_MS = 7 * 24 * 60 * 60 * 1000;
+    const BOOKING_BATCH_SIZE = 2;
     const IS_HOME_PAGE = document.body?.dataset.kwaPage === "home";
     const PRODUCT_URL = IS_HOME_PAGE ? "product/" : "./";
     const GOOGLE_MAPS_API_KEY = "AIzaSyB82gWcx0dAeta4yTi7ZjmNjAa-CgC1aI0";
@@ -409,7 +410,7 @@
             const data = await response.json();
             const source = data.channels || {};
             const entries = [
-                ["whatsapp", { ...(source.whatsapp || {}), label: "WhatsApp", enabled: false, reason: "Coming soon" }],
+                ["whatsapp", { ...(source.whatsapp || {}), label: "WhatsApp", enabled: Boolean(source.whatsapp?.enabled) }],
                 ["sms", { ...(source.sms || {}), label: "Text message", enabled: Boolean(source.sms?.enabled) }],
             ];
             area.innerHTML = entries.map(([key, item], index) => `
@@ -496,13 +497,13 @@
                 <input id="kwaOtp" class="kwa-otp-input" type="text" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" placeholder="000000" required>
                 <p id="kwaInlineMessage" class="kwa-inline-message" role="alert"></p>
                 <div class="kwa-secondary-actions">
-                    <button id="kwaChangeContact" type="button">Change contact</button>
+                    <button id="kwaChangeContact" type="button">Change number</button>
                     <button id="kwaResendOtp" type="button" disabled>Resend in <span>${challenge.resend_after || 60}</span>s</button>
                 </div>
             </form>
         `;
         document.getElementById("kwaOtpForm").addEventListener("submit", handleVerifyOtp);
-        document.getElementById("kwaChangeContact").addEventListener("click", () => renderIdentifier({ type: state.authType, identifier: challenge.identifier.replace(/^\+91/, ""), compact: state.compactAuth }));
+        document.getElementById("kwaChangeContact").addEventListener("click", () => renderIdentifier({ type: state.authType, compact: state.compactAuth }));
         document.getElementById("kwaResendOtp").addEventListener("click", () => renderIdentifier({ type: state.authType, identifier: challenge.identifier.replace(/^\+91/, ""), compact: state.compactAuth }));
         const input = document.getElementById("kwaOtp");
         input.addEventListener("input", () => {
@@ -910,6 +911,12 @@
         }
     }
 
+    function bookingRowsMarkup(bookings, visibleCount) {
+        return bookings.slice(0, visibleCount).map(booking => `
+            <article><div><strong>${escapeHtml(booking.booking_id)}</strong><small>${escapeHtml(booking.booking_date || "")}</small></div><span>${escapeHtml(booking.status || "pending")}</span></article>
+        `).join("");
+    }
+
     async function renderAccount() {
         drawerBody().innerHTML = `<div class="kwa-account-loading"><i class="fas fa-spinner fa-spin"></i> Loading your account...</div>`;
         openDrawer();
@@ -930,6 +937,7 @@
             .filter(Boolean)
             .map(value => String(value).replace(/\b\w/g, character => character.toUpperCase()))
             .join(" · ");
+        let visibleBookingCount = Math.min(BOOKING_BATCH_SIZE, bookings.length);
         drawerBody().innerHTML = `
             <section class="kwa-profile-badge">
                 <div class="kwa-profile-badge-glow"></div>
@@ -949,11 +957,18 @@
             </div>
             <section class="kwa-account-section">
                 <h3>Previous bookings <span>${bookings.length}</span></h3>
-                <div class="kwa-booking-list">
-                    ${bookings.length ? bookings.slice(0, 3).map(booking => `
-                        <article><div><strong>${escapeHtml(booking.booking_id)}</strong><small>${escapeHtml(booking.booking_date || "")}</small></div><span>${escapeHtml(booking.status || "pending")}</span></article>
-                    `).join("") : `<p class="kwa-empty">Your bookings will appear here.</p>`}
+                <div id="kwaBookingList" class="kwa-booking-list" aria-live="polite">
+                    ${bookings.length ? bookingRowsMarkup(bookings, visibleBookingCount) : `<p class="kwa-empty">Your bookings will appear here.</p>`}
                 </div>
+                ${bookings.length > BOOKING_BATCH_SIZE ? `
+                    <div class="kwa-booking-controls">
+                        <span id="kwaBookingCount" aria-live="polite">Showing ${visibleBookingCount} of ${bookings.length}</span>
+                        <div>
+                            <button id="kwaBookingsLess" type="button" hidden><i class="fas fa-chevron-up"></i> Show less</button>
+                            <button id="kwaBookingsMore" type="button">Load more <i class="fas fa-chevron-down"></i></button>
+                        </div>
+                    </div>
+                ` : ""}
             </section>
             <section class="kwa-account-section">
                 <h3>Exclusive offers <span>${offers.length}</span></h3>
@@ -971,6 +986,27 @@
         `;
         document.getElementById("kwaEditProfile").addEventListener("click", () => {
             renderProfileCompletion({ inDrawer: true });
+        });
+        const bookingList = document.getElementById("kwaBookingList");
+        const bookingCount = document.getElementById("kwaBookingCount");
+        const bookingsMore = document.getElementById("kwaBookingsMore");
+        const bookingsLess = document.getElementById("kwaBookingsLess");
+        const updateBookingHistory = () => {
+            if (!bookingList || !bookings.length) return;
+            bookingList.innerHTML = bookingRowsMarkup(bookings, visibleBookingCount);
+            if (bookingCount) bookingCount.textContent = `Showing ${visibleBookingCount} of ${bookings.length}`;
+            if (bookingsMore) bookingsMore.hidden = visibleBookingCount >= bookings.length;
+            if (bookingsLess) bookingsLess.hidden = visibleBookingCount <= BOOKING_BATCH_SIZE;
+        };
+        bookingsMore?.addEventListener("click", () => {
+            visibleBookingCount = Math.min(visibleBookingCount + BOOKING_BATCH_SIZE, bookings.length);
+            updateBookingHistory();
+            if (bookingsMore.hidden) bookingsLess?.focus();
+        });
+        bookingsLess?.addEventListener("click", () => {
+            visibleBookingCount = Math.min(BOOKING_BATCH_SIZE, bookings.length);
+            updateBookingHistory();
+            bookingsMore?.focus();
         });
         document.getElementById("kwaLogout").addEventListener("click", () => logout(false));
         document.getElementById("kwaLogoutAll").addEventListener("click", () => logout(true));
